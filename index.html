@@ -994,6 +994,148 @@
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
   }
 
+  /* FREE TRIAL BANNER */
+  .free-trial-banner {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    padding: 40px 20px;
+    margin: 40px 0;
+    border-radius: 12px;
+    text-align: center;
+    color: white;
+  }
+
+  .free-trial-content h2 {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
+
+  .free-trial-content p {
+    font-size: 14px;
+    margin-bottom: 6px;
+    opacity: 0.95;
+  }
+
+  .free-trial-btn {
+    background: white;
+    color: #16a34a;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .free-trial-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  }
+
+  /* HOW TO ENROLL SECTION */
+  .how-to-enroll {
+    background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+    padding: 80px 20px;
+    margin: 60px 0;
+    text-align: center;
+  }
+
+  .enroll-title {
+    font-size: 36px;
+    font-weight: 800;
+    color: #667eea;
+    margin-bottom: 12px;
+  }
+
+  .enroll-subtitle {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 50px;
+  }
+
+  .enroll-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 26px;
+    margin-bottom: 40px;
+  }
+
+  .enroll-step {
+    background: white;
+    padding: 26px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    position: relative;
+    border-top: 4px solid #667eea;
+  }
+
+  .enroll-step:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  }
+
+  .step-number {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #667eea;
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+  }
+
+  .step-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    margin-top: 10px;
+  }
+
+  .enroll-step h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 10px;
+  }
+
+  .enroll-step p {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.7;
+  }
+
+  .enroll-cta {
+    text-align: center;
+    margin-top: 40px;
+  }
+
+  .enroll-cta-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 16px 40px;
+    border: none;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  }
+
+  .enroll-cta-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+  }
+
   /* TESTIMONIALS MOBILE RESPONSIVE */
   @media (max-width: 768px) {
     .testimonials-section {
@@ -1075,6 +1217,138 @@
       font-size: 10px;
     }
   }
+
+  /* FREE TRIAL BANNER RESPONSIVE */
+  @media (max-width: 768px) {
+    .free-trial-banner {
+      padding: 30px 15px;
+      margin: 30px 0;
+    }
+
+    .free-trial-content h2 {
+      font-size: 22px;
+    }
+
+    .free-trial-content p {
+      font-size: 13px;
+    }
+
+    .free-trial-btn {
+      padding: 11px 24px;
+      font-size: 13px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .free-trial-banner {
+      padding: 24px 12px;
+      margin: 20px 0;
+    }
+
+    .free-trial-content h2 {
+      font-size: 20px;
+    }
+
+    .free-trial-content p {
+      font-size: 12px;
+    }
+
+    .free-trial-btn {
+      padding: 10px 20px;
+      font-size: 12px;
+    }
+  }
+
+  /* HOW TO ENROLL RESPONSIVE */
+  @media (max-width: 768px) {
+    .how-to-enroll {
+      padding: 50px 15px;
+      margin: 40px 0;
+    }
+
+    .enroll-title {
+      font-size: 24px;
+    }
+
+    .enroll-subtitle {
+      font-size: 13px;
+      margin-bottom: 35px;
+    }
+
+    .enroll-steps {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .enroll-step {
+      padding: 20px;
+    }
+
+    .enroll-step h3 {
+      font-size: 15px;
+    }
+
+    .enroll-step p {
+      font-size: 12px;
+    }
+
+    .enroll-cta-btn {
+      padding: 12px 28px;
+      font-size: 13px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .how-to-enroll {
+      padding: 40px 12px;
+      margin: 30px 0;
+    }
+
+    .enroll-title {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .enroll-subtitle {
+      font-size: 12px;
+      margin-bottom: 25px;
+    }
+
+    .enroll-steps {
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .enroll-step {
+      padding: 18px;
+    }
+
+    .step-number {
+      width: 26px;
+      height: 26px;
+      font-size: 13px;
+    }
+
+    .step-icon {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .enroll-step h3 {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .enroll-step p {
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .enroll-cta-btn {
+      padding: 10px 24px;
+      font-size: 12px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -1103,6 +1377,18 @@
   <!-- FREE PRACTICE BANNER -->
   <div class="free-banner">
     ✨ <strong>UNLIMITED WEBSITE PRACTICE - COMPLETELY FREE!</strong> Practice anywhere, anytime with our online platform at no cost
+  </div>
+
+  <!-- FREE TRIAL BANNER -->
+  <div class="free-trial-banner">
+    <div class="free-trial-content">
+      <h2>Try 1 Class FREE</h2>
+      <p>No Obligation. No Hidden Costs. Just Amazing Learning.</p>
+      <p style="font-size: 13px; opacity: 0.95; margin-top: 8px;">Experience our teaching style and see the difference for yourself</p>
+      <a href="https://wa.me/919730482620?text=Hi%20Nikhil%20Sir,%20I%20want%20to%20book%20a%20FREE%20trial%20class.%0A%0APlease%20help%20me:%0AChild%27s%20Name:%0AStandard/Grade:%0ASchool%20Name:%0APreferred%20Center:%20Ambernath%20East%20or%20West" target="_blank" style="display: inline-block; margin-top: 14px; text-decoration: none;">
+        <button class="free-trial-btn">Book Free Trial Now</button>
+      </a>
+    </div>
   </div>
 
   <!-- PRICING SECTION LABEL -->
@@ -1223,6 +1509,48 @@
       <p>Give your child the gift of mental math mastery</p>
       <a href="/testimonials" style="display: inline-block; text-decoration: none;">
         <button class="cta-button" style="margin-bottom: 12px;">See All Reviews</button>
+      </a>
+    </div>
+  </div>
+
+  <!-- HOW TO ENROLL SECTION -->
+  <div class="how-to-enroll">
+    <h2 class="enroll-title">How to Get Started in 4 Simple Steps</h2>
+    <p class="enroll-subtitle">Join our community of happy students today</p>
+    
+    <div class="enroll-steps">
+      <div class="enroll-step">
+        <div class="step-number">1</div>
+        <div class="step-icon">🎓</div>
+        <h3>Book Free Trial Class</h3>
+        <p>Experience one complete class absolutely free. No obligation. See our teaching style firsthand.</p>
+      </div>
+
+      <div class="enroll-step">
+        <div class="step-number">2</div>
+        <div class="step-icon">📍</div>
+        <h3>Pick Your Center</h3>
+        <p>Choose from 3 convenient Ambernath locations: East (Near Station), East (Near Nisarg Greens), or West (Near Father Agnel)</p>
+      </div>
+
+      <div class="enroll-step">
+        <div class="step-number">3</div>
+        <div class="step-icon">📋</div>
+        <h3>Choose Your Plan</h3>
+        <p>Select Quarterly, Half-Yearly, or Yearly based on your preference and commitment level after experiencing the class</p>
+      </div>
+
+      <div class="enroll-step">
+        <div class="step-number">4</div>
+        <div class="step-icon">✨</div>
+        <h3>Enroll & Start Your Journey</h3>
+        <p>Ready? Complete enrollment and begin your child's path to mental math mastery and competition success!</p>
+      </div>
+    </div>
+
+    <div class="enroll-cta">
+      <a href="https://wa.me/919730482620?text=Hi%20Nikhil%20Sir,%20I%20want%20to%20book%20a%20FREE%20trial%20class.%0A%0APlease%20help%20me:%0AChild%27s%20Name:%0AStandard/Grade:%0ASchool%20Name:%0APreferred%20Center:%20Ambernath%20East%20or%20West" target="_blank" style="display: inline-block; text-decoration: none;">
+        <button class="enroll-cta-btn">Start Your Free Trial Today</button>
       </a>
     </div>
   </div>
