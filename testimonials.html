@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Success Stories - Li'l Champs Abacus Academy</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f8f9ff;
+    }
+
+    .navbar {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 16px 40px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .navbar-logo {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .navbar-links {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .nav-link {
+      color: white;
+      text-decoration: none;
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .nav-link:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 60px 40px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 42px;
+      margin-bottom: 12px;
+      font-weight: 800;
+    }
+
+    .header p {
+      font-size: 16px;
+      opacity: 0.95;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 40px;
+    }
+
+    .intro {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .intro h2 {
+      font-size: 32px;
+      color: #667eea;
+      margin-bottom: 12px;
+    }
+
+    .intro p {
+      font-size: 16px;
+      color: #666;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.8;
+    }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 28px;
+      margin-bottom: 60px;
+    }
+
+    .testimonial-card {
+      background: white;
+      padding: 28px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      border-left: 4px solid #667eea;
+    }
+
+    .testimonial-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .stars {
+      font-size: 18px;
+      margin-bottom: 14px;
+      letter-spacing: 3px;
+      color: #667eea;
+    }
+
+    .testimonial-text {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.9;
+      margin-bottom: 16px;
+      font-style: italic;
+      min-height: 80px;
+    }
+
+    .testimonial-author {
+      font-weight: 700;
+      color: #667eea;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .testimonial-badge {
+      display: inline-block;
+      background: #f0fdf4;
+      color: #16a34a;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .cta-section {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 50px 40px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .cta-section h2 {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    .cta-section p {
+      font-size: 16px;
+      margin-bottom: 24px;
+      opacity: 0.95;
+    }
+
+    .cta-button {
+      background: white;
+      color: #667eea;
+      padding: 16px 40px;
+      border: none;
+      border-radius: 25px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .cta-button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .footer {
+      background: #2c2c2c;
+      color: white;
+      padding: 40px;
+      text-align: center;
+      font-size: 13px;
+      margin-top: 60px;
+    }
+
+    .footer-contact {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .footer-link {
+      color: #667eea;
+      text-decoration: none;
+    }
+
+    .footer-link:hover {
+      text-decoration: underline;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .container {
+        padding: 40px 30px;
+      }
+
+      .header {
+        padding: 40px 30px;
+      }
+
+      .header h1 {
+        font-size: 32px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 12px 20px;
+        flex-wrap: wrap;
+      }
+
+      .navbar-logo {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 12px;
+        font-size: 14px;
+      }
+
+      .navbar-links {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .header {
+        padding: 30px 20px;
+      }
+
+      .header h1 {
+        font-size: 24px;
+      }
+
+      .header p {
+        font-size: 14px;
+      }
+
+      .container {
+        padding: 30px 20px;
+      }
+
+      .intro h2 {
+        font-size: 24px;
+      }
+
+      .intro p {
+        font-size: 14px;
+      }
+
+      .testimonials-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .testimonial-card {
+        padding: 20px;
+      }
+
+      .testimonial-text {
+        font-size: 13px;
+        min-height: auto;
+      }
+
+      .cta-section {
+        padding: 30px 20px;
+      }
+
+      .cta-section h2 {
+        font-size: 22px;
+      }
+
+      .cta-button {
+        padding: 12px 28px;
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header h1 {
+        font-size: 20px;
+        margin-bottom: 8px;
+      }
+
+      .header p {
+        font-size: 13px;
+      }
+
+      .container {
+        padding: 20px 15px;
+      }
+
+      .intro h2 {
+        font-size: 20px;
+      }
+
+      .intro p {
+        font-size: 13px;
+      }
+
+      .testimonial-card {
+        padding: 16px;
+        border-left-width: 3px;
+      }
+
+      .testimonial-text {
+        font-size: 12px;
+      }
+
+      .cta-section {
+        padding: 20px 15px;
+      }
+
+      .cta-section h2 {
+        font-size: 18px;
+      }
+
+      .cta-section p {
+        font-size: 14px;
+      }
+
+      .footer-contact {
+        flex-direction: column;
+        gap: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+  <div class="navbar-logo">🎓 Li'l Champs Abacus Academy</div>
+  <div class="navbar-links">
+    <a href="/" class="nav-link">← Back to Home</a>
+    <a href="/login.html" class="nav-link">Login</a>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>Success Stories from Our Parents</h1>
+  <p>Real results from real students. See how Li'l Champs Abacus Academy transforms young minds every single day.</p>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="container">
+  <!-- INTRO -->
+  <div class="intro">
+    <h2>Parents Trust Us. Students Love Us.</h2>
+    <p>With authentic five-star reviews from happy parents, Li'l Champs Abacus Academy is the trusted choice for building mental math mastery. Read testimonials from parents who've seen their children transform.</p>
+  </div>
+
+  <!-- TESTIMONIALS GRID - ALL 28 REVIEWS -->
+  <div class="testimonials-grid">
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"My 5-year-old joined with Nikhil sir and in only 2 months I got amazing results. My son stood 1st runner up at zonal level in state competition. All credit goes to Nikhil sir and his team for putting all efforts behind each and every student. Thank you!"</p>
+      <p class="testimonial-author">Shweta Laddha</p>
+      <p class="testimonial-badge">🏆 State Competition Winner</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"Thank you so much sir for giving a perfect path for the growth and development of our child. You are just amazing in creating bright future and giving our kids innovative methods and techniques. All credit goes to your way of teaching!"</p>
+      <p class="testimonial-author">Pragya Pragya</p>
+      <p class="testimonial-badge">📈 Excellent Progress</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"It has been a great experience. Learning abacus helps improve photographic memory and intellectual development. My daughter is learning under guidance of Poonam teacher and Nikhil sir. They make sure concepts are clear and provide personal attention."</p>
+      <p class="testimonial-author">Manoj Jaiswar</p>
+      <p class="testimonial-badge">✨ Concept Clarity</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"Clear communication of learning objectives improves student understanding and participation. This is evident in your teaching method and is highly appreciated. Your dedication to student growth is commendable. Thank you Nikhil Sir!"</p>
+      <p class="testimonial-author">Ankita Verma</p>
+      <p class="testimonial-badge">🎯 Clear Teaching</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"It has been a good learning experience for our daughter. Sir and ma'am have been kind about clearing all doubts timely and guiding parents. Really helpful and supportive throughout the journey. Hoping for more happy learning here."</p>
+      <p class="testimonial-author">Preity Ram</p>
+      <p class="testimonial-badge">👨‍👩‍👧 Family Support</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"Best abacus academy for kids! I personally recommend every child should enroll. The competitions like solving 200 sums in 8 minutes help kids build confidence. My child is doing well under Nikhil sir's guidance. Highly recommend this academy!"</p>
+      <p class="testimonial-author">Anita Muddliar</p>
+      <p class="testimonial-badge">💪 Confidence Builder</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"After joining UCMAS my daughter's math skills have improved, especially in mental calculations. Apart from this there have been significant improvements in confidence and concentration abilities. Teachers are very approachable and teach students very dedicatedly."</p>
+      <p class="testimonial-author">Anita Mukherjee</p>
+      <p class="testimonial-badge">🧠 Mental Math Master</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"Enrolling my kid in Nikhil sir's Abacus class was one of the best decisions that I made. He is very experienced and dedicated. He and his staff pay attention to every kid. My daughter enjoys her class immensely!"</p>
+      <p class="testimonial-author">Asma Shaikh</p>
+      <p class="testimonial-badge">😊 Happy Students</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"The training program is very good and teachers are perfect. They teach children very smartly and politely. The care and individual attention to every student is commendable. Thanks for educating our children so well!"</p>
+      <p class="testimonial-author">Mamta Gond</p>
+      <p class="testimonial-badge">⭐ Perfect Teaching</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"Thank you Nikhil sir and Snehal ma'am for all your support and hard work. My child is doing mental math at a different level now. I'm proud to see my kid solving sums mentally with speed and accuracy!"</p>
+      <p class="testimonial-author">Roma Jagwani</p>
+      <p class="testimonial-badge">🚀 Speed & Accuracy</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"Really nice class in Ambernath. Teachers put lots of efforts for each child. When my daughter joined abacus, she was average in maths. Now she got national and state level trophy! Huge improvement!"</p>
+      <p class="testimonial-author">Prachi Pinate</p>
+      <p class="testimonial-badge">🏆 National Trophy Winner</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"Good faculty with hands-on experience to explain and teach kids in their way of understanding. They motivate kids to participate in national and international competitions. Expert in explaining the importance of abacus in education!"</p>
+      <p class="testimonial-author">Harshad More</p>
+      <p class="testimonial-badge">🌍 International Standard</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"My son has shown significant improvement in math skills and enjoys classes immensely. The teachers are friendly, patient, and excellent at explaining concepts. Special thanks to Mr. Nikhil and Ms. Anushree for their timely guidance!"</p>
+      <p class="testimonial-author">Amol Kashid</p>
+      <p class="testimonial-badge">💯 100% Satisfaction</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"Thank you very much for being such a good teacher to my child. If all teachers were like you, every child would be well-educated with proper values. My child went on to become National competition champion!"</p>
+      <p class="testimonial-author">Nitin Ghavat</p>
+      <p class="testimonial-badge">🥇 National Champion</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"Great experience with abacus! Nikhil sir is a brilliant teacher who effectively leads students to develop mathematical capability! My son loves abacus class and is ahead in maths because of this program. Highly recommend!"</p>
+      <p class="testimonial-author">Smita More</p>
+      <p class="testimonial-badge">📚 Academic Excellence</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"Classes are going really well with perfect guidance and required study material. Excellent teacher who focuses on concept clarity and has a friendly nature. My son is very comfortable and eager to attend classes regularly!"</p>
+      <p class="testimonial-author">Jitendra Patil</p>
+      <p class="testimonial-badge">✅ Regular Attendance</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"Thank you for starting this Abacus class with so many branches. Kids really need these curricular activities. After joining, my daughter's maths was better and now it's best! Great encouragement and daily reminders!"</p>
+      <p class="testimonial-author">Kavita Roy</p>
+      <p class="testimonial-badge">📢 Great Communication</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"Very good teaching staff, especially Nikhil sir and Anushree ma'am, who give personal attention to every student. They discuss child's progression and help with any queries. Highly recommend UCMAS Abacus classes!"</p>
+      <p class="testimonial-author">Sunil Dattatray Ghavat</p>
+      <p class="testimonial-badge">🎯 Personal Attention</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"It's very important to judge best education platform for loved ones. I highly recommend UCMAS Abacus to make kids genius in mathematics while developing concentration. Complete development pack for your child!"</p>
+      <p class="testimonial-author">Kiran Darade</p>
+      <p class="testimonial-badge">🌟 Complete Development</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"Thank you Nikhil sir and Charu ma'am. Because of your guidance and encouraging words, my daughter became champion at state level competition! Daily practice made her champion. Best Abacus Academy with dedicated teachers!"</p>
+      <p class="testimonial-author">Sherly Paul</p>
+      <p class="testimonial-badge">🏅 State Champion</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"Excellent class in Ambernath. Nikhil sir gives personal attention to every student. I saw tremendous growth in my son after joining. Very good performance in National level competition!"</p>
+      <p class="testimonial-author">Shubhangi Jadhav</p>
+      <p class="testimonial-badge">🚀 Tremendous Growth</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"Best abacus classes in Ambernath. Both Nikhil sir and Anushree ma'am personally attend to students. They solve each query. Really good people - you can easily hand over your child to such dedicated teachers!"</p>
+      <p class="testimonial-author">Neha Kasabe</p>
+      <p class="testimonial-badge">🤝 Trustworthy Teachers</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"Li'l Champs Academy is doing great job for students. My son was average but now he's a topper in his class! He became winner and won trophy in State Level competition. Abacus is a blessing to us!"</p>
+      <p class="testimonial-author">Rubi Mondal</p>
+      <p class="testimonial-badge">🎓 Topper in Class</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"Faculty is excellent. Apart from normal classes, Nikhil sir and Anushree ma'am take extra efforts for International, National and State level competitions. Both look personally for growth of each student!"</p>
+      <p class="testimonial-author">Amar Muley</p>
+      <p class="testimonial-badge">🌐 Global Standard</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"UCMAS is the best class for Abacus. Every student is personally attended by Nikhil sir and Anushree ma'am. They introduce champions! Results speak everything. 'Nikhil sir hai to mumkin hai!'"</p>
+      <p class="testimonial-author">Ananya Padwal</p>
+      <p class="testimonial-badge">🏆 Results Speak</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"Best abacus class in Ambernath. Professional teaching and amazing management with lots of competitions to motivate children. My 9-year-old daughter can calculate sums in seconds now - no calculator needed!"</p>
+      <p class="testimonial-author">Milan Agrawal</p>
+      <p class="testimonial-badge">⚡ Lightning Fast</p>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <p class="testimonial-text">"Since joining this class, my child is developing in mathematics. I see significant progress every month. Thank you so much Nikhil sir for your outstanding support and dedication to the children!"</p>
+      <p class="testimonial-author">Yuvraj Ugale</p>
+      <p class="testimonial-badge">📈 Visible Progress</p>
+    </div>
+  </div>
+
+  <!-- CTA SECTION -->
+  <div class="cta-section">
+    <h2>Ready to Join Our Success Stories?</h2>
+    <p>Don't let your child miss out on the opportunity to develop mental math mastery and compete at national levels. Book a free trial class today!</p>
+    <a href="https://wa.me/919730482620?text=Hi%20Nikhil%20Sir,%20I%20want%20to%20book%20a%20free%20trial%20class%20for%20my%20child.%20What%20are%20the%20timings%20and%20how%20can%20we%20get%20started?" target="_blank" style="text-decoration: none;">
+      <button class="cta-button">Book Free Trial Class</button>
+    </a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-contact">
+    <a href="tel:9730482620" class="footer-link">📞 Call: 9730482620</a>
+    <a href="https://wa.me/919730482620" class="footer-link" target="_blank">📱 WhatsApp us</a>
+    <a href="/" class="footer-link">🏠 Back to Home</a>
+  </div>
+  <p>© 2026 Li'l Champs Abacus Academy, Ambernath | All Rights Reserved</p>
+</div>
+
+</body>
+</html>
