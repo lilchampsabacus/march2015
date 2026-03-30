@@ -882,6 +882,199 @@
       font-size: 16px;
     }
   }
+
+  /* TESTIMONIALS SECTION */
+  .testimonials-section {
+    background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+    padding: 80px 20px;
+    margin: 60px 0;
+  }
+
+  .testimonials-title {
+    font-size: 36px;
+    font-weight: 800;
+    color: #667eea;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .testimonials-subtitle {
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 26px;
+    margin-bottom: 60px;
+  }
+
+  .testimonial-card {
+    background: white;
+    padding: 26px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border-left: 4px solid #667eea;
+  }
+
+  .testimonial-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  }
+
+  .stars {
+    font-size: 16px;
+    margin-bottom: 12px;
+    letter-spacing: 2px;
+  }
+
+  .testimonial-text {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.8;
+    margin-bottom: 14px;
+    font-style: italic;
+  }
+
+  .testimonial-author {
+    font-weight: 600;
+    color: #667eea;
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+
+  .testimonial-badge {
+    display: inline-block;
+    background: #f0fdf4;
+    color: #16a34a;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .testimonials-cta {
+    text-align: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px;
+    border-radius: 12px;
+  }
+
+  .testimonials-cta h3 {
+    font-size: 26px;
+    margin-bottom: 10px;
+  }
+
+  .testimonials-cta p {
+    font-size: 14px;
+    margin-bottom: 20px;
+    opacity: 0.95;
+  }
+
+  .cta-button {
+    background: white;
+    color: #667eea;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .cta-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  }
+
+  /* TESTIMONIALS MOBILE RESPONSIVE */
+  @media (max-width: 768px) {
+    .testimonials-section {
+      padding: 40px 15px;
+    }
+
+    .testimonials-title {
+      font-size: 24px;
+    }
+
+    .testimonials-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .testimonial-card {
+      padding: 20px;
+      border-left-width: 3px;
+    }
+
+    .testimonials-stats {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      padding: 24px;
+    }
+
+    .stat-number {
+      font-size: 28px;
+    }
+
+    .testimonials-cta {
+      padding: 26px;
+    }
+
+    .testimonials-cta h3 {
+      font-size: 20px;
+    }
+
+    .cta-button {
+      padding: 11px 24px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .testimonials-title {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .testimonials-subtitle {
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+
+    .testimonials-grid {
+      gap: 12px;
+    }
+
+    .testimonial-card {
+      padding: 16px;
+    }
+
+    .testimonial-text {
+      font-size: 13px;
+    }
+
+    .testimonials-stats {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      padding: 16px;
+    }
+
+    .stat-number {
+      font-size: 24px;
+    }
+
+    .stat-label {
+      font-size: 10px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -976,6 +1169,64 @@
     </div>
   </div>
 
+  <!-- TESTIMONIALS SECTION -->
+  <div class="testimonials-section">
+    <h2 class="testimonials-title">What Parents Say About Li'l Champs</h2>
+    <p class="testimonials-subtitle">Real stories from real parents and students</p>
+    
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <div class="stars">⭐⭐⭐⭐⭐</div>
+        <p class="testimonial-text">"My 5-year-old joined with Nikhil sir and in only 2 months I got amazing results. My son stood 1st runner up at zonal level in state competition. All credit goes to Nikhil sir and his team for putting all efforts behind each and every student."</p>
+        <p class="testimonial-author">— Shweta Laddha (Parent)</p>
+        <p class="testimonial-badge">🏆 State Competition Winner</p>
+      </div>
+
+      <div class="testimonial-card">
+        <div class="stars">⭐⭐⭐⭐⭐</div>
+        <p class="testimonial-text">"Thank you sir for giving a perfect path for the growth and development of our child. Your innovative methods and techniques really help kids reach heights. All credit goes to your teaching and motivation."</p>
+        <p class="testimonial-author">— Pragya Pragya (Parent)</p>
+        <p class="testimonial-badge">📈 Excellent Progress</p>
+      </div>
+
+      <div class="testimonial-card">
+        <div class="stars">⭐⭐⭐⭐⭐</div>
+        <p class="testimonial-text">"Learning abacus helps improve photographic memory and intellectual calculation ability. My daughter is learning under guidance of Poonam teacher and Nikhil sir. They make sure concepts are clear and provide personal attention."</p>
+        <p class="testimonial-author">— Manoj Jaiswar (Parent)</p>
+        <p class="testimonial-badge">✨ Concept Clarity</p>
+      </div>
+
+      <div class="testimonial-card">
+        <div class="stars">⭐⭐⭐⭐⭐</div>
+        <p class="testimonial-text">"Clear communication of learning objectives improves student understanding and participation. This is evident in your teaching method and is highly appreciated. Thank you Nikhil Sir."</p>
+        <p class="testimonial-author">— Ankita Verma (Parent)</p>
+        <p class="testimonial-badge">🎯 Clear Teaching</p>
+      </div>
+
+      <div class="testimonial-card">
+        <div class="stars">⭐⭐⭐⭐⭐</div>
+        <p class="testimonial-text">"It has been a good learning experience for our daughter. Sir and ma'am have been kind about clearing all doubts timely and guiding parents. Really helpful and supportive."</p>
+        <p class="testimonial-author">— Preity Ram (Parent)</p>
+        <p class="testimonial-badge">👨‍👩‍👧 Family Support</p>
+      </div>
+
+      <div class="testimonial-card">
+        <div class="stars">⭐⭐⭐⭐⭐</div>
+        <p class="testimonial-text">"Best abacus academy! I personally recommend every child should enroll. The competitions help kids build confidence. My child is doing well under Nikhil sir's guidance. Highly recommend!"</p>
+        <p class="testimonial-author">— Anita Muddliar (Parent)</p>
+        <p class="testimonial-badge">💪 Confidence Builder</p>
+      </div>
+    </div>
+
+    <div class="testimonials-cta">
+      <h3>Join Our Community of Winners</h3>
+      <p>Give your child the gift of mental math mastery</p>
+      <a href="/testimonials" style="display: inline-block; text-decoration: none;">
+        <button class="cta-button" style="margin-bottom: 12px;">See All Reviews</button>
+      </a>
+    </div>
+  </div>
+
   <!-- PRICING CLARIFICATION -->
   <div class="pricing-clarification">
     <h3>✨ What Do These Fees Cover?</h3>
@@ -1005,8 +1256,10 @@
     <div class="footer-section">
       <h3>📞 Contact Us</h3>
       <div class="footer-content">
-        <div class="phone-number">9730482620</div>
-        <div style="font-size: 12px; margin-top: 10px; opacity: 0.9;">Call for admission details & class schedules</div>
+        <a href="https://wa.me/919730482620?text=Hi%20Nikhil%20Sir,%20I%20want%20to%20book%20a%20free%20trial%20class%20for%20my%20child." target="_blank" style="text-decoration: none; color: inherit;">
+          <div class="phone-number" style="cursor: pointer; opacity: 0.8; transition: opacity 0.3s;">9730482620</div>
+        </a>
+        <div style="font-size: 12px; margin-top: 10px; opacity: 0.9;">📱 WhatsApp or call for admission details</div>
       </div>
     </div>
 
