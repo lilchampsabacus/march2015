@@ -249,6 +249,31 @@
     white-space: nowrap;
   }
   
+  .discount-badge {
+    position: absolute;
+    top: -20px;
+    right: 20px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+    z-index: 10;
+    white-space: nowrap;
+  }
+  
+  .original-price {
+    font-size: 14px;
+    color: #999;
+    text-decoration: line-through;
+    margin-bottom: 5px;
+    font-weight: 600;
+  }
+  
   .card-icon {
     font-size: 52px;
     margin-bottom: 16px;
@@ -1259,6 +1284,365 @@
     }
   }
 
+  /* WHY ABACUS MATTERS SECTION */
+  .why-abacus-section {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    padding: 80px 20px;
+    margin: 60px 0;
+  }
+
+  .why-title {
+    font-size: 36px;
+    font-weight: 800;
+    color: #b45309;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .why-subtitle {
+    font-size: 14px;
+    color: #92400e;
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  .why-benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 26px;
+    margin-bottom: 40px;
+  }
+
+  .why-benefit-card {
+    background: white;
+    padding: 26px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border-top: 4px solid #f59e0b;
+  }
+
+  .why-benefit-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  }
+
+  .benefit-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+
+  .why-benefit-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 14px;
+  }
+
+  .why-benefit-card ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .why-benefit-card li {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 8px;
+    padding-left: 20px;
+    position: relative;
+    line-height: 1.6;
+  }
+
+  .why-benefit-card li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #22c55e;
+    font-weight: 700;
+  }
+
+  .why-bottom-text {
+    background: white;
+    padding: 26px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid #f59e0b;
+  }
+
+  .why-bottom-text p {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.8;
+  }
+
+  /* FAQ SECTION */
+  .faq-section {
+    background: linear-gradient(135deg, #e0e7ff 0%, #dbeafe 100%);
+    padding: 80px 20px;
+    margin: 60px 0;
+  }
+
+  .faq-title {
+    font-size: 36px;
+    font-weight: 800;
+    color: #4f46e5;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .faq-subtitle {
+    font-size: 14px;
+    color: #4c51bf;
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .faq-container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .faq-item {
+    background: white;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .faq-item:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  }
+
+  .faq-question {
+    padding: 20px 26px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+    border-left: 4px solid #4f46e5;
+    transition: all 0.3s ease;
+  }
+
+  .faq-question:hover {
+    background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
+  }
+
+  .faq-icon {
+    font-size: 18px;
+    margin-right: 14px;
+  }
+
+  .faq-question h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+    flex: 1;
+  }
+
+  .faq-toggle {
+    font-size: 24px;
+    color: #4f46e5;
+    font-weight: 700;
+    min-width: 30px;
+    text-align: center;
+    transition: transform 0.3s ease;
+  }
+
+  .faq-item.active .faq-toggle {
+    transform: rotate(45deg);
+  }
+
+  .faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    padding: 0 26px;
+    background: white;
+  }
+
+  .faq-item.active .faq-answer {
+    max-height: 500px;
+    padding: 20px 26px;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .faq-answer p {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.8;
+    margin: 0;
+  }
+
+  /* WHY ABACUS RESPONSIVE */
+  @media (max-width: 768px) {
+    .why-abacus-section {
+      padding: 50px 15px;
+      margin: 40px 0;
+    }
+
+    .why-title {
+      font-size: 24px;
+    }
+
+    .why-subtitle {
+      font-size: 13px;
+      margin-bottom: 35px;
+    }
+
+    .why-benefits-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .why-benefit-card {
+      padding: 20px;
+    }
+
+    .benefit-icon {
+      font-size: 28px;
+    }
+
+    .why-benefit-card h3 {
+      font-size: 15px;
+    }
+
+    .why-benefit-card li {
+      font-size: 12px;
+    }
+
+    .why-bottom-text {
+      padding: 20px;
+    }
+
+    .why-bottom-text p {
+      font-size: 13px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .why-abacus-section {
+      padding: 40px 12px;
+      margin: 30px 0;
+    }
+
+    .why-title {
+      font-size: 20px;
+    }
+
+    .why-subtitle {
+      font-size: 12px;
+    }
+
+    .why-benefits-grid {
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .why-benefit-card {
+      padding: 18px;
+    }
+
+    .benefit-icon {
+      font-size: 26px;
+    }
+
+    .why-benefit-card h3 {
+      font-size: 14px;
+    }
+  }
+
+  /* FAQ RESPONSIVE */
+  @media (max-width: 768px) {
+    .faq-section {
+      padding: 50px 15px;
+      margin: 40px 0;
+    }
+
+    .faq-title {
+      font-size: 24px;
+    }
+
+    .faq-subtitle {
+      font-size: 13px;
+      margin-bottom: 30px;
+    }
+
+    .faq-question {
+      padding: 16px 20px;
+    }
+
+    .faq-icon {
+      font-size: 16px;
+      margin-right: 10px;
+    }
+
+    .faq-question h3 {
+      font-size: 14px;
+    }
+
+    .faq-answer {
+      padding: 0 20px;
+    }
+
+    .faq-item.active .faq-answer {
+      padding: 16px 20px;
+    }
+
+    .faq-answer p {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .faq-section {
+      padding: 40px 12px;
+      margin: 30px 0;
+    }
+
+    .faq-title {
+      font-size: 20px;
+    }
+
+    .faq-subtitle {
+      font-size: 12px;
+      margin-bottom: 20px;
+    }
+
+    .faq-question {
+      padding: 14px 16px;
+    }
+
+    .faq-icon {
+      font-size: 15px;
+      margin-right: 8px;
+    }
+
+    .faq-question h3 {
+      font-size: 13px;
+    }
+
+    .faq-toggle {
+      font-size: 20px;
+    }
+
+    .faq-answer {
+      padding: 0 16px;
+    }
+
+    .faq-item.active .faq-answer {
+      padding: 14px 16px;
+    }
+
+    .faq-answer p {
+      font-size: 11px;
+    }
+  }
+
   /* HOW TO ENROLL RESPONSIVE */
   @media (max-width: 768px) {
     .how-to-enroll {
@@ -1400,7 +1784,7 @@
     <div class="card">
       <div class="card-icon">📊</div>
       <div class="card-title">Quarterly</div>
-      <div class="card-price">₹3,749</div>
+      <div class="card-price">₹3,999</div>
       <div class="card-duration">Per 3 Months</div>
       <div class="card-frequency">4 Payments/Year</div>
       <div class="card-benefits">
@@ -1420,7 +1804,7 @@
       <div class="featured-badge">✓ RECOMMENDED</div>
       <div class="card-icon">📅</div>
       <div class="card-title">Half-Yearly</div>
-      <div class="card-price">₹7,499</div>
+      <div class="card-price">₹7,999</div>
       <div class="card-duration">Per 6 Months</div>
       <div class="card-frequency">2 Payments/Year</div>
       <div class="card-benefits">
@@ -1437,8 +1821,10 @@
 
     <!-- YEARLY -->
     <div class="card">
+      <div class="discount-badge">₹1,000 OFF</div>
       <div class="card-icon">💰</div>
       <div class="card-title">Yearly</div>
+      <div class="original-price">₹15,999</div>
       <div class="card-price">₹14,999</div>
       <div class="card-duration">Full 12 Months</div>
       <div class="card-frequency">1 Payment/Year</div>
@@ -1555,6 +1941,191 @@
     </div>
   </div>
 
+  <!-- WHY ABACUS MATTERS SECTION -->
+  <div class="why-abacus-section">
+    <h2 class="why-title">Why Abacus Education Matters</h2>
+    <p class="why-subtitle">Discover how abacus training transforms your child's mind</p>
+    
+    <div class="why-benefits-grid">
+      <div class="why-benefit-card">
+        <div class="benefit-icon">🧠</div>
+        <h3>Brain Development</h3>
+        <ul>
+          <li>Activates both brain hemispheres</li>
+          <li>Strengthens photographic memory</li>
+          <li>Enhances visualization skills</li>
+          <li>Develops cognitive thinking</li>
+        </ul>
+      </div>
+
+      <div class="why-benefit-card">
+        <div class="benefit-icon">⚡</div>
+        <h3>Speed & Accuracy</h3>
+        <ul>
+          <li>Mental calculations in seconds</li>
+          <li>Reduced dependency on calculators</li>
+          <li>Error-free mathematical thinking</li>
+          <li>Lightning-fast problem solving</li>
+        </ul>
+      </div>
+
+      <div class="why-benefit-card">
+        <div class="benefit-icon">📚</div>
+        <h3>Academic Excellence</h3>
+        <ul>
+          <li>Improved school math performance</li>
+          <li>Better understanding of concepts</li>
+          <li>Increased exam scores</li>
+          <li>Stronger foundation for higher math</li>
+        </ul>
+      </div>
+
+      <div class="why-benefit-card">
+        <div class="benefit-icon">🏆</div>
+        <h3>Competition Ready</h3>
+        <ul>
+          <li>Prepares for national & zonal competitions</li>
+          <li>Builds confidence in public speaking</li>
+          <li>Develops competitive mindset</li>
+          <li>Creates champions in mathematics</li>
+        </ul>
+      </div>
+
+      <div class="why-benefit-card">
+        <div class="benefit-icon">🎯</div>
+        <h3>Concentration Building</h3>
+        <ul>
+          <li>Focus for extended periods (2+ hours)</li>
+          <li>Improved attention to detail</li>
+          <li>Better information retention</li>
+          <li>Mental discipline development</li>
+        </ul>
+      </div>
+
+      <div class="why-benefit-card">
+        <div class="benefit-icon">💪</div>
+        <h3>Confidence Boost</h3>
+        <ul>
+          <li>Mastery builds self-confidence</li>
+          <li>Better participation in class</li>
+          <li>Leadership qualities emerge</li>
+          <li>Positive attitude toward learning</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="why-bottom-text">
+      <p><strong>The Abacus Advantage:</strong> It's not just about math. Abacus training develops holistic intelligence that benefits your child across all subjects and life skills.</p>
+    </div>
+  </div>
+
+  <!-- FAQ SECTION -->
+  <div class="faq-section">
+    <h2 class="faq-title">Frequently Asked Questions</h2>
+    <p class="faq-subtitle">Get answers to common parent questions</p>
+    
+    <div class="faq-container">
+      <div class="faq-item">
+        <div class="faq-question">
+          <span class="faq-icon">❓</span>
+          <h3>What age can my child start abacus?</h3>
+          <span class="faq-toggle">+</span>
+        </div>
+        <div class="faq-answer">
+          <p>Children aged 4-5 years can start abacus training. At this age, they have the fine motor skills and cognitive ability to understand the concept. Early start gives them an advantage across all mathematics.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span class="faq-icon">⏱️</span>
+          <h3>How long is the complete program?</h3>
+          <span class="faq-toggle">+</span>
+        </div>
+        <div class="faq-answer">
+          <p>The program spans 53 months (approximately 4.4 years) across 10 levels. Each level builds on the previous, creating a comprehensive progression from basic arithmetic to advanced mental mathematics and competition-level problem solving.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span class="faq-icon">📅</span>
+          <h3>What if my child misses a class?</h3>
+          <span class="faq-toggle">+</span>
+        </div>
+        <div class="faq-answer">
+          <p>We understand life happens! We offer flexible make-up sessions at alternative times. Your child won't fall behind because we ensure they cover all concepts. Just let us know in advance, and we'll schedule a convenient time.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span class="faq-icon">🔄</span>
+          <h3>Can we change centers or instructors?</h3>
+          <span class="faq-toggle">+</span>
+        </div>
+        <div class="faq-answer">
+          <p>Yes! We have 3 centers in Ambernath (East Near Station, East Near Nisarg Greens, West Near Father Agnel). You can switch centers based on your convenience. All our instructors follow the same curriculum, so transitions are seamless.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span class="faq-icon">✅</span>
+          <h3>How is progress assessed?</h3>
+          <span class="faq-toggle">+</span>
+        </div>
+        <div class="faq-answer">
+          <p>We conduct regular assessments at each level to ensure mastery. Progress includes: timed calculation challenges, accuracy tests, formula understanding checks, and competition readiness evaluations. Parents receive detailed reports monthly.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span class="faq-icon">🎓</span>
+          <h3>What happens after Level 10?</h3>
+          <span class="faq-toggle">+</span>
+        </div>
+        <div class="faq-answer">
+          <p>After completing Level 10, students have mastered abacus and mental mathematics to competition standard. Many continue with our advanced competition coaching program to participate in national and international tournaments.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span class="faq-icon">💰</span>
+          <h3>Is there a refund policy?</h3>
+          <span class="faq-toggle">+</span>
+        </div>
+        <div class="faq-answer">
+          <p>Our fee structure reflects the comprehensive training provided. If you're not satisfied after the free trial class, we can discuss alternatives. However, once enrolled, fees are non-refundable as they cover instructor time, materials, and resources.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span class="faq-icon">🏅</span>
+          <h3>Will my child get competition training?</h3>
+          <span class="faq-toggle">+</span>
+        </div>
+        <div class="faq-answer">
+          <p>Yes! As part of our regular curriculum, we prepare students for competitions. We have trained 15+ state and national level winners. Optional advanced competition coaching is available for students interested in serious competitive participation.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <span class="faq-icon">📱</span>
+          <h3>Is online practice really unlimited?</h3>
+          <span class="faq-toggle">+</span>
+        </div>
+        <div class="faq-answer">
+          <p>Yes! Absolutely unlimited. With your enrollment, you get access to our entire online practice platform at no additional cost. Practice anytime, anywhere - on laptop, tablet, or phone. No hidden charges ever.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- PRICING CLARIFICATION -->
   <div class="pricing-clarification">
     <h3>✨ What Do These Fees Cover?</h3>
@@ -1611,6 +2182,26 @@
     </div>
   </div>
 </div>
+
+<script>
+  // FAQ Accordion Functionality
+  document.querySelectorAll('.faq-question').forEach(question => {
+    question.addEventListener('click', function() {
+      const faqItem = this.closest('.faq-item');
+      const isActive = faqItem.classList.contains('active');
+      
+      // Close all open FAQ items
+      document.querySelectorAll('.faq-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      
+      // Open this FAQ item if it wasn't active
+      if (!isActive) {
+        faqItem.classList.add('active');
+      }
+    });
+  });
+</script>
 
 </body>
 </html>
