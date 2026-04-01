@@ -68,7 +68,7 @@
   }
   .input-group {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1.5fr;
     gap: 20px;
     margin-bottom: 30px;
   }
@@ -235,6 +235,12 @@
     color: #22c55e;
     font-size: 14px;
   }
+  .kit-fee-cell {
+    font-weight: 700;
+    color: #f59e0b;
+    font-size: 14px;
+    text-align: center;
+  }
   .kit-fee-note {
     background: #fff8e1;
     border-left: 4px solid #f59e0b;
@@ -304,21 +310,28 @@
       <div class="section-title">Step 1: Select Start Month & Payment Date</div>
       <div class="input-group">
         <div class="form-field">
-          <label for="startMonth">When will your child start?</label>
+          <label for="startMonth">Month</label>
           <select id="startMonth" required>
-            <option value="">-- Choose a month --</option>
-            <option value="0">January 2025</option>
-            <option value="1">February 2025</option>
-            <option value="2">March 2025</option>
-            <option value="3">April 2025</option>
-            <option value="4">May 2025</option>
-            <option value="5">June 2025</option>
-            <option value="6">July 2025</option>
-            <option value="7">August 2025</option>
-            <option value="8">September 2025</option>
-            <option value="9">October 2025</option>
-            <option value="10">November 2025</option>
-            <option value="11">December 2025</option>
+            <option value="">-- Choose month --</option>
+            <option value="0">January</option>
+            <option value="1">February</option>
+            <option value="2">March</option>
+            <option value="3">April</option>
+            <option value="4">May</option>
+            <option value="5">June</option>
+            <option value="6">July</option>
+            <option value="7">August</option>
+            <option value="8">September</option>
+            <option value="9">October</option>
+            <option value="10">November</option>
+            <option value="11">December</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="startYear">Year</label>
+          <select id="startYear" required>
+            <option value="">-- Choose year --</option>
           </select>
         </div>
 
@@ -344,7 +357,7 @@
       <div class="payment-options">
         <label class="option-card">
           <input type="radio" name="paymentOption" value="quarterly" required>
-          <div class="option-amount">₹3,749</div>
+          <div class="option-amount">₹3,999</div>
           <div class="option-content">Quarterly</div>
           <div class="option-frequency">Every 3 months</div>
           <div class="checkmark">✓</div>
@@ -352,7 +365,7 @@
 
         <label class="option-card">
           <input type="radio" name="paymentOption" value="halfyearly" required>
-          <div class="option-amount">₹7,499</div>
+          <div class="option-amount">₹7,999</div>
           <div class="option-content">Half-Yearly</div>
           <div class="option-frequency">Every 6 months</div>
           <div class="checkmark">✓</div>
@@ -377,11 +390,11 @@
         <div class="schedule-info">
           <div class="info-item">
             <span class="info-label">📅 Program Duration</span>
-            <span class="info-value" id="programDuration">53 calendar months (4 years)</span>
+            <span class="info-value" id="programDuration">52 months (4 years, 4 months)</span>
           </div>
           <div class="info-item">
             <span class="info-label">💰 Payment Option</span>
-            <span class="info-value" id="paymentOptionDisplay">Half-Yearly - ₹7,499</span>
+            <span class="info-value" id="paymentOptionDisplay">Half-Yearly - ₹7,999</span>
           </div>
           <div class="info-item">
             <span class="info-label">🎯 Total Payments</span>
@@ -399,7 +412,8 @@
           <tr>
             <th>#</th>
             <th>Payment Due Date</th>
-            <th>Amount</th>
+            <th>Course Fee</th>
+            <th>Kit Fee</th>
             <th>What It Covers</th>
           </tr>
         </thead>
@@ -408,10 +422,11 @@
       </table>
 
       <div class="kit-fee-note">
-        <strong>ℹ️ Important Notes:</strong><br>
-        • One-time Kit Fee: In addition to the first payment, there is a ₹1,700 one-time kit fee (includes practice abacus & materials) due when Level 1 starts.<br>
-        • Final Payment: The last payment is prorated based on remaining months in the 53-month program. It will be less than a regular payment since the program ends mid-period.
-       <br>⚠️ No Refund Policy: If a student drops out between levels, NO REFUND will be given for unused months.<br>
+        <strong>ℹ️ How to Read This Payment Schedule:</strong><br>
+        • <strong>Course Fee:</strong> Your regular payment for abacus training (same for all payments).<br>
+        • <strong>Kit Fee:</strong> One-time ₹1,700 fee for practice abacus and learning materials, paid only with the first payment. For subsequent payments, it shows "-" (not included).<br>
+        • <strong>Total First Payment:</strong> Course Fee + Kit Fee = Your first payment's total amount due.<br>
+        • <strong>Final Payment:</strong> The last payment is prorated based on remaining months. It will be less than regular payments since the program ends mid-period.
       </div>
     </div>
   </div>
@@ -422,11 +437,17 @@ const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep
 
 function generateSchedule() {
   const startMonthSelect = document.getElementById('startMonth');
+  const startYearSelect = document.getElementById('startYear');
   const paymentDateSelect = document.getElementById('paymentDate');
   const paymentOption = document.querySelector('input[name="paymentOption"]:checked');
   
   if (!startMonthSelect.value) {
-    showError('Please select a start month');
+    showError('Please select a month');
+    return;
+  }
+  
+  if (!startYearSelect.value) {
+    showError('Please select a year');
     return;
   }
   
@@ -440,9 +461,13 @@ function generateSchedule() {
     return;
   }
   
-  const startMonth = parseInt(startMonthSelect.value);
+  const startMonthValue = parseInt(startMonthSelect.value);
+  const startYearValue = parseInt(startYearSelect.value);
   const paymentDate = parseInt(paymentDateSelect.value);
   const paymentType = paymentOption.value;
+  
+  // Calculate month offset: (year - 2026) * 12 + month
+  const startMonth = (startYearValue - 2026) * 12 + startMonthValue;
   
   // Calculate payment schedule
   const schedule = calculatePaymentSchedule(startMonth, paymentDate, paymentType);
@@ -461,8 +486,8 @@ function calculatePaymentSchedule(startMonth, paymentDate, paymentType) {
   const schedule = [];
   let paymentNumber = 1;
   
-  // Program ends at month 52 (index), which is the 53rd month
-  const programEndMonth = 52;
+  // Program ends at month 51 (index), which is the 52nd month (0-51 inclusive = 52 months)
+  const programEndMonth = 51;
   
   // Determine payment months based on type
   let paymentMonths = [];
@@ -488,9 +513,9 @@ function calculatePaymentSchedule(startMonth, paymentDate, paymentType) {
   // Get base amount per month
   let baseMonthlyAmount = 0;
   if (paymentType === 'quarterly') {
-    baseMonthlyAmount = 3749 / 3;
+    baseMonthlyAmount = 3999 / 3;
   } else if (paymentType === 'halfyearly') {
-    baseMonthlyAmount = 7499 / 6;
+    baseMonthlyAmount = 7999 / 6;
   } else if (paymentType === 'yearly') {
     baseMonthlyAmount = 14999 / 12;
   }
@@ -500,7 +525,7 @@ function calculatePaymentSchedule(startMonth, paymentDate, paymentType) {
     const monthOffset = paymentMonths[i];
     
     const calcMonth = (startMonth + monthOffset) % 12;
-    const calcYear = 2025 + Math.floor((startMonth + monthOffset) / 12);
+    const calcYear = 2026 + Math.floor((startMonth + monthOffset) / 12);
     
     // Calculate exact payment date
     let exactDay = paymentDate;
@@ -532,27 +557,62 @@ function calculatePaymentSchedule(startMonth, paymentDate, paymentType) {
       amount = Math.round(baseMonthlyAmount * monthsCovered);
     } else {
       if (paymentType === 'quarterly') {
-        amount = 3749;
+        amount = 3999;
       } else if (paymentType === 'halfyearly') {
-        amount = 7499;
+        amount = 7999;
       } else if (paymentType === 'yearly') {
         amount = 14999;
       }
     }
     
-    // Determine what it covers
-    let covers = '';
-    if (paymentType === 'quarterly') {
-      covers = isLastPayment ? `${monthsCovered} months (Final)` : `${monthsCovered} months`;
-    } else if (paymentType === 'halfyearly') {
-      covers = isLastPayment ? `${monthsCovered} months (Final)` : `${monthsCovered} months`;
-    } else if (paymentType === 'yearly') {
-      covers = isLastPayment ? `${monthsCovered} months (Final)` : `${monthsCovered} months`;
+    // Determine which levels are covered
+    let startMonthOffset = monthOffset;
+    let endMonthOffset = monthOffset + monthsCovered - 1;
+    
+    // Function to get level(s) for a month offset
+    // Year 1 (0-11): Level 1-2
+    // Year 2 (12-23): Level 3-4
+    // Year 3 (24-35): Level 5-7
+    // Year 4 (36-47): Level 8-10
+    // Year 5 (48-51): Post Graduation
+    function getLevel(monthOffset) {
+      if (monthOffset < 12) return 1;
+      if (monthOffset < 24) return 3;
+      if (monthOffset < 36) return 5;
+      if (monthOffset < 48) return 8;
+      return 11; // Post Graduation
     }
     
-    // Add kit fee to first payment
-    if (paymentNumber === 1) {
-      covers = 'Level 1 Kit (₹1,700) + ' + covers;
+    function getLevelsRange(start, end) {
+      const startLevel = getLevel(start);
+      const endLevel = getLevel(end);
+      
+      if (startLevel === 11) return 'Post Graduation';
+      if (endLevel === 11) {
+        // Crosses into post-graduation
+        if (startLevel === 8) return 'Levels 8-10 + Post Graduation';
+        if (startLevel === 5) return 'Levels 5-7, 8-10 + Post Graduation';
+      }
+      
+      if (startLevel === endLevel) {
+        if (startLevel === 1) return 'Levels 1-2';
+        if (startLevel === 3) return 'Levels 3-4';
+        if (startLevel === 5) return 'Levels 5-7';
+        if (startLevel === 8) return 'Levels 8-10';
+      } else {
+        // Spans multiple years
+        const levels = [];
+        if (startLevel <= 2) levels.push('1-2');
+        if (startLevel <= 4 && endLevel >= 3) levels.push('3-4');
+        if (startLevel <= 7 && endLevel >= 5) levels.push('5-7');
+        if (startLevel <= 10 && endLevel >= 8) levels.push('8-10');
+        return 'Levels ' + levels.join(', ');
+      }
+    }
+    
+    let covers = getLevelsRange(startMonthOffset, endMonthOffset);
+    if (isLastPayment) {
+      covers += ' (Final)';
     }
     
     schedule.push({
@@ -575,12 +635,12 @@ function displaySchedule(schedule, startMonth, paymentDate, paymentType) {
   
   // Calculate program start date (display)
   const startCalcMonth = startMonth % 12;
-  const startCalcYear = 2025 + Math.floor(startMonth / 12);
+  const startCalcYear = 2026 + Math.floor(startMonth / 12);
   const startDate = monthNames[startCalcMonth] + ' ' + startCalcYear;
   
-  // Calculate program completion date (53 months from start)
-  const completionMonth = (startMonth + 52) % 12; // 52 = 53-1 (0-indexed)
-  const completionYear = 2025 + Math.floor((startMonth + 52) / 12);
+  // Calculate program completion date (52 months from start)
+  const completionMonth = (startMonth + 51) % 12; // 51 = 52-1 (0-indexed, 52 months total)
+  const completionYear = 2026 + Math.floor((startMonth + 51) / 12);
   const completionDate = monthNames[completionMonth] + ' ' + completionYear;
   
   // Display schedule info
@@ -588,9 +648,9 @@ function displaySchedule(schedule, startMonth, paymentDate, paymentType) {
   
   let paymentDisplay = '';
   if (paymentType === 'quarterly') {
-    paymentDisplay = 'Quarterly - ₹3,749 every 3 months';
+    paymentDisplay = 'Quarterly - ₹3,999 every 3 months';
   } else if (paymentType === 'halfyearly') {
-    paymentDisplay = 'Half-Yearly - ₹7,499 every 6 months';
+    paymentDisplay = 'Half-Yearly - ₹7,999 every 6 months';
   } else {
     paymentDisplay = 'Yearly - ₹14,999 every 12 months';
   }
@@ -610,11 +670,13 @@ function displaySchedule(schedule, startMonth, paymentDate, paymentType) {
     }
     
     let amountDisplay = '₹' + payment.amount.toLocaleString('en-IN');
+    let kitFeeDisplay = payment.number === 1 ? '₹1,700' : '-';
     
     row.innerHTML = `
       <td ${rowStyle}><strong>${payment.number}</strong></td>
       <td ${rowStyle}>${payment.dueDate}</td>
       <td class="amount-cell" ${rowStyle}>${amountDisplay}</td>
+      <td class="kit-fee-cell" ${rowStyle}>${kitFeeDisplay}</td>
       <td ${rowStyle}>${payment.covers}</td>
     `;
     scheduleBody.appendChild(row);
@@ -635,10 +697,32 @@ function showError(message) {
   setTimeout(() => msgEl.classList.remove('show'), 5000);
 }
 
+// Generate month dropdown options dynamically
+// Generate year dropdown options dynamically
+function populateYearDropdown() {
+  const startYearSelect = document.getElementById('startYear');
+  
+  // Current date
+  const today = new Date();
+  const currentYear = today.getFullYear(); // 2026
+  
+  // Generate options for next 25 years
+  for (let year = currentYear; year < currentYear + 25; year++) {
+    const option = document.createElement('option');
+    option.value = year;
+    option.textContent = year;
+    startYearSelect.appendChild(option);
+  }
+}
+
 // Auto-generate on page load with default values
 window.addEventListener('load', function() {
-  // Set default values
-  document.getElementById('startMonth').value = '3'; // April
+  // Populate year dropdown
+  populateYearDropdown();
+  
+  // Set default values (June 2026)
+  document.getElementById('startMonth').value = '5'; // June
+  document.getElementById('startYear').value = '2026'; // 2026
   document.getElementById('paymentDate').value = '15'; // 15th
   document.querySelector('input[value="halfyearly"]').checked = true;
 });
