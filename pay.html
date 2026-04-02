@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Opening UPI App...</title>
+</head>
+<body style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; text-align: center; background-color: #f8fafc;">
+  <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <h2 style="color: #1e3a8a; margin-bottom: 8px;">Opening your UPI App...</h2>
+    <p style="color: #475569;">If it does not open automatically, <a id="upi-link" style="color: #2563eb; font-weight: 600;" href="#">click here to pay</a>.</p>
+  </div>
+
+  <script>
+    // Grabs all variables like amount, upi id, etc from the URL
+    const urlParams = window.location.search;
+    const upiUri = "upi://pay" + urlParams;
+    
+    // Set the backup manual click link
+    document.getElementById('upi-link').href = upiUri;
+    
+    // Automatically trigger the UPI apps on mobile
+    window.location.href = upiUri;
+  </script>
+</body>
+</html>
