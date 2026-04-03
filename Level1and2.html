@@ -6,6 +6,7 @@
     <title>Practice Sums - Level 1 & 2</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
@@ -474,22 +475,83 @@
                 reviewBtn.classList.add('hidden');
             }
 
-            const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby9zSp5IW8U_U1UGjgYGKunSOGEqsyo-XJ2ZpjTwdmM-5WF9PRMXTt-bAvYEVfhL7Y8/exec"; 
-            if (GOOGLE_SCRIPT_URL) {
-                const payload = {
-                    name: studentName,
-                    formula: "'" + selectedFormulaObj.name,
-                    score: score,
-                    time: finalTimeString
-                };
-                fetch(GOOGLE_SCRIPT_URL, {
-                    method: "POST",
-                    mode: "no-cors", 
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                }).catch(err => console.error(err));
+            const payload = {
+                name: studentName,
+                formula: selectedFormulaObj.name,
+                score: score,
+                time: finalTimeString
+            };
+            saveOrQueueResult(payload);
+        }
+
+        // ── Supabase setup ───────────────────────────────────────────────
+        const SUPABASE_URL  = "https://portal-bridge.ucmas-ambernath-pg.workers.dev";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk";
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function saveResult(payload) {
+            const { error } = await _supabase
+                .from('level1and2_practice')
+                .insert([payload]);
+            if (error) throw error;
+        }
+
+        async function saveOrQueueResult(payload) {
+            if (navigator.onLine) {
+                try {
+                    await saveResult(payload);
+                } catch (error) {
+                    console.error("Save failed:", error);
+                    showRetryButton(payload);
+                }
+            } else {
+                payload.offlineTimestamp = new Date().toLocaleString("en-IN", {
+                    timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short"
+                });
+                let queue = JSON.parse(localStorage.getItem('l12_offlineQueue') || '[]');
+                queue.push(payload);
+                localStorage.setItem('l12_offlineQueue', JSON.stringify(queue));
+                alert("📡 No connection! Your result is saved locally and will upload when you reconnect.");
             }
         }
+
+        function showRetryButton(payload) {
+            if (document.getElementById('l12-retry-btn')) return;
+            const reportCard = document.getElementById('report-card');
+            const retryBtn = document.createElement('button');
+            retryBtn.id = "l12-retry-btn";
+            retryBtn.className = "w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600 mb-3 shadow-lg";
+            retryBtn.innerHTML = "⚠️ Save Failed — Tap to Retry";
+            retryBtn.onclick = async () => {
+                retryBtn.textContent = "Retrying... 📡";
+                retryBtn.disabled = true;
+                try {
+                    await saveResult(payload);
+                    retryBtn.remove();
+                    alert("✅ Result saved successfully!");
+                } catch (e) {
+                    retryBtn.disabled = false;
+                    retryBtn.innerHTML = "❌ Still Failing — Try Again";
+                    console.error("Retry failed:", e);
+                }
+            };
+            const replayBtn = reportCard.querySelector('button[onclick="window.location.reload()"]');
+            reportCard.insertBefore(retryBtn, replayBtn);
+        }
+
+        // Flush any offline queue when connection is restored
+        window.addEventListener('online', async () => {
+            const queue = JSON.parse(localStorage.getItem('l12_offlineQueue') || '[]');
+            if (queue.length === 0) return;
+            let saved = 0;
+            for (const item of queue) {
+                try { await saveResult(item); saved++; } catch(e) { break; }
+            }
+            if (saved > 0) {
+                localStorage.setItem('l12_offlineQueue', JSON.stringify(queue.slice(saved)));
+                console.log(`✅ Flushed ${saved} offline result(s) to Supabase.`);
+            }
+        });
 
         function showMistakes() {
             const container = document.getElementById('wrong-sums-list');
@@ -552,5 +614,3 @@
     </script>
 </body>
 </html>
-
-
