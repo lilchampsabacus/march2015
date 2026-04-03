@@ -28,23 +28,19 @@
     </header>
 
     <main class="flex-grow p-6 flex flex-col items-center">
-        
+
         <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-4xl mb-8 border-t-4 border-indigo-500">
             <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                 📊 Report for: <span id="studentNameDisplay" class="text-indigo-600">Loading...</span>
             </h3>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                    <label class="block text-gray-600 font-bold mb-2">Start Date</label>
-                    <input type="date" id="startDate" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+
+            <div class="flex flex-col sm:flex-row gap-4 items-end">
+                <div class="flex-1">
+                    <label class="block text-gray-600 font-bold mb-2">Select Date</label>
+                    <input type="date" id="selectedDate" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
                 </div>
-                <div>
-                    <label class="block text-gray-600 font-bold mb-2">End Date</label>
-                    <input type="date" id="endDate" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
-                <div class="flex items-end">
-                    <button onclick="fetchReport()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-md transform active:scale-95">
+                <div class="flex-none">
+                    <button onclick="fetchReport()" class="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition-all shadow-md transform active:scale-95">
                         Show Report
                     </button>
                 </div>
@@ -58,10 +54,10 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                        <th class="py-3 px-6 text-left">Date</th>
+                        <th class="py-3 px-6 text-left">Time</th>
                         <th class="py-3 px-6 text-left">Formula Used</th>
                         <th class="py-3 px-6 text-center">Score</th>
-                        <th class="py-3 px-6 text-center">Time</th>
+                        <th class="py-3 px-6 text-center">Duration</th>
                     </tr>
                 </thead>
                 <tbody id="reportBody" class="text-gray-600 text-sm font-light">
@@ -91,28 +87,25 @@
 
             document.getElementById('studentNameDisplay').textContent = currentStudentName;
 
-            const today = new Date();
-            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-            document.getElementById('endDate').valueAsDate = today;
-            document.getElementById('startDate').valueAsDate = firstDay;
+            // Default to today
+            document.getElementById('selectedDate').valueAsDate = new Date();
         });
 
-        function formatDate(dateString) {
+        function formatTime(dateString) {
             const date = new Date(dateString);
-            return date.toLocaleDateString('en-GB');
+            return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
         }
 
         async function fetchReport() {
-            const start = document.getElementById('startDate').value;
-            const end   = document.getElementById('endDate').value;
+            const selected = document.getElementById('selectedDate').value;
             const statusMsg      = document.getElementById('statusMsg');
             const loader         = document.getElementById('loader');
             const tableContainer = document.getElementById('tableContainer');
             const tbody          = document.getElementById('reportBody');
 
-            if (!start || !end) {
+            if (!selected) {
                 statusMsg.className = "text-red-500 font-bold mb-4";
-                statusMsg.textContent = "Please select both Start and End dates.";
+                statusMsg.textContent = "Please select a date.";
                 return;
             }
 
@@ -121,15 +114,16 @@
             tableContainer.classList.add('hidden');
             loader.style.display = 'block';
 
-            // Make end date inclusive (extend to end of day in IST)
-            const endDateTime = end + 'T23:59:59+05:30';
+            // Query only that single day (start = 00:00:00, end = 23:59:59 IST)
+            const dayStart = selected + 'T00:00:00+05:30';
+            const dayEnd   = selected + 'T23:59:59+05:30';
 
             const { data, error } = await _supabase
                 .from('level1and2_practice')
-                .select('name, formula, score, time, created_at')
+                .select('formula, score, time, created_at')
                 .ilike('name', currentStudentName)
-                .gte('created_at', start)
-                .lte('created_at', endDateTime)
+                .gte('created_at', dayStart)
+                .lte('created_at', dayEnd)
                 .order('created_at', { ascending: false });
 
             loader.style.display = 'none';
@@ -143,7 +137,7 @@
 
             if (!data || data.length === 0) {
                 statusMsg.className = "text-yellow-600 font-bold mb-4";
-                statusMsg.textContent = "No practice records found for this date range.";
+                statusMsg.textContent = "No practice records found for this date.";
                 return;
             }
 
@@ -152,11 +146,9 @@
             data.forEach(row => {
                 const tr = document.createElement('tr');
                 tr.className = "border-b border-gray-200 hover:bg-gray-50";
-
                 const scoreClass = (row.score == 10) ? "text-green-600" : "text-gray-700";
-
                 tr.innerHTML = `
-                    <td class="py-3 px-6 font-medium">${formatDate(row.created_at)}</td>
+                    <td class="py-3 px-6 font-medium text-gray-500">${formatTime(row.created_at)}</td>
                     <td class="py-3 px-6"><span class="bg-indigo-100 text-indigo-700 py-1 px-3 rounded-full text-xs font-bold">${row.formula}</span></td>
                     <td class="py-3 px-6 text-center font-bold ${scoreClass}">${row.score}/10</td>
                     <td class="py-3 px-6 text-center font-mono">${row.time}</td>
