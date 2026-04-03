@@ -383,7 +383,7 @@
             html += '<div class="grid-column">';
             for (let row = 1; row <= 25; row++) {
                 let stepNumber = (col * 25) + row;
-                let addend = num * stepNumber; // If base is 1, addends are 1, 2, 3, 4...
+                let addend = num + (stepNumber - 1); // If base is 22, addends are 22, 23, 24, 25...
                 
                 currentSum += addend;
                 
