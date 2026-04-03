@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foundation of Abacus</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 25px;
+            font-size: 28px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+            align-items: flex-end;
+            justify-content: center;
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        input, select {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+        }
+
+        button {
+            padding: 10px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background-color: var(--primary);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button.secondary {
+            background-color: #475569;
+        }
+
+        button.secondary:hover {
+            background-color: #334155;
+        }
+
+        .instructions {
+            background-color: #eff6ff;
+            border-left: 4px solid var(--primary);
+            padding: 12px 15px;
+            margin-bottom: 25px;
+            border-radius: 0 6px 6px 0;
+            font-size: 14px;
+            color: #1e3a8a;
+        }
+
+        .print-header {
+            display: none;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Output Grids */
+        #output-container {
+            margin-top: 20px;
+        }
+
+        /* Vertical Grids for Fundamental & Cumulative */
+        .vertical-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 20px;
+        }
+
+        @media (min-width: 600px) {
+            .vertical-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 900px) {
+            .vertical-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .grid-column {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .step-item {
+            padding: 6px 8px;
+            border-bottom: 1px dashed #e2e8f0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .step-item:last-child {
+            border-bottom: none;
+        }
+        
+        .step-num {
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: bold;
+            user-select: none;
+            width: 35px;
+        }
+
+        .step-val {
+            text-align: right;
+            flex-grow: 1;
+        }
+
+        /* Horizontal Grid layout */
+        .horizontal-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .horizontal-item {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary);
+            border-radius: 6px;
+            padding: 12px 20px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+        }
+
+        .horizontal-item span:first-child {
+            color: var(--text-muted);
+            font-size: 14px;
+            font-family: system-ui, sans-serif;
+            width: 80px;
+            font-weight: bold;
+        }
+
+        .horizontal-item span:last-child {
+            flex-grow: 1;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            .controls, .instructions, h1 {
+                display: none;
+            }
+            .print-header {
+                display: block;
+            }
+            .grid-column {
+                break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #000;
+            }
+            .step-item {
+                border-bottom: 1px dashed #ccc;
+            }
+            .horizontal-item {
+                border: 1px solid #000;
+                break-inside: avoid;
+            }
+            /* Force 4 columns on print regardless of screen size */
+            .vertical-grid {
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 10px;
+            }
+            .step-item {
+                font-size: 12px;
+                padding: 4px;
+            }
+            .footer {
+                margin-top: 20px;
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Foundation of Abacus</h1>
+    
+    <div class="print-header" id="printHeader">
+        Abacus Practice Worksheet
+    </div>
+
+    <div class="instructions">
+        <strong>Teacher's Note:</strong> Remind students to execute a <em>Long Clear</em> before starting the first sum, and a <em>Short Clear</em> before writing down each answer. Before revealing the final result, remember to prompt: <em>"That is..."</em>
+    </div>
+
+    <div class="controls">
+        <div class="input-group">
+            <label for="numInput">Input Number:</label>
+            <input type="number" id="numInput" placeholder="e.g., 22 or 1" value="22" required>
+        </div>
+        
+        <div class="input-group">
+            <label for="exerciseType">Exercise Type:</label>
+            <select id="exerciseType">
+                <option value="fundamental">1. Fundamental Plus Minus</option>
+                <option value="cumulative">2. Cumulative Plus Minus</option>
+                <option value="horizontal">3. Horizontal Plus Minus</option>
+            </select>
+        </div>
+
+        <button onclick="generateExercise()">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            Generate
+        </button>
+        
+        <button class="secondary" onclick="window.print()">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+            Print
+        </button>
+    </div>
+
+    <div id="output-container">
+        <!-- Output will be injected here via JavaScript -->
+    </div>
+</div>
+
+<div class="footer">
+    &copy; Developed by Practice Buddy.
+</div>
+
+<script>
+    // Formats numbers using the Indian numbering system (Lakhs, Crores)
+    function formatIndianNumber(num) {
+        return num.toLocaleString('en-IN');
+    }
+
+    function generateExercise() {
+        const numInput = document.getElementById('numInput').value;
+        const typeSelect = document.getElementById('exerciseType');
+        const type = typeSelect.value;
+        const typeText = typeSelect.options[typeSelect.selectedIndex].text;
+        const container = document.getElementById('output-container');
+        const printHeader = document.getElementById('printHeader');
+        
+        container.innerHTML = ''; // Clear previous
+
+        if (numInput === '' || isNaN(numInput)) {
+            container.innerHTML = '<p style="color: red; text-align: center;">Please enter a valid number.</p>';
+            return;
+        }
+
+        const num = parseFloat(numInput);
+        
+        // Update header for print layout
+        printHeader.innerText = `${typeText} - Base Number: ${num}`;
+
+        if (type === 'fundamental') {
+            generateFundamental(num, container);
+        } else if (type === 'cumulative') {
+            generateCumulative(num, container);
+        } else if (type === 'horizontal') {
+            generateHorizontal(num, container);
+        }
+    }
+
+    function generateFundamental(num, container) {
+        let html = '<div class="vertical-grid">';
+        
+        // 4 columns, 25 rows each -> Total 100 steps
+        for (let col = 0; col < 4; col++) {
+            html += '<div class="grid-column">';
+            for (let row = 1; row <= 25; row++) {
+                let stepNumber = (col * 25) + row;
+                let value = num * stepNumber;
+                html += `<div class="step-item">
+                            <span class="step-num">${stepNumber}.</span> 
+                            <span class="step-val">${formatIndianNumber(value)}</span>
+                         </div>`;
+            }
+            html += '</div>';
+        }
+        
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    function generateCumulative(num, container) {
+        let html = '<div class="vertical-grid">';
+        let currentSum = 0;
+        
+        // 4 columns, 25 rows each -> Total 100 steps
+        for (let col = 0; col < 4; col++) {
+            html += '<div class="grid-column">';
+            for (let row = 1; row <= 25; row++) {
+                let stepNumber = (col * 25) + row;
+                let addend = num * stepNumber; // If base is 1, addends are 1, 2, 3, 4...
+                
+                currentSum += addend;
+                
+                html += `<div class="step-item">
+                            <span class="step-num">${stepNumber}.</span> 
+                            <span class="step-val">${formatIndianNumber(currentSum)}</span>
+                         </div>`;
+            }
+            html += '</div>';
+        }
+        
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    function generateHorizontal(num, container) {
+        let html = '<div class="horizontal-grid">';
+        let currentSum = 0;
+        
+        // 20 steps
+        for (let i = 1; i <= 20; i++) {
+            currentSum += num;
+            
+            html += `<div class="horizontal-item">
+                        <span>Step ${i}:</span> 
+                        <span>${formatIndianNumber(currentSum)}</span>
+                     </div>`;
+        }
+        
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    // Auto-generate on first load
+    window.onload = function() {
+        generateExercise();
+    }
+</script>
+
+</body>
+</html>
