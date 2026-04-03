@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formula Reports - Li'l Champs Abacus</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        body { font-family: 'Nunito', sans-serif; background-color: #f5f3ff; }
+
+        .pdf-mode {
+            background-color: #f5f3ff !important;
+            width: 1024px !important;
+            max-width: 1024px !important;
+            margin: 0 auto !important;
+            padding: 30px !important;
+            font-family: Arial, Helvetica, sans-serif !important;
+            color: #333 !important;
+        }
+        .pdf-mode .no-print { display: none !important; }
+        .pdf-mode .shadow-lg {
+            box-shadow: none !important;
+            border: 2px solid #cbd5e1 !important;
+            border-radius: 8px !important;
+        }
+        .pdf-mode .pdf-row {
+            display: flex !important;
+            gap: 20px !important;
+            margin-bottom: 20px !important;
+            align-items: stretch !important;
+        }
+        .pdf-mode .pdf-col-calendar { width: 55% !important; }
+        .pdf-mode .pdf-col-graph { width: 45% !important; }
+        .pdf-mode header {
+            border-bottom: 3px solid #7c3aed !important;
+            margin-bottom: 25px !important;
+            padding-bottom: 15px !important;
+        }
+        .pdf-mode table { font-size: 12px !important; background-color: white !important; }
+        .pdf-mode th { background-color: #e5e7eb !important; color: #111 !important; border-bottom: 2px solid #9ca3af !important; }
+        .pdf-mode td { border-bottom: 1px solid #e5e7eb !important; }
+        .pdf-mode #tableContainer {
+            page-break-before: always !important;
+            margin-top: 0 !important;
+            overflow: visible !important;
+            height: auto !important;
+            display: block !important;
+        }
+        .avoid-break { page-break-inside: avoid; break-inside: avoid; }
+        tr { page-break-inside: avoid; break-inside: avoid; }
+        .pdf-mode .chart-container { height: 260px !important; }
+
+        /* Formula badge colours */
+        .badge-small  { background: #fef9c3; color: #854d0e; border: 1px solid #fde68a; }
+        .badge-big    { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+        .badge-mix    { background: #ede9fe; color: #5b21b6; border: 1px solid #c4b5fd; }
+    </style>
+</head>
+<body class="p-6 md:p-10">
+
+    <!-- Page header -->
+    <div class="max-w-7xl mx-auto flex justify-between items-center mb-8" id="webHeader">
+        <div>
+            <h1 class="text-3xl font-extrabold text-gray-800">🧮 Formula Reports</h1>
+            <p class="text-purple-600 font-semibold">Select a student and date range to view formula practice.</p>
+        </div>
+        <a href="teacher-dashboard.html" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg">← Back</a>
+    </div>
+
+    <!-- Controls -->
+    <div class="max-w-7xl mx-auto bg-white rounded-2xl shadow-lg p-6 mb-8 border border-purple-100" id="controlsBox">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Select Student</label>
+                <div class="relative">
+                    <select id="studentDropdown" class="block appearance-none w-full bg-purple-50 border border-purple-200 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-purple-500">
+                        <option value="">Loading...</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Start Date</label>
+                <input type="date" id="startDate" class="w-full bg-gray-50 border border-gray-200 text-gray-700 py-3 px-4 rounded-lg">
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">End Date</label>
+                <input type="date" id="endDate" class="w-full bg-gray-50 border border-gray-200 text-gray-700 py-3 px-4 rounded-lg">
+            </div>
+            <div>
+                <button onclick="getReport()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-all">Show Report</button>
+            </div>
+            <div>
+                <button onclick="downloadPDF()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-all flex justify-center items-center gap-2">
+                    <span>⬇️</span> PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Printable area -->
+    <div id="printableArea" class="max-w-7xl mx-auto">
+
+        <!-- PDF-only header -->
+        <header id="pdfHeader" class="hidden text-left mb-6">
+            <div class="flex justify-between items-end">
+                <div>
+                    <h1 class="text-4xl font-extrabold text-purple-900 leading-tight">Li'l Champs Abacus Academy</h1>
+                    <h2 class="text-xl text-gray-600 font-bold tracking-wide mt-2">Formula Practice Report</h2>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-gray-500 font-semibold">Generated: <span id="pdfGenDate" class="text-gray-800"></span></p>
+                    <p class="text-sm text-gray-500 font-semibold">Student: <span id="pdfStudentName" class="font-extrabold text-purple-700 text-xl"></span></p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Stats bar -->
+        <div id="resultsArea" class="hidden mb-6 avoid-break">
+            <div class="bg-white rounded-xl border-2 border-purple-100 p-5 flex justify-between items-center shadow-sm">
+                <div class="text-center w-1/3 border-r-2 border-gray-200">
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Practices</p>
+                    <p id="totalCount" class="text-4xl font-extrabold text-purple-700 mt-1">0</p>
+                </div>
+                <div class="text-center w-1/3 border-r-2 border-gray-200">
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Date Range</p>
+                    <p id="pdfDateRange" class="text-lg font-bold text-gray-700 mt-1">All Time</p>
+                </div>
+                <div class="text-center w-1/3">
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Last Active</p>
+                    <p id="lastActive" class="text-xl font-bold text-purple-700 mt-1">-</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar + Chart row -->
+        <div class="pdf-row-container hidden md:block">
+            <div class="flex flex-col md:flex-row gap-6 mb-6">
+
+                <!-- Calendar -->
+                <div id="calendarArea" class="bg-white rounded-2xl shadow-lg p-5 border border-gray-100 flex-1 md:w-[60%] avoid-break">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-3">
+                            <h3 class="text-lg font-bold text-gray-800">📅 Consistency</h3>
+                            <input type="month" id="monthPicker" onchange="updateCalendarOnly()" class="no-print bg-gray-50 border border-gray-200 text-gray-700 py-1 px-2 rounded text-xs font-bold">
+                            <span id="pdfMonthLabel" class="hidden font-extrabold text-gray-700 text-lg"></span>
+                        </div>
+                        <div class="flex gap-2 text-[10px] font-bold">
+                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded border border-green-200">✔ Practiced</span>
+                            <span class="bg-red-50 text-red-600 px-2 py-1 rounded border border-red-200">✖ Missed</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 mb-1 text-center text-xs font-bold text-gray-400 uppercase">
+                        <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+                    </div>
+                    <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
+                </div>
+
+                <!-- Distribution chart -->
+                <div id="graphArea" class="bg-white rounded-2xl shadow-lg p-5 border border-gray-100 flex-1 md:w-[40%] avoid-break">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">📊 Distribution</h3>
+                    <div class="chart-container w-full h-64">
+                        <canvas id="formulaChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Detailed table -->
+        <div id="tableContainer" class="bg-white shadow-lg rounded-2xl overflow-hidden hidden mt-4 border border-gray-300">
+            <h3 class="text-lg font-bold text-gray-800 p-4 border-b border-gray-200 bg-gray-50">Detailed History</h3>
+            <table class="min-w-full leading-normal">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="px-5 py-3 border-b-2 border-gray-300 text-left text-xs font-extrabold text-gray-700 uppercase tracking-wider">Date</th>
+                        <th class="px-5 py-3 border-b-2 border-gray-300 text-left text-xs font-extrabold text-gray-700 uppercase tracking-wider">Formula</th>
+                        <th class="px-5 py-3 border-b-2 border-gray-300 text-left text-xs font-extrabold text-gray-700 uppercase tracking-wider">Type</th>
+                        <th class="px-5 py-3 border-b-2 border-gray-300 text-left text-xs font-extrabold text-gray-700 uppercase tracking-wider">Score</th>
+                        <th class="px-5 py-3 border-b-2 border-gray-300 text-left text-xs font-extrabold text-gray-700 uppercase tracking-wider">Time</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody"></tbody>
+            </table>
+        </div>
+
+    </div><!-- /printableArea -->
+
+    <script>
+        if (!sessionStorage.getItem('userEmail')) {
+            window.location.href = 'index.html';
+        }
+
+        const SUPABASE_URL  = "https://portal-bridge.ucmas-ambernath-pg.workers.dev";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        Chart.register(ChartDataLabels);
+        let myChart = null;
+        let globalReports = [];
+
+        /* ── Formula classifier ───────────────────────────────────── */
+        function classifyFormula(formula) {
+            if (!formula) return 'Mix Friend';
+            const hasSmall = /\+5|-5/.test(formula);   // e.g. (+5-4), (-5+1)
+            const hasBig   = /\+10|-10/.test(formula);  // e.g. (+10-9)
+            if (hasSmall && hasBig) return 'Mix Friend';
+            if (hasSmall)           return 'Small Friend';
+            if (hasBig)             return 'Big Friend';
+            return 'Mix Friend';                        // fallback
+        }
+
+        function formulaBadge(type) {
+            if (type === 'Small Friend') return `<span class="px-2 py-0.5 rounded text-xs font-bold badge-small">🌟 Small Friend</span>`;
+            if (type === 'Big Friend')   return `<span class="px-2 py-0.5 rounded text-xs font-bold badge-big">💪 Big Friend</span>`;
+            return `<span class="px-2 py-0.5 rounded text-xs font-bold badge-mix">🔀 Mix Friend</span>`;
+        }
+
+        /* ── Helpers ──────────────────────────────────────────────── */
+        function getRawDate(isoString) {
+            if (!isoString) return '-';
+            const clean = isoString.split('T')[0].split(' ')[0];
+            const [y, m, d] = clean.split('-');
+            const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+            return `${d} ${months[parseInt(m)-1]} ${y}`;
+        }
+
+        function getDateOnly(isoString) {
+            if (!isoString) return '';
+            return isoString.split('T')[0].split(' ')[0];
+        }
+
+        /* ── Load dropdown (students who have practiced) ──────────── */
+        document.addEventListener('DOMContentLoaded', async () => {
+            const dropdown = document.getElementById('studentDropdown');
+            dropdown.innerHTML = '<option>Loading Students...</option>';
+
+            try {
+                let allStudents = new Set();
+                let from = 0;
+                const step = 1000;
+                let keepFetching = true;
+
+                while (keepFetching) {
+                    const { data, error } = await supabase
+                        .from('level1and2_practice')
+                        .select('name')
+                        .range(from, from + step - 1);
+
+                    if (error) throw error;
+                    if (!data || data.length === 0) {
+                        keepFetching = false;
+                    } else {
+                        data.forEach(item => {
+                            if (item.name && item.name.trim() !== '') {
+                                allStudents.add(item.name.trim());
+                            }
+                        });
+                        from += step;
+                    }
+                }
+
+                if (allStudents.size === 0) {
+                    dropdown.innerHTML = '<option>No formula practice records found</option>';
+                    return;
+                }
+
+                const uniqueNames = Array.from(allStudents).sort();
+                dropdown.innerHTML = '<option value="">-- Choose a Student --</option>';
+                uniqueNames.forEach(name => {
+                    const opt = document.createElement('option');
+                    opt.value = name;
+                    opt.textContent = name;
+                    dropdown.appendChild(opt);
+                });
+
+            } catch (err) {
+                console.error('Fetch error:', err);
+                dropdown.innerHTML = '<option>Error loading list</option>';
+            }
+
+            const today = new Date();
+            document.getElementById('monthPicker').value =
+                `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+        });
+
+        /* ── Show Report ──────────────────────────────────────────── */
+        async function getReport() {
+            const studentName = document.getElementById('studentDropdown').value;
+            const startDate   = document.getElementById('startDate').value;
+            const endDate     = document.getElementById('endDate').value;
+
+            if (!studentName) { alert('Please select a student first!'); return; }
+
+            if (startDate && endDate) {
+                document.getElementById('pdfDateRange').innerText = `${startDate} to ${endDate}`;
+                const start = new Date(startDate);
+                document.getElementById('monthPicker').value =
+                    `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}`;
+            } else {
+                document.getElementById('pdfDateRange').innerText = 'All Time';
+            }
+
+            // Hide previous results
+            document.getElementById('resultsArea').classList.add('hidden');
+            document.getElementById('tableContainer').classList.add('hidden');
+            document.getElementById('calendarArea').classList.add('hidden');
+            document.getElementById('graphArea').classList.add('hidden');
+
+            const { data: rows, error } = await supabase
+                .from('level1and2_practice')
+                .select('*')
+                .eq('name', studentName)
+                .order('created_at', { ascending: false });
+
+            if (error) { alert('Error: ' + error.message); return; }
+
+            if (rows) {
+                // Keep only rows with score > 0
+                globalReports = rows.filter(r => {
+                    const s = parseInt(r.score);
+                    return !isNaN(s) && s > 0;
+                });
+
+                const filtered = filterByDate(globalReports, startDate, endDate);
+                renderTable(filtered);
+                renderGraph(filtered);
+                renderCalendar(globalReports);    // calendar uses all-time data
+            }
+        }
+
+        /* ── Date filter ──────────────────────────────────────────── */
+        function filterByDate(rows, start, end) {
+            if (!start && !end) return rows;
+            return rows.filter(r => {
+                if (!r.created_at) return false;
+                const d = getDateOnly(r.created_at);
+                if (start && d < start) return false;
+                if (end   && d > end)   return false;
+                return true;
+            });
+        }
+
+        /* ── Calendar update ──────────────────────────────────────── */
+        function updateCalendarOnly() {
+            if (globalReports.length > 0) renderCalendar(globalReports);
+        }
+
+        /* ── Render calendar ──────────────────────────────────────── */
+        function renderCalendar(rows) {
+            const calendarArea = document.getElementById('calendarArea');
+            const grid         = document.getElementById('calendarGrid');
+            const monthInput   = document.getElementById('monthPicker').value;
+            calendarArea.classList.remove('hidden');
+            grid.innerHTML = '';
+
+            let date = new Date();
+            if (monthInput) {
+                const [y, m] = monthInput.split('-');
+                date = new Date(y, m - 1, 1);
+            }
+            const year  = date.getFullYear();
+            const month = date.getMonth();
+
+            // Build set of practiced dates for this month
+            const practiceDates = new Set();
+            rows.forEach(r => {
+                if (!r.created_at) return;
+                const clean = getDateOnly(r.created_at);
+                const [ry, rm, rd] = clean.split('-').map(Number);
+                if ((rm - 1) === month && ry === year) practiceDates.add(clean);
+            });
+
+            const firstDay    = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const now         = new Date();
+            const todayStr    = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+
+            // Empty leading cells
+            for (let i = 0; i < firstDay; i++) {
+                grid.innerHTML += `<div class="h-10 bg-gray-50 rounded"></div>`;
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const mm       = String(month + 1).padStart(2, '0');
+                const dd       = String(day).padStart(2, '0');
+                const checkDate = `${year}-${mm}-${dd}`;
+                const practiced = practiceDates.has(checkDate);
+
+                let cls = 'bg-white border-gray-100 text-gray-300';
+                if (practiced) {
+                    cls = 'bg-green-100 border-green-300 text-green-700 shadow-sm';
+                } else if (checkDate < todayStr) {
+                    cls = 'bg-red-50 border-red-100 text-red-400';
+                }
+
+                grid.innerHTML += `<div class="h-10 border rounded flex items-center justify-center font-bold text-xs ${cls}">${day}${practiced ? '<span class="ml-1">✓</span>' : ''}</div>`;
+            }
+        }
+
+        /* ── Render bar chart ─────────────────────────────────────── */
+        function renderGraph(rows) {
+            document.getElementById('graphArea').classList.remove('hidden');
+
+            let counts = { small: 0, big: 0, mix: 0 };
+            rows.forEach(r => {
+                const type = classifyFormula(r.formula);
+                if (type === 'Small Friend') counts.small++;
+                else if (type === 'Big Friend') counts.big++;
+                else counts.mix++;
+            });
+
+            const maxVal = Math.max(counts.small, counts.big, counts.mix, 1);
+            if (myChart) myChart.destroy();
+
+            const ctx = document.getElementById('formulaChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Small Friend', 'Big Friend', 'Mix Friend'],
+                    datasets: [{
+                        label: 'Practices',
+                        data: [counts.small, counts.big, counts.mix],
+                        backgroundColor: ['#fbbf24', '#3b82f6', '#8b5cf6'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f3f4f6' }, suggestedMax: maxVal + 3 },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            color: '#333', anchor: 'end', align: 'top', offset: 0,
+                            font: { weight: 'bold', size: 13 },
+                            formatter: v => v > 0 ? v : ''
+                        }
+                    }
+                }
+            });
+        }
+
+        /* ── Render detail table ──────────────────────────────────── */
+        function renderTable(rows) {
+            document.getElementById('resultsArea').classList.remove('hidden');
+            document.getElementById('tableContainer').classList.remove('hidden');
+            const tbody = document.getElementById('reportTableBody');
+            tbody.innerHTML = '';
+
+            if (rows.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-6 text-center text-gray-400 font-bold">No formula practice records found for this range.</td></tr>`;
+                document.getElementById('totalCount').innerText = '0';
+                document.getElementById('lastActive').innerText = '-';
+                return;
+            }
+
+            rows.forEach(row => {
+                const type   = classifyFormula(row.formula);
+                const badge  = formulaBadge(type);
+                const tr = `
+                    <tr class="hover:bg-gray-50 border-b">
+                        <td class="px-5 py-4 text-sm font-bold text-gray-800">${getRawDate(row.created_at)}</td>
+                        <td class="px-5 py-4 text-sm font-medium text-gray-700">${row.formula || '-'}</td>
+                        <td class="px-5 py-4 text-sm">${badge}</td>
+                        <td class="px-5 py-4 text-sm font-bold text-purple-600">${row.score ?? '-'}</td>
+                        <td class="px-5 py-4 text-sm font-bold text-gray-700">⏱️ ${row.time || '-'}</td>
+                    </tr>`;
+                tbody.innerHTML += tr;
+            });
+
+            document.getElementById('totalCount').innerText = rows.length;
+            document.getElementById('lastActive').innerText = rows.length > 0 ? getRawDate(rows[0].created_at) : '-';
+        }
+
+        /* ── PDF download ─────────────────────────────────────────── */
+        function downloadPDF() {
+            if (document.getElementById('resultsArea').classList.contains('hidden')) {
+                alert("Please select a student and click 'Show Report' first.");
+                return;
+            }
+
+            const element      = document.getElementById('printableArea');
+            const studentName  = document.getElementById('studentDropdown').value || 'Student';
+            const header       = document.getElementById('pdfHeader');
+            const monthPicker  = document.getElementById('monthPicker');
+            const monthLabel   = document.getElementById('pdfMonthLabel');
+
+            header.classList.remove('hidden');
+            document.getElementById('pdfGenDate').innerText    = new Date().toLocaleDateString('en-IN');
+            document.getElementById('pdfStudentName').innerText = studentName;
+
+            monthPicker.classList.add('hidden');
+            monthLabel.innerText = monthPicker.value;
+            monthLabel.classList.remove('hidden');
+
+            element.classList.add('pdf-mode');
+            const row = document.querySelector('.pdf-row-container .flex');
+            row.classList.add('pdf-row');
+            document.getElementById('calendarArea').classList.add('pdf-col-calendar');
+            document.getElementById('graphArea').classList.add('pdf-col-graph');
+            if (myChart) myChart.resize();
+
+            const opt = {
+                margin:      0.4,
+                filename:    `${studentName}_FormulaReport.pdf`,
+                image:       { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF:       { unit: 'in', format: 'a4', orientation: 'landscape' },
+                pagebreak:   { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                header.classList.add('hidden');
+                element.classList.remove('pdf-mode');
+                monthPicker.classList.remove('hidden');
+                monthLabel.classList.add('hidden');
+                row.classList.remove('pdf-row');
+                document.getElementById('calendarArea').classList.remove('pdf-col-calendar');
+                document.getElementById('graphArea').classList.remove('pdf-col-graph');
+                if (myChart) myChart.resize();
+            });
+        }
+    </script>
+</body>
+</html>
