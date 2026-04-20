@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Abacus Pad</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col items-center justify-center font-sans">
+
+  <div id="login-screen" class="bg-white p-8 rounded-lg shadow-md text-center">
+    <h2 class="text-2xl font-bold mb-4 text-blue-600">Li'l Champs Live Class</h2>
+    <input type="text" id="student-name" placeholder="Enter your name" class="border-2 p-3 text-xl w-full mb-4 rounded">
+    <button onclick="joinClass()" class="bg-blue-600 text-white px-6 py-3 rounded text-xl w-full">Join Class</button>
+  </div>
+
+  <div id="live-pad" class="hidden w-full max-w-2xl bg-white p-10 rounded-xl shadow-2xl text-center">
+    <h1 class="text-4xl font-bold mb-8 text-gray-800" id="current-question">Waiting for teacher...</h1>
+    
+    <input type="number" id="answer-input" disabled 
+           class="border-4 border-gray-300 w-full text-center text-6xl p-4 rounded-xl focus:border-blue-500 focus:outline-none transition-colors"
+           placeholder="Your Answer">
+    
+    <p id="status-message" class="text-xl text-red-500 font-bold mt-6 hidden">🔒 PENS DOWN! Inputs Locked.</p>
+  </div>
+
+  <script>
+    // Your exact credentials
+    const supabaseUrl = 'https://portal-bridge.ucmas-ambernath-pg.workers.dev';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    
+    let myName = "";
+    // Connect to the specific classroom channel
+    const roomChannel = supabase.channel('room-1');
+
+    function joinClass() {
+      myName = document.getElementById('student-name').value;
+      if(!myName) return alert("Please enter your name!");
+      
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('live-pad').classList.remove('hidden');
+
+      // Listen for Teacher Commands
+      roomChannel.on('broadcast', { event: 'teacher-command' }, (payload) => {
+        const cmd = payload.payload; // Data sent by teacher
+        const inputField = document.getElementById('answer-input');
+        const statusMsg = document.getElementById('status-message');
+
+        if(cmd.action === 'new_question') {
+          document.getElementById('current-question').innerText = cmd.question;
+          inputField.value = ""; // Clear old answer
+          inputField.disabled = false; // Unlock
+          statusMsg.classList.add('hidden');
+          inputField.focus(); // Auto-focus so they can start typing
+        }
+        else if(cmd.action === 'lock_answers') {
+          inputField.disabled = true; // Anti-Cheat activated!
+          statusMsg.classList.remove('hidden');
+          
+          // Instantly send what they typed back to the teacher
+          roomChannel.send({
+            type: 'broadcast',
+            event: 'student-answer',
+            payload: { name: myName, answer: inputField.value }
+          });
+        }
+      }).subscribe();
+    }
+  </script>
+</body>
+</html>
