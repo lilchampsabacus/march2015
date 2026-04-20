@@ -25,52 +25,59 @@
   </div>
 
   <script>
-    // Your exact credentials
     const supabaseUrl = 'https://portal-bridge.ucmas-ambernath-pg.workers.dev';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
-    
-    // Create Supabase client using window object to avoid naming collisions
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
     
     let myName = "";
-    // Connect to the specific classroom channel
     const roomChannel = supabaseClient.channel('room-1');
 
     function joinClass() {
-      myName = document.getElementById('student-name').value;
+      myName = document.getElementById('student-name').value.trim();
       if(!myName) return alert("Please enter your name!");
       
       document.getElementById('login-screen').classList.add('hidden');
       document.getElementById('live-pad').classList.remove('hidden');
 
-      // Listen for Teacher Commands
+      // 1. Listen for Teacher Commands
       roomChannel.on('broadcast', { event: 'teacher-command' }, (payload) => {
         const cmd = payload.payload; 
         const inputField = document.getElementById('answer-input');
         const statusMsg = document.getElementById('status-message');
 
         if(cmd.action === 'open_pads') {
-          // Tell the student it's time to write the answer
           document.getElementById('current-question').innerText = "✍️ Type your answer!";
-          inputField.value = ""; // Clear their previous answer
-          inputField.disabled = false; // Unlock the pad
+          
+          // Fix for Issue #2: Only clear the box if it was previously locked. 
+          // This prevents erasing answers if the teacher's dashboard re-syncs the room.
+          if(inputField.disabled === true) {
+            inputField.value = ""; 
+          }
+          
+          inputField.disabled = false; 
           statusMsg.classList.add('hidden');
-          inputField.focus(); // Put the cursor in the box automatically
+          inputField.focus(); 
         }
         else if(cmd.action === 'lock_answers') {
-          // Change text back to listening phase
           document.getElementById('current-question').innerText = "🎧 Listen to Teacher...";
-          inputField.disabled = true; // Anti-Cheat activated!
+          inputField.disabled = true; 
           statusMsg.classList.remove('hidden');
           
-          // Instantly send what they typed back to the teacher
           roomChannel.send({
             type: 'broadcast',
             event: 'student-answer',
             payload: { name: myName, answer: inputField.value }
           });
         }
-      }).subscribe();
+      });
+
+      // 2. Subscribe and register Presence (Fixes Issue 1, 3, and 4)
+      roomChannel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          // Tell the teacher dashboard exactly who just joined
+          roomChannel.track({ student_name: myName });
+        }
+      });
     }
   </script>
 </body>
