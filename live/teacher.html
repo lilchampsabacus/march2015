@@ -21,7 +21,7 @@
       </div>
     </div>
 
-    <div class="bg-slate-800 p-6 rounded-lg shadow-lg mb-8 flex justify-between items-center border border-slate-700">
+    <div class="bg-slate-800 p-6 rounded-lg shadow-lg mb-4 flex justify-between items-center border border-slate-700">
       <div>
         <h2 class="text-2xl font-bold text-white mb-1">Dictation Mode 🎙️</h2>
         <p class="text-slate-400 text-sm">Teacher will ask sums over Meet, then open pads.</p>
@@ -31,6 +31,16 @@
         <button id="btn-lock" onclick="lockAnswers()" class="bg-red-600 hover:bg-red-500 w-60 py-4 rounded-xl text-lg font-bold transition shadow-lg text-white">2. Lock ("3,2,1 Show!")</button>
         <button id="btn-clear" onclick="clearBoard()" class="bg-slate-600 hover:bg-slate-500 px-6 py-4 rounded-xl text-lg font-bold transition shadow-lg hidden text-white">Clear Answers</button>
       </div>
+    </div>
+
+    <div id="grading-panel" class="hidden bg-slate-700 p-6 rounded-lg shadow-inner mb-8 border border-slate-600 flex gap-4 items-end">
+      <div class="flex-grow">
+        <label class="block text-sm mb-2 text-yellow-400 font-bold">✨ Enter Correct Answer to Grade</label>
+        <input type="number" id="correct-answer-input" class="w-full bg-slate-800 p-3 rounded-lg text-2xl border border-slate-500 focus:outline-none text-white font-bold" placeholder="e.g. 175">
+      </div>
+      <button onclick="sendGrades()" class="bg-purple-600 hover:bg-purple-500 px-8 py-3 rounded-xl text-xl font-bold transition shadow-lg text-white border border-purple-400">
+        🏆 Grade & Reveal
+      </button>
     </div>
 
     <h2 class="text-xl font-semibold mb-4 text-slate-300 border-b border-slate-700 pb-2">Submitted Answers</h2>
@@ -54,7 +64,6 @@
     roomChannel.on('presence', { event: 'sync' }, () => {
       const newState = roomChannel.presenceState();
       const uniqueStudents = new Set(); 
-      
       for (const id in newState) {
         newState[id].forEach(client => {
           if(client.student_name) {
@@ -79,59 +88,85 @@
       document.getElementById('student-grid').innerHTML = ""; 
       roomChannel.send({ type: 'broadcast', event: 'teacher-command', payload: { action: 'open_pads' } });
 
-      // === UI CHANGES FOR OPEN STATE ===
       const btnOpen = document.getElementById('btn-open');
       const btnLock = document.getElementById('btn-lock');
       const btnClear = document.getElementById('btn-clear');
+      const gradingPanel = document.getElementById('grading-panel');
 
-      // Make Open button Green
       btnOpen.className = "bg-green-500 hover:bg-green-400 w-60 py-4 rounded-xl text-lg font-bold transition shadow-lg text-white";
       btnOpen.innerText = "🟢 Pads OPEN!";
-      
-      // Make Lock button Red and ready
       btnLock.className = "bg-red-600 hover:bg-red-500 w-60 py-4 rounded-xl text-lg font-bold transition shadow-lg text-white";
       btnLock.innerText = "2. Lock Answers";
 
-      // Hide clear button
       btnClear.classList.add('hidden');
+      
+      // Hide and reset grading panel
+      gradingPanel.classList.add('hidden');
+      document.getElementById('correct-answer-input').value = "";
     }
 
     function lockAnswers() {
       currentRoomState = 'locked';
       roomChannel.send({ type: 'broadcast', event: 'teacher-command', payload: { action: 'lock_answers' } });
 
-      // === UI CHANGES FOR LOCKED STATE ===
       const btnOpen = document.getElementById('btn-open');
       const btnLock = document.getElementById('btn-lock');
       const btnClear = document.getElementById('btn-clear');
+      const gradingPanel = document.getElementById('grading-panel');
 
-      // Return Open button to Blue
       btnOpen.className = "bg-blue-600 hover:bg-blue-500 w-60 py-4 rounded-xl text-lg font-bold transition shadow-lg text-white";
       btnOpen.innerText = "1. Open Pads";
-      
-      // Gray out the Lock button to show it's already locked
       btnLock.className = "bg-slate-700 text-slate-400 w-60 py-4 rounded-xl text-lg font-bold transition shadow-lg cursor-not-allowed";
       btnLock.innerText = "🔒 Locked";
 
-      // Show the Clear Answers button!
       btnClear.classList.remove('hidden');
+      
+      // Show Grading Panel!
+      gradingPanel.classList.remove('hidden');
+      document.getElementById('correct-answer-input').focus();
     }
 
-    // NEW FUNCTION: Clear the board manually
+    // NEW FEATURE: Send Grades to students and update teacher UI
+    function sendGrades() {
+      const correctAns = document.getElementById('correct-answer-input').value.trim();
+      if(!correctAns) return alert("Please enter the correct answer first!");
+
+      // 1. Broadcast the grade command to students
+      roomChannel.send({ 
+        type: 'broadcast', 
+        event: 'teacher-command', 
+        payload: { action: 'grade_answers', correctAnswer: correctAns } 
+      });
+
+      // 2. Update the teacher's dashboard cards (Green for right, Red for wrong)
+      const cards = document.querySelectorAll('.student-card');
+      cards.forEach(card => {
+        const studentAnsElement = card.querySelector('.student-answer-text');
+        const studentAns = studentAnsElement.innerText;
+
+        if(studentAns === correctAns) {
+          card.className = "student-card bg-green-900 p-4 rounded-lg border-2 border-green-400 text-center shadow-lg transition-colors";
+          studentAnsElement.className = "student-answer-text text-4xl text-white font-bold bg-green-800 py-4 rounded border border-green-500";
+        } else {
+          card.className = "student-card bg-red-900 p-4 rounded-lg border-2 border-red-400 text-center shadow-lg transition-colors";
+          studentAnsElement.className = "student-answer-text text-4xl text-white font-bold bg-red-800 py-4 rounded border border-red-500 text-decoration-line-through opacity-80";
+        }
+      });
+    }
+
     function clearBoard() {
       document.getElementById('student-grid').innerHTML = "";
       document.getElementById('btn-clear').classList.add('hidden');
+      document.getElementById('grading-panel').classList.add('hidden');
     }
 
     function updateOnlineUI(studentsList) {
       const container = document.getElementById('online-list');
       document.getElementById('student-count').innerText = studentsList.length;
-      
       if(studentsList.length === 0) {
         container.innerHTML = '<span class="text-slate-500 italic">No students online yet...</span>';
         return;
       }
-
       container.innerHTML = studentsList.sort().map(name => 
         `<span class="bg-blue-900 text-blue-200 px-3 py-1 rounded-full border border-blue-700">${name}</span>`
       ).join('');
@@ -141,10 +176,11 @@
       const grid = document.getElementById('student-grid');
       const card = document.createElement('div');
       
-      card.className = "bg-slate-800 p-4 rounded-lg border border-slate-600 text-center shadow-md";
+      // Added class 'student-card' so we can easily find it later to change colors
+      card.className = "student-card bg-slate-800 p-4 rounded-lg border border-slate-600 text-center shadow-md";
       card.innerHTML = `
         <h3 class="text-lg font-bold text-slate-300 mb-2 truncate">${name}</h3>
-        <p class="text-4xl text-green-400 font-bold bg-slate-900 py-4 rounded border border-slate-700">${answer || "---"}</p>
+        <p class="student-answer-text text-4xl text-green-400 font-bold bg-slate-900 py-4 rounded border border-slate-700">${answer || "---"}</p>
       `;
       grid.appendChild(card);
     }
