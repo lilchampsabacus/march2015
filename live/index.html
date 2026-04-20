@@ -2,50 +2,130 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Student Abacus Pad</title>
+  <title>Mental Math Arena | Li'l Champs</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Poppins', sans-serif; }
+    .gaming-font { font-family: 'Orbitron', sans-serif; }
+    
+    /* Subtle pulsing neon glow for borders */
+    .neon-border-blue { box-shadow: 0 0 15px rgba(34, 211, 238, 0.5), inset 0 0 10px rgba(34, 211, 238, 0.3); }
+    .neon-border-pink { box-shadow: 0 0 15px rgba(236, 72, 153, 0.5), inset 0 0 10px rgba(236, 72, 153, 0.3); }
+
+    /* Keyframe animation for active pulses */
+    @keyframes green-pulse {
+      0% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
+      50% { box-shadow: 0 0 40px rgba(16, 185, 129, 1); }
+      100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
+    }
+    .pulse-correct { animation: green-pulse 1s ease-out 2; }
+    
+    @keyframes orange-pulse {
+      0% { box-shadow: 0 0 10px rgba(249, 115, 22, 0.5); }
+      50% { box-shadow: 0 0 30px rgba(249, 115, 22, 0.8); }
+      100% { box-shadow: 0 0 10px rgba(249, 115, 22, 0.5); }
+    }
+    .pulse-wrong { animation: orange-pulse 1s ease-out 1; }
+  </style>
 </head>
-<body class="bg-gray-100 h-screen flex flex-col items-center justify-center font-sans">
+<body class="bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-gray-950 via-gray-900 to-black h-screen text-white p-4 flex items-center justify-center overflow-hidden selection:bg-fuchsia-500 relative">
+  
+  <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/simple-dashed.png')] pointer-events-none"></div>
 
-  <div id="login-screen" class="bg-white p-8 rounded-lg shadow-md text-center w-96">
-    <h2 class="text-2xl font-bold mb-2 text-blue-600">Li'l Champs Live</h2>
-    <p id="room-status" class="text-red-500 font-bold mb-4">🔴 Classroom is closed.</p>
-    
-    <input type="text" id="student-name" placeholder="Enter your name" class="border-2 p-3 text-xl w-full mb-4 rounded focus:outline-none focus:border-blue-500">
-    
-    <button id="join-btn" onclick="joinClass()" disabled class="bg-slate-400 text-white px-6 py-3 rounded text-xl w-full cursor-not-allowed transition-colors">
-      Waiting for Teacher...
-    </button>
-  </div>
+  <div class="relative w-full max-w-3xl z-10">
 
-  <div id="live-pad" class="hidden w-full max-w-2xl bg-white p-10 rounded-xl shadow-2xl text-center">
-    <h1 class="text-4xl font-bold mb-8 text-gray-800" id="current-question">🎧 Listen to Teacher...</h1>
-    
-    <input type="number" id="answer-input" disabled 
-           class="border-4 border-gray-300 w-full text-center text-6xl p-4 rounded-xl focus:border-blue-500 focus:outline-none transition-colors"
-           placeholder="Your Answer">
-    
-    <p id="status-message" class="text-xl text-slate-500 font-bold mt-6 hidden"></p>
+    <div id="login-screen" class="bg-black/40 backdrop-blur-2xl p-10 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] text-center border-2 border-cyan-500 neon-border-blue relative overflow-hidden transform transition-all duration-500 scale-100 opacity-100">
+      <div class="absolute top-0 left-0 w-8 h-8 border-l-4 border-t-4 border-cyan-400"></div>
+      <div class="absolute bottom-0 right-0 w-8 h-8 border-r-4 border-b-4 border-cyan-400"></div>
+
+      <h2 class="text-xs uppercase tracking-[0.3em] font-bold text-cyan-300 mb-2 drop-shadow-lg">Player Authentication</h2>
+      <h1 class="text-4xl sm:text-5xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 drop-shadow-[0_2px_5px_rgba(255,255,255,0.3)]"> Mental Arena <span class="text-cyan-400 font-black">v1.0</span></h1>
+      
+      <div id="status-container" class="mb-6 p-3 bg-white/5 rounded-xl border border-white/10 inline-block">
+         <p id="room-status" class="text-rose-400 font-bold flex items-center gap-2 justify-center">
+           🔴 OFFLINE: Awaiting Teacher
+         </p>
+      </div>
+      
+      <input type="text" id="student-name" placeholder="ENTER PLAYER NAME" class="bg-slate-900/80 p-5 rounded-2xl text-2xl border-2 border-cyan-500/50 focus:border-cyan-400 focus:outline-none focus:ring-4 focus:ring-cyan-500/20 text-cyan-300 w-full mb-6 font-extrabold uppercase tracking-widest transition-all">
+      
+      <button id="join-btn" onclick="joinClass()" disabled class="bg-slate-600 text-slate-300 w-full py-5 rounded-2xl text-2xl font-black uppercase tracking-widest cursor-not-allowed transition-all duration-300 border-2 border-slate-700">
+        Waiting for Teacher...
+      </button>
+    </div>
+
+    <div id="live-pad" class="hidden transform transition-all duration-500 scale-95 opacity-0">
+      
+      <div class="absolute -top-14 left-0 right-0 flex justify-between items-end px-4">
+          <div class="text-sm font-bold text-cyan-300 uppercase tracking-widest bg-black/50 px-4 py-1.5 rounded-t-xl border border-cyan-500/30">
+              Player: <span id="player-display-name" class="text-white font-black">---</span>
+          </div>
+          <div id="session-status" class="text-xs font-bold text-emerald-400 px-3 py-1 rounded-t-xl bg-black/50 border border-emerald-500/30 flex gap-1.5 items-center">
+              <div class="w-2 h-2 rounded-full bg-emerald-500"></div> LIVE
+          </div>
+      </div>
+
+      <div class="bg-black/60 backdrop-blur-3xl p-8 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] border-2 border-fuchsia-500 neon-border-pink relative group min-h-[400px] flex flex-col justify-between">
+        
+        <div class="flex-grow flex items-center justify-center">
+            <h1 class="text-6xl sm:text-8xl font-black mb-8 leading-tight tracking-tighter" id="current-question-wrapper">
+                <span id="champion-prefix" class="block text-2xl sm:text-3xl text-fuchsia-300 tracking-[0.2em] font-extrabold uppercase mb-2">Future Champion</span>
+                <span id="player-status-text" class="block text-white">🎧 Listen to Teacher...</span>
+            </h1>
+        </div>
+        
+        <div class="bg-slate-950/80 p-4 rounded-3xl border border-fuchsia-500/50 flex flex-col items-center">
+            <div class="text-xs text-fuchsia-300 font-bold uppercase tracking-widest mb-1.5 opacity-70">Answer Input [NUMPAD ACTIVE]</div>
+            <input type="number" id="answer-input" disabled 
+                   class="gaming-font bg-black p-4 w-full text-center text-8xl md:text-9xl rounded-2xl border-4 border-cyan-400 focus:border-cyan-300 focus:outline-none transition-all duration-300 text-cyan-300 font-black neon-border-blue selection:bg-cyan-900 selection:text-white"
+                   placeholder="--">
+        </div>
+        
+        <div id="feedback-container" class="absolute inset-0 flex items-center justify-center pointer-events-none hidden bg-black/80 backdrop-blur-lg rounded-3xl">
+             <p id="status-message" class="text-4xl md:text-5xl gaming-font font-black text-white p-6 leading-normal tracking-tight"></p>
+        </div>
+
+      </div>
+    </div>
   </div>
 
   <script>
     const supabaseUrl = 'https://portal-bridge.ucmas-ambernath-pg.workers.dev';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24}f.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
     
     let myName = "";
+    let baseText = "🎧 Listen to Teacher...";
     let isTeacherOnline = false;
     let isStudentJoined = false;
     const roomChannel = supabaseClient.channel('room-1');
 
-    // Listen for who is in the room immediately on page load
+    // UI Elements
+    const livePadEl = document.getElementById('live-pad');
+    const feedbackCon = document.getElementById('feedback-container');
+    const statusMsg = document.getElementById('status-message');
+    const padMain = livePadEl.querySelector('.backdrop-blur-3xl');
+
+    // CONFETTI CANNON SETTINGS (More explosive!)
+    function fireConfetti(success) {
+      if(success) {
+        // Multi-directional burst for win
+        let end = Date.now() + (1 * 800);
+        let colors = ['#22d3ee', '#ec4899', '#ffffff']; // Cyan, Pink, White
+        (function frame() {
+          confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: colors });
+          confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: colors });
+          if (Date.now() < end) requestAnimationFrame(frame);
+        }());
+      }
+    }
+
     roomChannel.on('presence', { event: 'sync' }, () => {
       const newState = roomChannel.presenceState();
       isTeacherOnline = false;
-
-      // Check if the teacher's special tag is in the room
       for (const id in newState) {
         newState[id].forEach(client => {
           if(client.is_teacher) isTeacherOnline = true;
@@ -57,45 +137,56 @@
     roomChannel.on('broadcast', { event: 'teacher-command' }, (payload) => {
         const cmd = payload.payload; 
         const inputField = document.getElementById('answer-input');
-        const statusMsg = document.getElementById('status-message');
+        const championText = document.getElementById('player-status-text');
+
+        // Reset all feedback animations
+        padMain.className = padMain.className.replace(/\bpulse-\w+\b/g, '');
+        feedbackCon.classList.add('hidden');
 
         if(cmd.action === 'open_pads') {
-          document.getElementById('current-question').innerText = "✍️ Type your answer!";
+          document.getElementById('champion-prefix').classList.add('hidden');
+          championText.className = "block text-6xl text-cyan-300 font-extrabold uppercase drop-shadow-[0_0_10px_rgba(34,211,238,0.7)]";
+          championText.innerText = "✍️ ENTER ANSWER";
+          
           if(inputField.disabled === true) inputField.value = ""; 
           
           inputField.disabled = false; 
-          statusMsg.classList.add('hidden');
           inputField.focus(); 
         }
         else if(cmd.action === 'lock_answers') {
-          document.getElementById('current-question').innerText = "🎧 Listen to Teacher...";
+          // Locked Phase Visuals (Orange Neon Alert)
+          document.getElementById('champion-prefix').classList.remove('hidden');
+          championText.innerText = baseText;
+          championText.className = "block text-white opacity-80";
           inputField.disabled = true; 
           
-          statusMsg.innerText = "🔒 PENS DOWN! Waiting for results...";
-          statusMsg.className = "text-xl text-slate-500 font-bold mt-6 block";
+          statusMsg.innerText = "🔒 PENS DOWN!\nCALCULATING RESULT...";
+          statusMsg.className = "text-5xl gaming-font text-center font-black text-orange-400 p-6 leading-tight drop-shadow-[0_0_20px_rgba(249,115,22,0.8)]";
+          feedbackCon.classList.remove('hidden');
           
-          roomChannel.send({
-            type: 'broadcast',
-            event: 'student-answer',
-            payload: { name: myName, answer: inputField.value }
-          });
+          roomChannel.send({ type: 'broadcast', event: 'student-answer', payload: { name: myName, answer: inputField.value } });
         }
         else if(cmd.action === 'grade_answers') {
           const myAnswer = inputField.value.trim();
           const correctAnswer = cmd.correctAnswer.trim();
+          feedbackCon.classList.remove('hidden');
 
           if(myAnswer === correctAnswer) {
-            statusMsg.innerText = "🎉 Brilliant! Correct Answer! 🎉";
-            statusMsg.className = "text-3xl text-green-600 font-bold mt-6 block animate-bounce";
-            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+            // == VICTORY STATE ==
+            padMain.classList.add('pulse-correct');
+            statusMsg.innerText = "🎉 ARENA CHAMPION!\nCORRECT! +100 XP";
+            statusMsg.className = "text-6xl gaming-font text-center font-black text-emerald-400 p-8 leading-tight drop-shadow-[0_0_30px_rgba(16,185,129,0.9)] scale-110";
+            
+            fireConfetti(true);
           } else {
-            statusMsg.innerText = `Correct answer is ${correctAnswer}. Keep going! 💪`;
-            statusMsg.className = "text-2xl text-orange-500 font-bold mt-6 block";
+            // == WRONG STATE (Motivational) ==
+            padMain.classList.add('pulse-wrong');
+            statusMsg.innerText = `WRONG FORMULA!\nAnswer was ${correctAnswer}.\nTRY AGAIN 💪`;
+            statusMsg.className = "text-4xl gaming-font text-center font-black text-orange-300 p-6 leading-tight drop-shadow-[0_0_15px_rgba(249,115,22,0.7)]";
           }
         }
     });
 
-    // Subscribe immediately so we can see if teacher is online
     roomChannel.subscribe();
 
     function updateJoinUI() {
@@ -104,24 +195,19 @@
 
       if(isTeacherOnline) {
         joinBtn.disabled = false;
-        joinBtn.className = "bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded text-xl w-full transition-colors";
-        joinBtn.innerText = "Join Class";
-        statusText.innerText = "🟢 Teacher is in the classroom!";
-        statusText.className = "text-green-600 font-bold mb-4";
+        joinBtn.className = "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white w-full py-5 rounded-2xl text-3xl font-black uppercase tracking-widest transition-all duration-300 shadow-[0_0_20px_rgba(34,211,238,0.5)] border-2 border-cyan-400/50 hover:-translate-y-1 cursor-pointer";
+        joinBtn.innerText = "START GAME";
+        statusText.innerText = "🟢 ONLINE: ARENA READY";
+        statusText.className = "text-emerald-400 font-bold flex items-center gap-2 justify-center drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]";
       } else {
         joinBtn.disabled = true;
-        joinBtn.className = "bg-slate-400 text-white px-6 py-3 rounded text-xl w-full cursor-not-allowed transition-colors";
+        joinBtn.className = "bg-slate-700 text-slate-400 w-full py-5 rounded-2xl text-2xl font-black uppercase tracking-widest cursor-not-allowed transition-all border-2 border-slate-800";
         joinBtn.innerText = "Waiting for Teacher...";
-        statusText.innerText = "🔴 Classroom is closed.";
-        statusText.className = "text-red-500 font-bold mb-4";
+        statusText.innerText = "🔴 OFFLINE: Classroom closed";
+        statusText.className = "text-rose-400 font-bold flex items-center gap-2 justify-center";
 
-        // If the teacher leaves mid-class, kick the student out to the login screen
         if(isStudentJoined) {
-           document.getElementById('login-screen').classList.remove('hidden');
-           document.getElementById('live-pad').classList.add('hidden');
-           isStudentJoined = false;
-           roomChannel.untrack(); 
-           alert("The teacher has ended the class.");
+           location.reload(); // Hard reset if teacher leaves mid-game
         }
       }
     }
@@ -129,13 +215,27 @@
     function joinClass() {
       if(!isTeacherOnline) return;
       myName = document.getElementById('student-name').value.trim();
-      if(!myName) return alert("Please enter your name!");
+      if(!myName) return alert("PLAYER NAME REQUIRED");
       
       isStudentJoined = true;
-      document.getElementById('login-screen').classList.add('hidden');
-      document.getElementById('live-pad').classList.remove('hidden');
+      document.getElementById('player-display-name').innerText = myName.toUpperCase();
+      baseText = "Future Champion " + myName.charAt(0).toUpperCase() + myName.slice(1).toLowerCase() + "!";
+      document.getElementById('player-status-text').innerText = baseText;
 
-      // Tell the room that this specific student has joined
+      // Animate transition
+      const loginScr = document.getElementById('login-screen');
+      loginScr.classList.replace('scale-100', 'scale-95');
+      loginScr.classList.replace('opacity-100', 'opacity-0');
+      
+      setTimeout(() => {
+        loginScr.classList.add('hidden');
+        livePadEl.classList.remove('hidden');
+        setTimeout(() => {
+            livePadEl.classList.replace('scale-95', 'scale-100');
+            livePadEl.classList.replace('opacity-0', 'opacity-100');
+        }, 50);
+      }, 500);
+
       roomChannel.track({ student_name: myName });
     }
   </script>
