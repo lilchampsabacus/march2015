@@ -11,11 +11,9 @@
     body { font-family: 'Poppins', sans-serif; }
     .gaming-font { font-family: 'Orbitron', sans-serif; }
     
-    /* Subtle pulsing neon glow for borders */
     .neon-border-blue { box-shadow: 0 0 15px rgba(34, 211, 238, 0.5), inset 0 0 10px rgba(34, 211, 238, 0.3); }
     .neon-border-pink { box-shadow: 0 0 15px rgba(236, 72, 153, 0.5), inset 0 0 10px rgba(236, 72, 153, 0.3); }
 
-    /* Keyframe animation for active pulses */
     @keyframes green-pulse {
       0% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
       50% { box-shadow: 0 0 40px rgba(16, 185, 129, 1); }
@@ -38,8 +36,13 @@
   <div class="relative w-full max-w-3xl z-10">
 
     <div id="login-screen" class="bg-black/40 backdrop-blur-2xl p-10 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] text-center border-2 border-cyan-500 neon-border-blue relative overflow-hidden transform transition-all duration-500 scale-100 opacity-100">
+      
       <div class="absolute top-0 left-0 w-8 h-8 border-l-4 border-t-4 border-cyan-400"></div>
       <div class="absolute bottom-0 right-0 w-8 h-8 border-r-4 border-b-4 border-cyan-400"></div>
+
+      <div class="text-[10px] sm:text-xs text-fuchsia-400 font-bold uppercase tracking-[0.2em] mb-4 opacity-90 drop-shadow-md">
+        Li'l Champs Abacus Academy, Ambernath
+      </div>
 
       <h2 class="text-xs uppercase tracking-[0.3em] font-bold text-cyan-300 mb-2 drop-shadow-lg">Player Authentication</h2>
       <h1 class="text-4xl sm:text-5xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 drop-shadow-[0_2px_5px_rgba(255,255,255,0.3)]"> Mental Arena <span class="text-cyan-400 font-black">v1.0</span></h1>
@@ -58,7 +61,6 @@
     </div>
 
     <div id="live-pad" class="hidden transform transition-all duration-500 scale-95 opacity-0">
-      
       <div class="absolute -top-14 left-0 right-0 flex justify-between items-end px-4">
           <div class="text-sm font-bold text-cyan-300 uppercase tracking-widest bg-black/50 px-4 py-1.5 rounded-t-xl border border-cyan-500/30">
               Player: <span id="player-display-name" class="text-white font-black">---</span>
@@ -69,9 +71,8 @@
       </div>
 
       <div class="bg-black/60 backdrop-blur-3xl p-8 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] border-2 border-fuchsia-500 neon-border-pink relative group min-h-[400px] flex flex-col justify-between">
-        
         <div class="flex-grow flex items-center justify-center">
-            <h1 class="text-6xl sm:text-8xl font-black mb-8 leading-tight tracking-tighter" id="current-question-wrapper">
+            <h1 class="text-6xl sm:text-8xl font-black mb-8 leading-tight tracking-tighter text-center" id="current-question-wrapper">
                 <span id="champion-prefix" class="block text-2xl sm:text-3xl text-fuchsia-300 tracking-[0.2em] font-extrabold uppercase mb-2">Future Champion</span>
                 <span id="player-status-text" class="block text-white">🎧 Listen to Teacher...</span>
             </h1>
@@ -84,12 +85,15 @@
                    placeholder="--">
         </div>
         
-        <div id="feedback-container" class="absolute inset-0 flex items-center justify-center pointer-events-none hidden bg-black/80 backdrop-blur-lg rounded-3xl">
-             <p id="status-message" class="text-4xl md:text-5xl gaming-font font-black text-white p-6 leading-normal tracking-tight"></p>
+        <div id="feedback-container" class="absolute inset-0 flex items-center justify-center pointer-events-none hidden bg-black/80 backdrop-blur-lg rounded-3xl z-50">
+             <p id="status-message" class="text-4xl md:text-5xl gaming-font font-black text-white p-6 leading-normal tracking-tight text-center"></p>
         </div>
-
       </div>
     </div>
+  </div>
+
+  <div class="absolute bottom-4 left-0 right-0 text-center pointer-events-none z-0">
+    <p class="text-[10px] sm:text-xs font-bold uppercase tracking-[0.4em] text-cyan-500/30">Li'l Champs Abacus Academy, Ambernath</p>
   </div>
 
   <script>
@@ -97,15 +101,12 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
     
-    // FIX 1: Generate a totally unique ID for this specific tab
     const myUniqueId = 'student-' + Math.random().toString(36).substr(2, 9);
-    
     let myName = "";
     let baseText = "🎧 Listen to Teacher...";
     let isTeacherOnline = false;
     let isStudentJoined = false;
     
-    // Apply the unique ID to the channel
     const roomChannel = supabaseClient.channel('room-1', {
       config: { presence: { key: myUniqueId } }
     });
@@ -114,6 +115,8 @@
     const feedbackCon = document.getElementById('feedback-container');
     const statusMsg = document.getElementById('status-message');
     const padMain = livePadEl.querySelector('.backdrop-blur-3xl');
+    const championText = document.getElementById('player-status-text');
+    const inputField = document.getElementById('answer-input');
 
     function fireConfetti(success) {
       if(success) {
@@ -140,10 +143,6 @@
 
     roomChannel.on('broadcast', { event: 'teacher-command' }, (payload) => {
         const cmd = payload.payload; 
-        const inputField = document.getElementById('answer-input');
-        const championText = document.getElementById('player-status-text');
-
-        // FIX 2: If we get ANY command from the teacher, they must be online!
         isTeacherOnline = true;
         updateJoinUI();
 
@@ -152,7 +151,7 @@
 
         if(cmd.action === 'open_pads') {
           document.getElementById('champion-prefix').classList.add('hidden');
-          championText.className = "block text-6xl text-cyan-300 font-extrabold uppercase drop-shadow-[0_0_10px_rgba(34,211,238,0.7)]";
+          championText.className = "block text-4xl sm:text-6xl text-cyan-300 font-extrabold uppercase drop-shadow-[0_0_10px_rgba(34,211,238,0.7)]";
           championText.innerText = "✍️ ENTER ANSWER";
           if(inputField.disabled === true) inputField.value = ""; 
           inputField.disabled = false; 
@@ -161,10 +160,10 @@
         else if(cmd.action === 'lock_answers') {
           document.getElementById('champion-prefix').classList.remove('hidden');
           championText.innerText = baseText;
-          championText.className = "block text-white opacity-80";
+          championText.className = "block text-white opacity-80 text-3xl sm:text-5xl";
           inputField.disabled = true; 
           statusMsg.innerText = "🔒 PENS DOWN!\nCALCULATING RESULT...";
-          statusMsg.className = "text-5xl gaming-font text-center font-black text-orange-400 p-6 leading-tight drop-shadow-[0_0_20px_rgba(249,115,22,0.8)]";
+          statusMsg.className = "text-3xl sm:text-5xl gaming-font text-center font-black text-orange-400 p-6 leading-tight drop-shadow-[0_0_20px_rgba(249,115,22,0.8)]";
           feedbackCon.classList.remove('hidden');
           roomChannel.send({ type: 'broadcast', event: 'student-answer', payload: { name: myName, answer: inputField.value } });
         }
@@ -176,20 +175,21 @@
           if(myAnswer === correctAnswer) {
             padMain.classList.add('pulse-correct');
             statusMsg.innerText = "🎉 ARENA CHAMPION!\nCORRECT! +100 XP";
-            statusMsg.className = "text-6xl gaming-font text-center font-black text-emerald-400 p-8 leading-tight drop-shadow-[0_0_30px_rgba(16,185,129,0.9)] scale-110";
+            statusMsg.className = "text-4xl sm:text-6xl gaming-font text-center font-black text-emerald-400 p-8 leading-tight drop-shadow-[0_0_30px_rgba(16,185,129,0.9)] scale-110";
             fireConfetti(true);
           } else {
             padMain.classList.add('pulse-wrong');
             statusMsg.innerText = `WRONG FORMULA!\nAnswer was ${correctAnswer}.\nTRY AGAIN 💪`;
-            statusMsg.className = "text-4xl gaming-font text-center font-black text-orange-300 p-6 leading-tight drop-shadow-[0_0_15px_rgba(249,115,22,0.7)]";
+            statusMsg.className = "text-3xl sm:text-4xl gaming-font text-center font-black text-orange-300 p-6 leading-tight drop-shadow-[0_0_15px_rgba(249,115,22,0.7)]";
           }
         }
-      else if(cmd.action === 'clear_board') {
+        // NEW: This clears the massive feedback when you hit "Clear Board"
+        else if(cmd.action === 'clear_board') {
           feedbackCon.classList.add('hidden');
           padMain.className = padMain.className.replace(/\bpulse-\w+\b/g, '');
           document.getElementById('champion-prefix').classList.remove('hidden');
           championText.innerText = baseText;
-          championText.className = "block text-white opacity-80";
+          championText.className = "block text-white opacity-80 text-3xl sm:text-5xl";
           inputField.value = ""; 
         }
     });
@@ -226,8 +226,8 @@
       
       isStudentJoined = true;
       document.getElementById('player-display-name').innerText = myName.toUpperCase();
-      baseText = "Future Champion " + myName.charAt(0).toUpperCase() + myName.slice(1).toLowerCase() + "!";
-      document.getElementById('player-status-text').innerText = baseText;
+      baseText = "Future Champion\n" + myName.charAt(0).toUpperCase() + myName.slice(1).toLowerCase();
+      championText.innerText = baseText;
 
       const loginScr = document.getElementById('login-screen');
       loginScr.classList.replace('scale-100', 'scale-95');
