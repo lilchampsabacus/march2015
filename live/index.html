@@ -184,6 +184,14 @@
             statusMsg.className = "text-4xl gaming-font text-center font-black text-orange-300 p-6 leading-tight drop-shadow-[0_0_15px_rgba(249,115,22,0.7)]";
           }
         }
+      else if(cmd.action === 'clear_board') {
+          feedbackCon.classList.add('hidden');
+          padMain.className = padMain.className.replace(/\bpulse-\w+\b/g, '');
+          document.getElementById('champion-prefix').classList.remove('hidden');
+          championText.innerText = baseText;
+          championText.className = "block text-white opacity-80";
+          inputField.value = ""; 
+        }
     });
 
     roomChannel.subscribe();
