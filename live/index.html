@@ -9,10 +9,15 @@
 </head>
 <body class="bg-gray-100 h-screen flex flex-col items-center justify-center font-sans">
 
-  <div id="login-screen" class="bg-white p-8 rounded-lg shadow-md text-center">
-    <h2 class="text-2xl font-bold mb-4 text-blue-600">Li'l Champs Live Class</h2>
-    <input type="text" id="student-name" placeholder="Enter your name" class="border-2 p-3 text-xl w-full mb-4 rounded">
-    <button onclick="joinClass()" class="bg-blue-600 text-white px-6 py-3 rounded text-xl w-full">Join Class</button>
+  <div id="login-screen" class="bg-white p-8 rounded-lg shadow-md text-center w-96">
+    <h2 class="text-2xl font-bold mb-2 text-blue-600">Li'l Champs Live</h2>
+    <p id="room-status" class="text-red-500 font-bold mb-4">🔴 Classroom is closed.</p>
+    
+    <input type="text" id="student-name" placeholder="Enter your name" class="border-2 p-3 text-xl w-full mb-4 rounded focus:outline-none focus:border-blue-500">
+    
+    <button id="join-btn" onclick="joinClass()" disabled class="bg-slate-400 text-white px-6 py-3 rounded text-xl w-full cursor-not-allowed transition-colors">
+      Waiting for Teacher...
+    </button>
   </div>
 
   <div id="live-pad" class="hidden w-full max-w-2xl bg-white p-10 rounded-xl shadow-2xl text-center">
@@ -31,23 +36,32 @@
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
     
     let myName = "";
+    let isTeacherOnline = false;
+    let isStudentJoined = false;
     const roomChannel = supabaseClient.channel('room-1');
 
-    function joinClass() {
-      myName = document.getElementById('student-name').value.trim();
-      if(!myName) return alert("Please enter your name!");
-      
-      document.getElementById('login-screen').classList.add('hidden');
-      document.getElementById('live-pad').classList.remove('hidden');
+    // Listen for who is in the room immediately on page load
+    roomChannel.on('presence', { event: 'sync' }, () => {
+      const newState = roomChannel.presenceState();
+      isTeacherOnline = false;
 
-      roomChannel.on('broadcast', { event: 'teacher-command' }, (payload) => {
+      // Check if the teacher's special tag is in the room
+      for (const id in newState) {
+        newState[id].forEach(client => {
+          if(client.is_teacher) isTeacherOnline = true;
+        });
+      }
+      updateJoinUI();
+    });
+
+    roomChannel.on('broadcast', { event: 'teacher-command' }, (payload) => {
         const cmd = payload.payload; 
         const inputField = document.getElementById('answer-input');
         const statusMsg = document.getElementById('status-message');
 
         if(cmd.action === 'open_pads') {
           document.getElementById('current-question').innerText = "✍️ Type your answer!";
-          if(inputField.disabled === true) { inputField.value = ""; }
+          if(inputField.disabled === true) inputField.value = ""; 
           
           inputField.disabled = false; 
           statusMsg.classList.add('hidden');
@@ -57,7 +71,6 @@
           document.getElementById('current-question').innerText = "🎧 Listen to Teacher...";
           inputField.disabled = true; 
           
-          // Show default lock message
           statusMsg.innerText = "🔒 PENS DOWN! Waiting for results...";
           statusMsg.className = "text-xl text-slate-500 font-bold mt-6 block";
           
@@ -67,35 +80,63 @@
             payload: { name: myName, answer: inputField.value }
           });
         }
-        // NEW FEATURE: Grading the answers
         else if(cmd.action === 'grade_answers') {
           const myAnswer = inputField.value.trim();
           const correctAnswer = cmd.correctAnswer.trim();
 
           if(myAnswer === correctAnswer) {
-            // Correct Answer Logic
             statusMsg.innerText = "🎉 Brilliant! Correct Answer! 🎉";
             statusMsg.className = "text-3xl text-green-600 font-bold mt-6 block animate-bounce";
-            
-            // Fire the Confetti!
-            confetti({
-              particleCount: 150,
-              spread: 80,
-              origin: { y: 0.6 }
-            });
+            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
           } else {
-            // Wrong Answer Logic
-            statusMsg.innerText = `Correct answer is ${correctAnswer}. Keep going, you'll get the next one! 💪`;
+            statusMsg.innerText = `Correct answer is ${correctAnswer}. Keep going! 💪`;
             statusMsg.className = "text-2xl text-orange-500 font-bold mt-6 block";
           }
         }
-      });
+    });
 
-      roomChannel.subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          roomChannel.track({ student_name: myName });
+    // Subscribe immediately so we can see if teacher is online
+    roomChannel.subscribe();
+
+    function updateJoinUI() {
+      const joinBtn = document.getElementById('join-btn');
+      const statusText = document.getElementById('room-status');
+
+      if(isTeacherOnline) {
+        joinBtn.disabled = false;
+        joinBtn.className = "bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded text-xl w-full transition-colors";
+        joinBtn.innerText = "Join Class";
+        statusText.innerText = "🟢 Teacher is in the classroom!";
+        statusText.className = "text-green-600 font-bold mb-4";
+      } else {
+        joinBtn.disabled = true;
+        joinBtn.className = "bg-slate-400 text-white px-6 py-3 rounded text-xl w-full cursor-not-allowed transition-colors";
+        joinBtn.innerText = "Waiting for Teacher...";
+        statusText.innerText = "🔴 Classroom is closed.";
+        statusText.className = "text-red-500 font-bold mb-4";
+
+        // If the teacher leaves mid-class, kick the student out to the login screen
+        if(isStudentJoined) {
+           document.getElementById('login-screen').classList.remove('hidden');
+           document.getElementById('live-pad').classList.add('hidden');
+           isStudentJoined = false;
+           roomChannel.untrack(); 
+           alert("The teacher has ended the class.");
         }
-      });
+      }
+    }
+
+    function joinClass() {
+      if(!isTeacherOnline) return;
+      myName = document.getElementById('student-name').value.trim();
+      if(!myName) return alert("Please enter your name!");
+      
+      isStudentJoined = true;
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('live-pad').classList.remove('hidden');
+
+      // Tell the room that this specific student has joined
+      roomChannel.track({ student_name: myName });
     }
   </script>
 </body>
