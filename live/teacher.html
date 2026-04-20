@@ -14,7 +14,7 @@
     <div class="bg-slate-800 p-4 rounded-lg shadow-lg mb-6 border border-slate-700">
       <h2 class="text-lg font-bold text-slate-300 mb-2 flex items-center gap-2">
         <span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span> 
-        Online Students (<span id="student-count">0</span>)
+        Online Students ( <span id="student-count">0</span> )
       </h2>
       <div id="online-list" class="flex flex-wrap gap-2 text-sm">
         <span class="text-slate-500 italic">Waiting for students to join...</span>
@@ -26,9 +26,10 @@
         <h2 class="text-2xl font-bold text-white mb-1">Dictation Mode 🎙️</h2>
         <p class="text-slate-400 text-sm">Teacher will ask sums over Meet, then open pads.</p>
       </div>
-      <div class="flex gap-4">
-        <button onclick="openPads()" class="bg-blue-600 hover:bg-blue-500 px-6 py-4 rounded-xl text-lg font-bold transition shadow-lg">1. Open Pads ("That is...")</button>
-        <button onclick="lockAnswers()" class="bg-red-600 hover:bg-red-500 px-6 py-4 rounded-xl text-lg font-bold transition shadow-lg">2. Lock ("3,2,1 Show!")</button>
+      <div class="flex gap-4 items-center">
+        <button id="btn-open" onclick="openPads()" class="bg-blue-600 hover:bg-blue-500 w-60 py-4 rounded-xl text-lg font-bold transition shadow-lg text-white">1. Open Pads</button>
+        <button id="btn-lock" onclick="lockAnswers()" class="bg-red-600 hover:bg-red-500 w-60 py-4 rounded-xl text-lg font-bold transition shadow-lg text-white">2. Lock ("3,2,1 Show!")</button>
+        <button id="btn-clear" onclick="clearBoard()" class="bg-slate-600 hover:bg-slate-500 px-6 py-4 rounded-xl text-lg font-bold transition shadow-lg hidden text-white">Clear Answers</button>
       </div>
     </div>
 
@@ -43,27 +44,20 @@
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
     
     const roomChannel = supabaseClient.channel('room-1');
-    
-    // Track if pads are currently open or locked
     let currentRoomState = 'locked'; 
 
-    // 1. Listen for answers (Broadcast)
     roomChannel.on('broadcast', { event: 'student-answer' }, (payload) => {
       const data = payload.payload;
       updateStudentCard(data.name, data.answer);
     });
 
-    // 2. Track who is online (Presence)
     roomChannel.on('presence', { event: 'sync' }, () => {
       const newState = roomChannel.presenceState();
-      
-      // Use a Set to automatically remove duplicates (Issue 4)
       const uniqueStudents = new Set(); 
       
       for (const id in newState) {
         newState[id].forEach(client => {
           if(client.student_name) {
-            // Capitalize first letter to keep it neat
             const neatName = client.student_name.charAt(0).toUpperCase() + client.student_name.slice(1).toLowerCase();
             uniqueStudents.add(neatName);
           }
@@ -72,9 +66,7 @@
       updateOnlineUI(Array.from(uniqueStudents));
     });
 
-    // 3. Auto-sync late joiners (Issue 2)
     roomChannel.on('presence', { event: 'join' }, () => {
-      // If someone joins while pads are open, remind the room that pads are open!
       if(currentRoomState === 'open') {
          roomChannel.send({ type: 'broadcast', event: 'teacher-command', payload: { action: 'open_pads' } });
       }
@@ -86,14 +78,51 @@
       currentRoomState = 'open';
       document.getElementById('student-grid').innerHTML = ""; 
       roomChannel.send({ type: 'broadcast', event: 'teacher-command', payload: { action: 'open_pads' } });
+
+      // === UI CHANGES FOR OPEN STATE ===
+      const btnOpen = document.getElementById('btn-open');
+      const btnLock = document.getElementById('btn-lock');
+      const btnClear = document.getElementById('btn-clear');
+
+      // Make Open button Green
+      btnOpen.className = "bg-green-500 hover:bg-green-400 w-60 py-4 rounded-xl text-lg font-bold transition shadow-lg text-white";
+      btnOpen.innerText = "🟢 Pads OPEN!";
+      
+      // Make Lock button Red and ready
+      btnLock.className = "bg-red-600 hover:bg-red-500 w-60 py-4 rounded-xl text-lg font-bold transition shadow-lg text-white";
+      btnLock.innerText = "2. Lock Answers";
+
+      // Hide clear button
+      btnClear.classList.add('hidden');
     }
 
     function lockAnswers() {
       currentRoomState = 'locked';
       roomChannel.send({ type: 'broadcast', event: 'teacher-command', payload: { action: 'lock_answers' } });
+
+      // === UI CHANGES FOR LOCKED STATE ===
+      const btnOpen = document.getElementById('btn-open');
+      const btnLock = document.getElementById('btn-lock');
+      const btnClear = document.getElementById('btn-clear');
+
+      // Return Open button to Blue
+      btnOpen.className = "bg-blue-600 hover:bg-blue-500 w-60 py-4 rounded-xl text-lg font-bold transition shadow-lg text-white";
+      btnOpen.innerText = "1. Open Pads";
+      
+      // Gray out the Lock button to show it's already locked
+      btnLock.className = "bg-slate-700 text-slate-400 w-60 py-4 rounded-xl text-lg font-bold transition shadow-lg cursor-not-allowed";
+      btnLock.innerText = "🔒 Locked";
+
+      // Show the Clear Answers button!
+      btnClear.classList.remove('hidden');
     }
 
-    // UI Helper: Draw the online badges
+    // NEW FUNCTION: Clear the board manually
+    function clearBoard() {
+      document.getElementById('student-grid').innerHTML = "";
+      document.getElementById('btn-clear').classList.add('hidden');
+    }
+
     function updateOnlineUI(studentsList) {
       const container = document.getElementById('online-list');
       document.getElementById('student-count').innerText = studentsList.length;
@@ -108,7 +137,6 @@
       ).join('');
     }
 
-    // UI Helper: Draw the answer cards
     function updateStudentCard(name, answer) {
       const grid = document.getElementById('student-grid');
       const card = document.createElement('div');
