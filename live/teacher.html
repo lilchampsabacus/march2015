@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Teacher Control Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-900 h-screen text-white p-8 font-sans">
+
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8 text-blue-400">Master Control: Room 1</h1>
+
+    <div class="bg-slate-800 p-6 rounded-lg shadow-lg mb-8 flex gap-4 items-end">
+      <div class="flex-grow">
+        <label class="block text-sm mb-2 text-slate-400">Next Sum (e.g., 2D5R)</label>
+        <input type="text" id="question-input" class="w-full bg-slate-700 p-3 rounded text-xl border border-slate-600 focus:outline-none text-white" placeholder="Enter sum...">
+      </div>
+      <button onclick="sendQuestion()" class="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded text-lg font-bold transition">1. Send Sum</button>
+      <button onclick="lockAnswers()" class="bg-red-600 hover:bg-red-500 px-6 py-3 rounded text-lg font-bold transition">2. Lock (3,2,1 Show!)</button>
+    </div>
+
+    <h2 class="text-xl font-semibold mb-4 text-slate-300">Live Student Answers</h2>
+    <div id="student-grid" class="grid grid-cols-3 gap-4">
+      </div>
+  </div>
+
+  <script>
+    // Your exact credentials
+    const supabaseUrl = 'https://portal-bridge.ucmas-ambernath-pg.workers.dev';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    
+    const roomChannel = supabase.channel('room-1');
+
+    // Listen for student answers when we hit 'Lock'
+    roomChannel.on('broadcast', { event: 'student-answer' }, (payload) => {
+      const data = payload.payload;
+      updateStudentCard(data.name, data.answer);
+    }).subscribe();
+
+    function sendQuestion() {
+      const q = document.getElementById('question-input').value;
+      // Clear the grid for the new sum
+      document.getElementById('student-grid').innerHTML = ""; 
+      
+      // Broadcast to all students
+      roomChannel.send({
+        type: 'broadcast',
+        event: 'teacher-command',
+        payload: { action: 'new_question', question: q }
+      });
+    }
+
+    function lockAnswers() {
+      // Broadcast lock command
+      roomChannel.send({
+        type: 'broadcast',
+        event: 'teacher-command',
+        payload: { action: 'lock_answers' }
+      });
+    }
+
+    // Helper to draw the UI grid
+    function updateStudentCard(name, answer) {
+      const grid = document.getElementById('student-grid');
+      const card = document.createElement('div');
+      
+      // Simple styling for the student card
+      card.className = "bg-slate-800 p-4 rounded-lg border border-slate-600 text-center";
+      card.innerHTML = `
+        <h3 class="text-lg font-bold text-slate-300 mb-2">${name}</h3>
+        <p class="text-4xl text-green-400 font-bold bg-slate-900 py-4 rounded">${answer || "No Answer"}</p>
+      `;
+      grid.appendChild(card);
+    }
+  </script>
+</body>
+</html>
