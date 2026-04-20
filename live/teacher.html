@@ -81,7 +81,12 @@
       }
     });
 
-    roomChannel.subscribe();
+    // Tell the room that the TEACHER has arrived
+    roomChannel.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await roomChannel.track({ is_teacher: true });
+      }
+    });
 
     function openPads() {
       currentRoomState = 'open';
