@@ -15,7 +15,7 @@
   </div>
 
   <div id="live-pad" class="hidden w-full max-w-2xl bg-white p-10 rounded-xl shadow-2xl text-center">
-    <h1 class="text-4xl font-bold mb-8 text-gray-800" id="current-question">Waiting for teacher...</h1>
+    <h1 class="text-4xl font-bold mb-8 text-gray-800" id="current-question">🎧 Listen to Teacher...</h1>
     
     <input type="number" id="answer-input" disabled 
            class="border-4 border-gray-300 w-full text-center text-6xl p-4 rounded-xl focus:border-blue-500 focus:outline-none transition-colors"
@@ -28,11 +28,13 @@
     // Your exact credentials
     const supabaseUrl = 'https://portal-bridge.ucmas-ambernath-pg.workers.dev';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
-    supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    
+    // Create Supabase client using window object to avoid naming collisions
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
     
     let myName = "";
     // Connect to the specific classroom channel
-    const roomChannel = supabase.channel('room-1');
+    const roomChannel = supabaseClient.channel('room-1');
 
     function joinClass() {
       myName = document.getElementById('student-name').value;
@@ -43,18 +45,21 @@
 
       // Listen for Teacher Commands
       roomChannel.on('broadcast', { event: 'teacher-command' }, (payload) => {
-        const cmd = payload.payload; // Data sent by teacher
+        const cmd = payload.payload; 
         const inputField = document.getElementById('answer-input');
         const statusMsg = document.getElementById('status-message');
 
-        if(cmd.action === 'new_question') {
-          document.getElementById('current-question').innerText = cmd.question;
-          inputField.value = ""; // Clear old answer
-          inputField.disabled = false; // Unlock
+        if(cmd.action === 'open_pads') {
+          // Tell the student it's time to write the answer
+          document.getElementById('current-question').innerText = "✍️ Type your answer!";
+          inputField.value = ""; // Clear their previous answer
+          inputField.disabled = false; // Unlock the pad
           statusMsg.classList.add('hidden');
-          inputField.focus(); // Auto-focus so they can start typing
+          inputField.focus(); // Put the cursor in the box automatically
         }
         else if(cmd.action === 'lock_answers') {
+          // Change text back to listening phase
+          document.getElementById('current-question').innerText = "🎧 Listen to Teacher...";
           inputField.disabled = true; // Anti-Cheat activated!
           statusMsg.classList.remove('hidden');
           
