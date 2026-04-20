@@ -174,12 +174,12 @@
 
           if(myAnswer === correctAnswer) {
             padMain.classList.add('pulse-correct');
-            statusMsg.innerText = "🎉 ARENA CHAMPION!\nCORRECT! +100 XP";
+            statusMsg.innerText = "🎉 ARENA CHAMPION!\nCORRECT! +100 Points ";
             statusMsg.className = "text-4xl sm:text-6xl gaming-font text-center font-black text-emerald-400 p-8 leading-tight drop-shadow-[0_0_30px_rgba(16,185,129,0.9)] scale-110";
             fireConfetti(true);
           } else {
             padMain.classList.add('pulse-wrong');
-            statusMsg.innerText = `WRONG FORMULA!\nAnswer was ${correctAnswer}.\nTRY AGAIN 💪`;
+            statusMsg.innerText = `WRONG!\nAnswer was ${correctAnswer}.\nTRY AGAIN 👍`;
             statusMsg.className = "text-3xl sm:text-4xl gaming-font text-center font-black text-orange-300 p-6 leading-tight drop-shadow-[0_0_15px_rgba(249,115,22,0.7)]";
           }
         }
