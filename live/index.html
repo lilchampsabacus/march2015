@@ -94,27 +94,31 @@
 
   <script>
     const supabaseUrl = 'https://portal-bridge.ucmas-ambernath-pg.workers.dev';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24}f.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+    
+    // FIX 1: Generate a totally unique ID for this specific tab
+    const myUniqueId = 'student-' + Math.random().toString(36).substr(2, 9);
     
     let myName = "";
     let baseText = "🎧 Listen to Teacher...";
     let isTeacherOnline = false;
     let isStudentJoined = false;
-    const roomChannel = supabaseClient.channel('room-1');
+    
+    // Apply the unique ID to the channel
+    const roomChannel = supabaseClient.channel('room-1', {
+      config: { presence: { key: myUniqueId } }
+    });
 
-    // UI Elements
     const livePadEl = document.getElementById('live-pad');
     const feedbackCon = document.getElementById('feedback-container');
     const statusMsg = document.getElementById('status-message');
     const padMain = livePadEl.querySelector('.backdrop-blur-3xl');
 
-    // CONFETTI CANNON SETTINGS (More explosive!)
     function fireConfetti(success) {
       if(success) {
-        // Multi-directional burst for win
         let end = Date.now() + (1 * 800);
-        let colors = ['#22d3ee', '#ec4899', '#ffffff']; // Cyan, Pink, White
+        let colors = ['#22d3ee', '#ec4899', '#ffffff']; 
         (function frame() {
           confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: colors });
           confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: colors });
@@ -139,7 +143,10 @@
         const inputField = document.getElementById('answer-input');
         const championText = document.getElementById('player-status-text');
 
-        // Reset all feedback animations
+        // FIX 2: If we get ANY command from the teacher, they must be online!
+        isTeacherOnline = true;
+        updateJoinUI();
+
         padMain.className = padMain.className.replace(/\bpulse-\w+\b/g, '');
         feedbackCon.classList.add('hidden');
 
@@ -147,23 +154,18 @@
           document.getElementById('champion-prefix').classList.add('hidden');
           championText.className = "block text-6xl text-cyan-300 font-extrabold uppercase drop-shadow-[0_0_10px_rgba(34,211,238,0.7)]";
           championText.innerText = "✍️ ENTER ANSWER";
-          
           if(inputField.disabled === true) inputField.value = ""; 
-          
           inputField.disabled = false; 
           inputField.focus(); 
         }
         else if(cmd.action === 'lock_answers') {
-          // Locked Phase Visuals (Orange Neon Alert)
           document.getElementById('champion-prefix').classList.remove('hidden');
           championText.innerText = baseText;
           championText.className = "block text-white opacity-80";
           inputField.disabled = true; 
-          
           statusMsg.innerText = "🔒 PENS DOWN!\nCALCULATING RESULT...";
           statusMsg.className = "text-5xl gaming-font text-center font-black text-orange-400 p-6 leading-tight drop-shadow-[0_0_20px_rgba(249,115,22,0.8)]";
           feedbackCon.classList.remove('hidden');
-          
           roomChannel.send({ type: 'broadcast', event: 'student-answer', payload: { name: myName, answer: inputField.value } });
         }
         else if(cmd.action === 'grade_answers') {
@@ -172,14 +174,11 @@
           feedbackCon.classList.remove('hidden');
 
           if(myAnswer === correctAnswer) {
-            // == VICTORY STATE ==
             padMain.classList.add('pulse-correct');
             statusMsg.innerText = "🎉 ARENA CHAMPION!\nCORRECT! +100 XP";
             statusMsg.className = "text-6xl gaming-font text-center font-black text-emerald-400 p-8 leading-tight drop-shadow-[0_0_30px_rgba(16,185,129,0.9)] scale-110";
-            
             fireConfetti(true);
           } else {
-            // == WRONG STATE (Motivational) ==
             padMain.classList.add('pulse-wrong');
             statusMsg.innerText = `WRONG FORMULA!\nAnswer was ${correctAnswer}.\nTRY AGAIN 💪`;
             statusMsg.className = "text-4xl gaming-font text-center font-black text-orange-300 p-6 leading-tight drop-shadow-[0_0_15px_rgba(249,115,22,0.7)]";
@@ -207,7 +206,7 @@
         statusText.className = "text-rose-400 font-bold flex items-center gap-2 justify-center";
 
         if(isStudentJoined) {
-           location.reload(); // Hard reset if teacher leaves mid-game
+           location.reload(); 
         }
       }
     }
@@ -222,7 +221,6 @@
       baseText = "Future Champion " + myName.charAt(0).toUpperCase() + myName.slice(1).toLowerCase() + "!";
       document.getElementById('player-status-text').innerText = baseText;
 
-      // Animate transition
       const loginScr = document.getElementById('login-screen');
       loginScr.classList.replace('scale-100', 'scale-95');
       loginScr.classList.replace('opacity-100', 'opacity-0');
