@@ -198,9 +198,17 @@
     }
 
     function clearBoard() {
+      // 1. Clear the teacher's UI
       document.getElementById('student-grid').innerHTML = "";
       document.getElementById('btn-clear').classList.add('hidden');
       document.getElementById('grading-panel').classList.add('hidden');
+
+      // 2. NEW: Broadcast to students to clear their screens too
+      roomChannel.send({ 
+        type: 'broadcast', 
+        event: 'teacher-command', 
+        payload: { action: 'clear_board' } 
+      });
     }
 
     function updateOnlineUI(studentsList) {
