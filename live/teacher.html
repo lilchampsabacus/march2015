@@ -87,7 +87,13 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
     
-    const roomChannel = supabaseClient.channel('room-1');
+    // FIX 1: Generate unique ID for teacher tab
+    const teacherId = 'teacher-' + Math.random().toString(36).substr(2, 9);
+    
+    const roomChannel = supabaseClient.channel('room-1', {
+      config: { presence: { key: teacherId } }
+    });
+    
     let currentRoomState = 'locked'; 
 
     roomChannel.on('broadcast', { event: 'student-answer' }, (payload) => {
@@ -118,6 +124,9 @@
     roomChannel.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
         await roomChannel.track({ is_teacher: true });
+        
+        // FIX 2: Send a "Wake Up Ping" to force the student tabs to unlock
+        roomChannel.send({ type: 'broadcast', event: 'teacher-command', payload: { action: 'ping' } });
       }
     });
 
@@ -131,11 +140,9 @@
       const btnClear = document.getElementById('btn-clear');
       const gradingPanel = document.getElementById('grading-panel');
 
-      // Vivid Green Gradient
       btnOpen.className = "bg-gradient-to-r from-emerald-400 to-green-500 w-full sm:w-56 py-4 rounded-2xl text-lg font-extrabold transition-all duration-300 shadow-[0_0_25px_rgba(52,211,153,0.6)] text-white border border-emerald-300/50";
       btnOpen.innerText = "🟢 PADS OPEN!";
       
-      // Reset Lock Button to Red
       btnLock.className = "bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 w-full sm:w-56 py-4 rounded-2xl text-lg font-extrabold transition-all duration-300 shadow-[0_0_20px_rgba(244,63,94,0.4)] hover:shadow-[0_0_30px_rgba(244,63,94,0.6)] hover:-translate-y-1 text-white border border-rose-400/50";
       btnLock.innerText = "2. Lock Answers";
 
@@ -153,11 +160,9 @@
       const btnClear = document.getElementById('btn-clear');
       const gradingPanel = document.getElementById('grading-panel');
 
-      // Reset Open Button to Blue
       btnOpen.className = "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 w-full sm:w-56 py-4 rounded-2xl text-lg font-extrabold transition-all duration-300 shadow-[0_0_20px_rgba(59,130,246,0.4)] hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] hover:-translate-y-1 text-white border border-blue-400/50";
       btnOpen.innerText = "1. Open Pads";
       
-      // Disabled State for Lock Button
       btnLock.className = "bg-white/5 backdrop-blur-md text-slate-500 w-full sm:w-56 py-4 rounded-2xl text-lg font-extrabold transition-all duration-300 cursor-not-allowed border border-white/10";
       btnLock.innerText = "🔒 Locked";
 
@@ -182,13 +187,10 @@
         const studentAns = studentAnsElement.innerText;
 
         if(studentAns === correctAns) {
-          // NEON GREEN SUCCESS CARD
           card.className = "student-card bg-emerald-500/10 backdrop-blur-xl p-5 rounded-3xl border border-emerald-400/50 text-center shadow-[0_0_30px_rgba(52,211,153,0.3)] transition-all duration-500 transform hover:scale-105 flex flex-col justify-center h-full relative overflow-hidden";
-          // Add a shine effect
           card.innerHTML += `<div class="absolute inset-0 bg-gradient-to-tr from-transparent via-emerald-400/10 to-transparent pointer-events-none"></div>`;
           studentAnsElement.className = "student-answer-text text-5xl text-emerald-400 font-extrabold drop-shadow-[0_0_15px_rgba(52,211,153,0.8)] mt-2";
         } else {
-          // MUTED RED FAILURE CARD
           card.className = "student-card bg-rose-500/5 backdrop-blur-md p-5 rounded-3xl border border-rose-500/30 text-center shadow-lg transition-all duration-500 opacity-80 flex flex-col justify-center h-full";
           studentAnsElement.className = "student-answer-text text-4xl text-rose-400 font-extrabold opacity-70 line-through mt-2";
         }
@@ -219,7 +221,6 @@
       const grid = document.getElementById('student-grid');
       const card = document.createElement('div');
       
-      // Default Glass Card Layout
       card.className = "student-card bg-white/5 backdrop-blur-xl p-5 rounded-3xl border border-white/10 text-center shadow-xl transition-all duration-300 hover:bg-white/10 flex flex-col justify-center min-h-[160px]";
       card.innerHTML = `
         <h3 class="text-lg font-bold text-slate-300 truncate tracking-wide uppercase opacity-80">${name}</h3>
