@@ -11,16 +11,18 @@
   <div class="max-w-4xl mx-auto">
     <h1 class="text-3xl font-bold mb-8 text-blue-400">Master Control: Room 1</h1>
 
-    <div class="bg-slate-800 p-6 rounded-lg shadow-lg mb-8 flex gap-4 items-end">
-      <div class="flex-grow">
-        <label class="block text-sm mb-2 text-slate-400">Next Sum (e.g., 2D5R)</label>
-        <input type="text" id="question-input" class="w-full bg-slate-700 p-3 rounded text-xl border border-slate-600 focus:outline-none text-white" placeholder="Enter sum...">
+    <div class="bg-slate-800 p-6 rounded-lg shadow-lg mb-8 flex justify-between items-center border border-slate-700">
+      <div>
+        <h2 class="text-2xl font-bold text-white mb-1">Dictation Mode 🎙️</h2>
+        <p class="text-slate-400 text-sm">Call numbers over Meet, then open pads.</p>
       </div>
-      <button onclick="sendQuestion()" class="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded text-lg font-bold transition">1. Send Sum</button>
-      <button onclick="lockAnswers()" class="bg-red-600 hover:bg-red-500 px-6 py-3 rounded text-lg font-bold transition">2. Lock (3,2,1 Show!)</button>
+      <div class="flex gap-4">
+        <button onclick="openPads()" class="bg-blue-600 hover:bg-blue-500 px-6 py-4 rounded-xl text-lg font-bold transition shadow-lg">1. Open Pads ("That is...")</button>
+        <button onclick="lockAnswers()" class="bg-red-600 hover:bg-red-500 px-6 py-4 rounded-xl text-lg font-bold transition shadow-lg">2. Lock ("3,2,1 Show!")</button>
+      </div>
     </div>
 
-    <h2 class="text-xl font-semibold mb-4 text-slate-300">Live Student Answers</h2>
+    <h2 class="text-xl font-semibold mb-4 text-slate-300 border-b border-slate-700 pb-2">Live Student Answers</h2>
     <div id="student-grid" class="grid grid-cols-3 gap-4">
       </div>
   </div>
@@ -29,9 +31,11 @@
     // Your exact credentials
     const supabaseUrl = 'https://portal-bridge.ucmas-ambernath-pg.workers.dev';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
-    supabase = supabase.createClient(supabaseUrl, supabaseKey);
     
-    const roomChannel = supabase.channel('room-1');
+    // Create Supabase client using window object to avoid naming collisions
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+    
+    const roomChannel = supabaseClient.channel('room-1');
 
     // Listen for student answers when we hit 'Lock'
     roomChannel.on('broadcast', { event: 'student-answer' }, (payload) => {
@@ -39,16 +43,15 @@
       updateStudentCard(data.name, data.answer);
     }).subscribe();
 
-    function sendQuestion() {
-      const q = document.getElementById('question-input').value;
-      // Clear the grid for the new sum
+    function openPads() {
+      // Clear your grid for the new sum
       document.getElementById('student-grid').innerHTML = ""; 
       
-      // Broadcast to all students
+      // Broadcast open command to all students
       roomChannel.send({
         type: 'broadcast',
         event: 'teacher-command',
-        payload: { action: 'new_question', question: q }
+        payload: { action: 'open_pads' }
       });
     }
 
@@ -67,10 +70,10 @@
       const card = document.createElement('div');
       
       // Simple styling for the student card
-      card.className = "bg-slate-800 p-4 rounded-lg border border-slate-600 text-center";
+      card.className = "bg-slate-800 p-4 rounded-lg border border-slate-600 text-center shadow-md";
       card.innerHTML = `
-        <h3 class="text-lg font-bold text-slate-300 mb-2">${name}</h3>
-        <p class="text-4xl text-green-400 font-bold bg-slate-900 py-4 rounded">${answer || "No Answer"}</p>
+        <h3 class="text-lg font-bold text-slate-300 mb-2 truncate">${name}</h3>
+        <p class="text-4xl text-green-400 font-bold bg-slate-900 py-4 rounded border border-slate-700">${answer || "---"}</p>
       `;
       grid.appendChild(card);
     }
