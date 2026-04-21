@@ -243,6 +243,16 @@
       }, 500);
 
       roomChannel.track({ student_name: myName });
+      // === NEW: LIVE TYPING TRACKER ===
+      // Listen to the input box. If it has a number, tell the teacher I am ready!
+      inputField.addEventListener('input', (e) => {
+        const hasTyped = e.target.value.trim().length > 0;
+        roomChannel.send({
+          type: 'broadcast',
+          event: 'student-status',
+          payload: { name: myName, isReady: hasTyped }
+        });
+      });
     }
   </script>
 </body>
