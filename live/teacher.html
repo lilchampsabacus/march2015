@@ -98,10 +98,25 @@
     });
     
     let currentRoomState = 'locked'; 
+    
+    // === NEW: READY TRACKER VARIABLES ===
+    let readyStudents = new Set();
+    let totalOnlineCount = 0;
 
     roomChannel.on('broadcast', { event: 'student-answer' }, (payload) => {
       const data = payload.payload;
       updateStudentCard(data.name, data.answer);
+    });
+
+    // === NEW: LISTEN FOR TYPING STATUS ===
+    roomChannel.on('broadcast', { event: 'student-status' }, (payload) => {
+      const data = payload.payload;
+      if(data.isReady) {
+        readyStudents.add(data.name);
+      } else {
+        readyStudents.delete(data.name); // If they backspace/delete their answer
+      }
+      updateReadyUI();
     });
 
     roomChannel.on('presence', { event: 'sync' }, () => {
@@ -115,7 +130,11 @@
           }
         });
       }
+      
+      // Update our total count for the fraction (e.g., 2/4 Ready)
+      totalOnlineCount = uniqueStudents.size;
       updateOnlineUI(Array.from(uniqueStudents));
+      updateReadyUI(); // Refresh the button just in case someone joined/left
     });
 
     roomChannel.on('presence', { event: 'join' }, () => {
@@ -133,6 +152,7 @@
 
     function openPads() {
       currentRoomState = 'open';
+      readyStudents.clear(); // Reset the ready tracker for the new sum
       document.getElementById('student-grid').innerHTML = ""; 
       roomChannel.send({ type: 'broadcast', event: 'teacher-command', payload: { action: 'open_pads' } });
 
@@ -143,12 +163,32 @@
 
       btnOpen.className = "bg-gradient-to-r from-emerald-400 to-green-500 w-full sm:w-56 py-4 rounded-2xl text-lg font-extrabold transition-all duration-300 shadow-[0_0_25px_rgba(52,211,153,0.6)] text-white border border-emerald-300/50";
       btnOpen.innerText = "🟢 PADS OPEN!";
+      
+      // Reset Lock Button Design
       btnLock.className = "bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 w-full sm:w-56 py-4 rounded-2xl text-lg font-extrabold transition-all duration-300 shadow-[0_0_20px_rgba(244,63,94,0.4)] hover:shadow-[0_0_30px_rgba(244,63,94,0.6)] hover:-translate-y-1 text-white border border-rose-400/50";
-      btnLock.innerText = "2. Lock Answers";
-
+      
       btnClear.classList.add('hidden');
       gradingPanel.classList.add('hidden');
       document.getElementById('correct-answer-input').value = "";
+      
+      updateReadyUI(); // Immediately show (0/X Ready)
+    }
+
+    // === NEW: UI UPDATER FOR THE LOCK BUTTON ===
+    function updateReadyUI() {
+      const btnLock = document.getElementById('btn-lock');
+      
+      if (currentRoomState === 'open') {
+        // Change the text to show the live fraction
+        btnLock.innerText = `2. Lock (${readyStudents.size}/${totalOnlineCount} Ready)`;
+        
+        // If everyone has typed an answer, make the button pulse so you notice!
+        if(totalOnlineCount > 0 && readyStudents.size === totalOnlineCount) {
+          btnLock.classList.add('animate-pulse');
+        } else {
+          btnLock.classList.remove('animate-pulse');
+        }
+      }
     }
 
     function lockAnswers() {
@@ -162,6 +202,9 @@
 
       btnOpen.className = "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 w-full sm:w-56 py-4 rounded-2xl text-lg font-extrabold transition-all duration-300 shadow-[0_0_20px_rgba(59,130,246,0.4)] hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] hover:-translate-y-1 text-white border border-blue-400/50";
       btnOpen.innerText = "1. Open Pads";
+      
+      // Remove pulsing and set to locked state
+      btnLock.classList.remove('animate-pulse');
       btnLock.className = "bg-white/5 backdrop-blur-md text-slate-500 w-full sm:w-56 py-4 rounded-2xl text-lg font-extrabold transition-all duration-300 cursor-not-allowed border border-white/10";
       btnLock.innerText = "🔒 Locked";
 
@@ -201,7 +244,6 @@
       document.getElementById('btn-clear').classList.add('hidden');
       document.getElementById('grading-panel').classList.add('hidden');
 
-      // NEW: Broadcast to students to clear their screens too
       roomChannel.send({ 
         type: 'broadcast', 
         event: 'teacher-command', 
