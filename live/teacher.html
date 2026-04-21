@@ -99,42 +99,50 @@
     
     let currentRoomState = 'locked'; 
     
-    // === NEW: READY TRACKER VARIABLES ===
+    // === FIX: Better State Trackers ===
     let readyStudents = new Set();
+    let currentOnlineStudents = new Set(); // Tracks exactly who is online right now
     let totalOnlineCount = 0;
 
+    // 1. Receive Answer (FIXED: Normalize name)
     roomChannel.on('broadcast', { event: 'student-answer' }, (payload) => {
       const data = payload.payload;
-      updateStudentCard(data.name, data.answer);
+      const neatName = data.name.trim().charAt(0).toUpperCase() + data.name.trim().slice(1).toLowerCase();
+      updateStudentCard(neatName, data.answer);
     });
 
-    // === NEW: LISTEN FOR TYPING STATUS ===
+    // 2. Track Typing Status (FIXED: Normalize name)
     roomChannel.on('broadcast', { event: 'student-status' }, (payload) => {
       const data = payload.payload;
+      const neatName = data.name.trim().charAt(0).toUpperCase() + data.name.trim().slice(1).toLowerCase();
+      
       if(data.isReady) {
-        readyStudents.add(data.name);
+        readyStudents.add(neatName);
       } else {
-        readyStudents.delete(data.name); // If they backspace/delete their answer
+        readyStudents.delete(neatName); 
       }
       updateReadyUI();
     });
 
+    // 3. Track Presence (Who is online)
     roomChannel.on('presence', { event: 'sync' }, () => {
       const newState = roomChannel.presenceState();
       const uniqueStudents = new Set(); 
       for (const id in newState) {
         newState[id].forEach(client => {
           if(client.student_name) {
-            const neatName = client.student_name.charAt(0).toUpperCase() + client.student_name.slice(1).toLowerCase();
+            const neatName = client.student_name.trim().charAt(0).toUpperCase() + client.student_name.trim().slice(1).toLowerCase();
             uniqueStudents.add(neatName);
           }
         });
       }
       
-      // Update our total count for the fraction (e.g., 2/4 Ready)
-      totalOnlineCount = uniqueStudents.size;
-      updateOnlineUI(Array.from(uniqueStudents));
-      updateReadyUI(); // Refresh the button just in case someone joined/left
+      // Update global trackers
+      currentOnlineStudents = uniqueStudents;
+      totalOnlineCount = currentOnlineStudents.size;
+      
+      updateOnlineUI(Array.from(currentOnlineStudents));
+      updateReadyUI(); // Refresh button to drop offline students from the count
     });
 
     roomChannel.on('presence', { event: 'join' }, () => {
@@ -152,7 +160,7 @@
 
     function openPads() {
       currentRoomState = 'open';
-      readyStudents.clear(); // Reset the ready tracker for the new sum
+      readyStudents.clear(); // Wipe the ready list clean
       document.getElementById('student-grid').innerHTML = ""; 
       roomChannel.send({ type: 'broadcast', event: 'teacher-command', payload: { action: 'open_pads' } });
 
@@ -164,26 +172,31 @@
       btnOpen.className = "bg-gradient-to-r from-emerald-400 to-green-500 w-full sm:w-56 py-4 rounded-2xl text-lg font-extrabold transition-all duration-300 shadow-[0_0_25px_rgba(52,211,153,0.6)] text-white border border-emerald-300/50";
       btnOpen.innerText = "🟢 PADS OPEN!";
       
-      // Reset Lock Button Design
       btnLock.className = "bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 w-full sm:w-56 py-4 rounded-2xl text-lg font-extrabold transition-all duration-300 shadow-[0_0_20px_rgba(244,63,94,0.4)] hover:shadow-[0_0_30px_rgba(244,63,94,0.6)] hover:-translate-y-1 text-white border border-rose-400/50";
       
       btnClear.classList.add('hidden');
       gradingPanel.classList.add('hidden');
       document.getElementById('correct-answer-input').value = "";
       
-      updateReadyUI(); // Immediately show (0/X Ready)
+      updateReadyUI();
     }
 
-    // === NEW: UI UPDATER FOR THE LOCK BUTTON ===
+    // === FIX: Accurate Ready Counter ===
     function updateReadyUI() {
       const btnLock = document.getElementById('btn-lock');
       
       if (currentRoomState === 'open') {
-        // Change the text to show the live fraction
-        btnLock.innerText = `2. Lock (${readyStudents.size}/${totalOnlineCount} Ready)`;
+        // Only count students who are BOTH ready AND currently online
+        let actualReadyCount = 0;
+        readyStudents.forEach(name => {
+          if (currentOnlineStudents.has(name)) {
+            actualReadyCount++;
+          }
+        });
+
+        btnLock.innerText = `2. Lock (${actualReadyCount}/${totalOnlineCount} Ready)`;
         
-        // If everyone has typed an answer, make the button pulse so you notice!
-        if(totalOnlineCount > 0 && readyStudents.size === totalOnlineCount) {
+        if(totalOnlineCount > 0 && actualReadyCount === totalOnlineCount) {
           btnLock.classList.add('animate-pulse');
         } else {
           btnLock.classList.remove('animate-pulse');
@@ -203,7 +216,6 @@
       btnOpen.className = "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 w-full sm:w-56 py-4 rounded-2xl text-lg font-extrabold transition-all duration-300 shadow-[0_0_20px_rgba(59,130,246,0.4)] hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] hover:-translate-y-1 text-white border border-blue-400/50";
       btnOpen.innerText = "1. Open Pads";
       
-      // Remove pulsing and set to locked state
       btnLock.classList.remove('animate-pulse');
       btnLock.className = "bg-white/5 backdrop-blur-md text-slate-500 w-full sm:w-56 py-4 rounded-2xl text-lg font-extrabold transition-all duration-300 cursor-not-allowed border border-white/10";
       btnLock.innerText = "🔒 Locked";
@@ -230,7 +242,7 @@
 
         if(studentAns === correctAns) {
           card.className = "student-card bg-emerald-500/10 backdrop-blur-xl p-5 rounded-3xl border border-emerald-400/50 text-center shadow-[0_0_30px_rgba(52,211,153,0.3)] transition-all duration-500 transform hover:scale-105 flex flex-col justify-center h-full relative overflow-hidden";
-          card.innerHTML += `<div class="absolute inset-0 bg-gradient-to-tr from-transparent via-emerald-400/10 to-transparent pointer-events-none"></div>`;
+          card.innerHTML += `<div class="absolute inset-0 bg-gradient-to-tr from-transparent via-emerald-400/10 to-transparent pointer-events-none glowing-flare"></div>`;
           studentAnsElement.className = "student-answer-text text-5xl text-emerald-400 font-extrabold drop-shadow-[0_0_15px_rgba(52,211,153,0.8)] mt-2";
         } else {
           card.className = "student-card bg-rose-500/5 backdrop-blur-md p-5 rounded-3xl border border-rose-500/30 text-center shadow-lg transition-all duration-500 opacity-80 flex flex-col justify-center h-full";
@@ -265,10 +277,21 @@
       ).join('');
     }
 
+    // === FIX: Prevent Duplicate Cards ===
     function updateStudentCard(name, answer) {
       const grid = document.getElementById('student-grid');
-      const card = document.createElement('div');
       
+      // Create a unique HTML ID based on the student's name
+      const safeId = 'card-' + name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+      let card = document.getElementById(safeId);
+
+      // If the card doesn't exist yet, create it. If it DOES exist, we just update it!
+      if (!card) {
+        card = document.createElement('div');
+        card.id = safeId;
+        grid.appendChild(card);
+      }
+
       card.className = "student-card bg-white/5 backdrop-blur-xl p-5 rounded-3xl border border-white/10 text-center shadow-xl transition-all duration-300 hover:bg-white/10 flex flex-col justify-center min-h-[160px]";
       card.innerHTML = `
         <h3 class="text-lg font-bold text-slate-300 truncate tracking-wide uppercase opacity-80">${name}</h3>
@@ -276,7 +299,6 @@
           <p class="student-answer-text text-5xl text-white font-extrabold drop-shadow-md">${answer || "---"}</p>
         </div>
       `;
-      grid.appendChild(card);
     }
   </script>
 </body>
