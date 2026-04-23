@@ -1,3 +1,149 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #0f172a; /* Dark night theme */
+    color: #f8fafc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.battle-container {
+    width: 100%;
+    max-width: 1200px;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.battle-header {
+    text-align: center;
+    padding: 20px;
+}
+
+h1 { color: #facc15; letter-spacing: 2px; }
+h3 { color: #94a3b8; margin-top: 5px; }
+
+/* Tug of War Bar */
+.tug-of-war-container {
+    width: 80%;
+    height: 20px;
+    background-color: #ef4444; /* Player 2 Red */
+    margin: 20px auto;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    border: 2px solid #334155;
+}
+
+.tug-bar {
+    width: 50%; /* Starts in the middle */
+    height: 100%;
+    background-color: #3b82f6; /* Player 1 Blue */
+    transition: width 0.3s ease-out;
+}
+
+/* Arena Layout */
+.arena {
+    display: flex;
+    flex: 1;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.player-panel {
+    width: 30%;
+    background: #1e293b;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px;
+    border: 2px solid #334155;
+}
+
+.player-panel.left { border-color: #3b82f6; }
+.player-panel.right { border-color: #ef4444; }
+
+.avatar { font-size: 60px; margin-bottom: 10px; }
+.score { font-size: 48px; font-weight: bold; margin: 20px 0; }
+
+input[type="number"] {
+    width: 80%;
+    padding: 15px;
+    font-size: 24px;
+    text-align: center;
+    border-radius: 8px;
+    border: none;
+    margin-bottom: 15px;
+    outline: none;
+}
+
+button {
+    width: 80%;
+    padding: 15px;
+    background-color: #3b82f6;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover { background-color: #2563eb; }
+
+/* Vertical Grid */
+.question-board {
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #020617;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+.timer {
+    font-size: 24px;
+    color: #facc15;
+    margin-bottom: 20px;
+}
+
+.vertical-grid {
+    display: flex;
+    flex-direction: column;
+    font-size: 48px;
+    font-weight: bold;
+    letter-spacing: 5px;
+    text-align: right; /* Aligns the units place perfectly */
+    line-height: 1.5;
+}
+
+.vertical-grid div {
+    border-bottom: 1px solid #334155;
+    padding: 5px 10px;
+}
+
+.vertical-grid div:last-child {
+    border-bottom: 3px solid #f8fafc; /* Equals line */
+}
+
+.opponent-status {
+    color: #94a3b8;
+    font-style: italic;
+    margin-top: 20px;
+}
+
 /* --- LOBBY STYLES --- */
 .lobby-container {
     background: #1e293b;
