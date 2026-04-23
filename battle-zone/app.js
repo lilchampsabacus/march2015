@@ -62,7 +62,7 @@ async function initBattle() {
     mySessionId = authData.user.id;
 
     // Join the Battle Arena Channel
-    arenaChannel = supabase.channel('battle_room_1', {
+    arenaChannel = supabaseClient.channel('battle_room_1', {
         config: {
             presence: { key: mySessionId },
         },
