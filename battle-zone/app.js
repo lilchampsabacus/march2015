@@ -6,36 +6,48 @@ const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 let mySessionId = null;
 let arenaChannel = null;
 
-// --- 2. GAME STATE ---
-let currentAnswer = 0;
-let p1Score = 0;
-let p2Score = 0;
-let tugPosition = 50; 
+// --- 2. PLAYER PROFILE VARIABLES ---
+let myNickname = "Player";
+let myAvatar = "🥷";
 
-// UI Elements
-const gridEl = document.getElementById('question-grid');
-const inputEl = document.getElementById('answer-input');
-const tugBarEl = document.getElementById('tug-bar');
-const p1ScoreEl = document.getElementById('score-p1');
-const p2ScoreEl = document.getElementById('score-p2');
-const oppStatusEl = document.getElementById('opp-status');
+// --- 3. LOBBY LOGIC ---
+function selectAvatar(emoji) {
+    myAvatar = emoji;
+    // Update UI selection
+    const buttons = document.querySelectorAll('.avatar-btn');
+    buttons.forEach(btn => btn.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+}
 
-// Sample Data (Later fetch this from your questions_bank table)
-const sample1D5R = [5, -2, 4, -1, 3];
-const nextQuestion = [8, -5, 2, -1, 4]; // Dummy next question
-
-// --- 3. SUPABASE AUTH & REALTIME LOGIC ---
-async function initBattle() {
-    // 1. Sign in anonymously (No login required for students)
-    const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
-    if (authError) {
-        console.error("Auth Error:", authError);
+async function joinLobby() {
+    const nameInput = document.getElementById('player-name-input').value.trim();
+    if (nameInput === "") {
+        alert("Please enter a Nickname first!");
         return;
     }
-    mySessionId = authData.user.id;
-    console.log("Logged in anonymously with ID:", mySessionId);
+    
+    myNickname = nameInput;
 
-    // 2. Join the shared Battle Arena Channel
+    // 1. Update the UI to show the chosen name and avatar
+    document.getElementById('my-name-display').textContent = myNickname;
+    document.getElementById('my-avatar-display').textContent = myAvatar;
+
+    // 2. Hide Lobby, Show Arena
+    document.getElementById('lobby-screen').style.display = 'none';
+    document.getElementById('battle-container').style.display = 'flex';
+
+    // 3. NOW boot up Supabase and join the room
+    await initBattle();
+}
+
+// --- 4. SUPABASE AUTH & REALTIME LOGIC ---
+async function initBattle() {
+    // Sign in anonymously
+    const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
+    if (authError) return console.error("Auth Error:", authError);
+    mySessionId = authData.user.id;
+
+    // Join the shared Battle Arena Channel
     arenaChannel = supabase.channel('battle_room_1', {
         config: {
             presence: { key: mySessionId },
@@ -43,30 +55,36 @@ async function initBattle() {
     });
 
     arenaChannel
-        // Listen for who is online (Presence)
         .on('presence', { event: 'sync' }, () => {
             const newState = arenaChannel.presenceState();
             const playersOnline = Object.keys(newState).length;
             
             if (playersOnline > 1) {
-                oppStatusEl.textContent = "Opponent is ready!";
-                oppStatusEl.style.color = "#4ade80"; // Green
-            } else {
-                oppStatusEl.textContent = "Waiting for opponent...";
-                oppStatusEl.style.color = "#facc15"; // Yellow
+                // Find the opponent's data from the presence state
+                for (let id in newState) {
+                    if (id !== mySessionId) {
+                        const oppData = newState[id][0];
+                        document.getElementById('opp-name-display').textContent = oppData.nickname || "Opponent";
+                        document.getElementById('opp-avatar-display').textContent = oppData.avatar || "🤖";
+                        
+                        const oppStatusEl = document.getElementById('opp-status');
+                        oppStatusEl.textContent = "Ready to battle!";
+                        oppStatusEl.style.color = "#4ade80"; // Green
+                    }
+                }
             }
         })
-        // Listen for the "Fastest Finger" Broadcast
         .on('broadcast', { event: 'correct_answer' }, (payload) => {
-            // If the broadcast came from the opponent
             if (payload.winner !== mySessionId) {
-                inputEl.disabled = true; // Lock our input!
+                const inputEl = document.getElementById('answer-input');
+                const oppStatusEl = document.getElementById('opp-status');
+                
+                inputEl.disabled = true;
                 oppStatusEl.textContent = "Opponent answered first! ⚡";
-                oppStatusEl.style.color = "#ef4444"; // Red
+                oppStatusEl.style.color = "#ef4444";
                 
-                updateScore('p2'); // Give opponent points
+                updateScore('p2');
                 
-                // Load next question after a short delay
                 setTimeout(() => {
                     loadQuestion(nextQuestion);
                     oppStatusEl.textContent = "Calculating...";
@@ -74,84 +92,18 @@ async function initBattle() {
                 }, 2000);
             }
         })
-        .subscribe();
+        .subscribe(async (status) => {
+            // Once subscribed, broadcast our name and avatar so the opponent can see it
+            if (status === 'SUBSCRIBED') {
+                await arenaChannel.track({
+                    nickname: myNickname,
+                    avatar: myAvatar
+                });
+            }
+        });
 
     // Start the first question
     loadQuestion(sample1D5R);
 }
 
-// --- 4. GAME UI LOGIC ---
-function loadQuestion(numbersArray) {
-    gridEl.innerHTML = ''; 
-    currentAnswer = 0;
-    inputEl.disabled = false; // Unlock input
-
-    numbersArray.forEach((num, index) => {
-        currentAnswer += num;
-        const row = document.createElement('div');
-        let displayStr = (num > 0 && index !== 0) ? `+${num}` : num.toString();
-        row.textContent = displayStr;
-        gridEl.appendChild(row);
-    });
-
-    inputEl.value = ''; 
-    inputEl.focus();
-}
-
-function submitAnswer() {
-    const userAnswer = parseInt(inputEl.value, 10);
-    if (isNaN(userAnswer)) return;
-
-    if (userAnswer === currentAnswer) {
-        // CORRECT! We are the fastest finger.
-        inputEl.disabled = true; // Lock input so we don't submit twice
-        inputEl.style.backgroundColor = '#4ade80'; // Flash green
-        
-        updateScore('p1');
-
-        // BROADCAST OUR WIN TO THE ROOM
-        arenaChannel.send({
-            type: 'broadcast',
-            event: 'correct_answer',
-            payload: { winner: mySessionId }
-        });
-
-        setTimeout(() => {
-            inputEl.style.backgroundColor = 'white';
-            loadQuestion(nextQuestion); // Load next sum
-        }, 1500);
-
-    } else {
-        // WRONG ANSWER - Penalty visual
-        inputEl.style.backgroundColor = '#fca5a5';
-        setTimeout(() => inputEl.style.backgroundColor = 'white', 500);
-        inputEl.value = '';
-    }
-}
-
-function updateScore(winner) {
-    if (winner === 'p1') {
-        p1Score += 10;
-        p1ScoreEl.textContent = p1Score;
-        tugPosition += 10; // Pull rope left
-    } else {
-        p2Score += 10;
-        p2ScoreEl.textContent = p2Score;
-        tugPosition -= 10; // Pull rope right
-    }
-    
-    // Keep the tug of war bar within bounds
-    tugPosition = Math.max(5, Math.min(95, tugPosition));
-    tugBarEl.style.width = `${tugPosition}%`;
-}
-
-// Press Enter to submit
-inputEl.addEventListener("keypress", function(event) {
-  if (event.key === "Enter" && !inputEl.disabled) {
-    event.preventDefault();
-    submitAnswer();
-  }
-});
-
-// Boot up the game
-initBattle();
+// ... [Keep your existing loadQuestion, submitAnswer, and updateScore functions here below this line] ...
