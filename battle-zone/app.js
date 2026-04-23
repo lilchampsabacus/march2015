@@ -6,14 +6,29 @@ const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 let mySessionId = null;
 let arenaChannel = null;
 
-// --- 2. PLAYER PROFILE VARIABLES ---
+// --- 2. GAME STATE & PROFILE VARIABLES ---
 let myNickname = "Player";
 let myAvatar = "🥷";
+let currentAnswer = 0;
+let p1Score = 0;
+let p2Score = 0;
+let tugPosition = 50; 
+
+// UI Elements
+const gridEl = document.getElementById('question-grid');
+const inputEl = document.getElementById('answer-input');
+const tugBarEl = document.getElementById('tug-bar');
+const p1ScoreEl = document.getElementById('score-p1');
+const p2ScoreEl = document.getElementById('score-p2');
+const oppStatusEl = document.getElementById('opp-status');
+
+// Sample Data (Replace with fetches from your questions_bank table later)
+const sample1D5R = [5, -2, 4, -1, 3];
+const nextQuestion = [8, -5, 2, -1, 4]; 
 
 // --- 3. LOBBY LOGIC ---
 function selectAvatar(emoji) {
     myAvatar = emoji;
-    // Update UI selection
     const buttons = document.querySelectorAll('.avatar-btn');
     buttons.forEach(btn => btn.classList.remove('selected'));
     event.currentTarget.classList.add('selected');
@@ -28,26 +43,25 @@ async function joinLobby() {
     
     myNickname = nameInput;
 
-    // 1. Update the UI to show the chosen name and avatar
+    // Update the UI
     document.getElementById('my-name-display').textContent = myNickname;
     document.getElementById('my-avatar-display').textContent = myAvatar;
 
-    // 2. Hide Lobby, Show Arena
+    // Transition from Lobby to Arena
     document.getElementById('lobby-screen').style.display = 'none';
     document.getElementById('battle-container').style.display = 'flex';
 
-    // 3. NOW boot up Supabase and join the room
+    // Boot up connection
     await initBattle();
 }
 
 // --- 4. SUPABASE AUTH & REALTIME LOGIC ---
 async function initBattle() {
-    // Sign in anonymously
     const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
     if (authError) return console.error("Auth Error:", authError);
     mySessionId = authData.user.id;
 
-    // Join the shared Battle Arena Channel
+    // Join the Battle Arena Channel
     arenaChannel = supabase.channel('battle_room_1', {
         config: {
             presence: { key: mySessionId },
@@ -60,25 +74,24 @@ async function initBattle() {
             const playersOnline = Object.keys(newState).length;
             
             if (playersOnline > 1) {
-                // Find the opponent's data from the presence state
+                // Read opponent profile data
                 for (let id in newState) {
                     if (id !== mySessionId) {
                         const oppData = newState[id][0];
                         document.getElementById('opp-name-display').textContent = oppData.nickname || "Opponent";
                         document.getElementById('opp-avatar-display').textContent = oppData.avatar || "🤖";
                         
-                        const oppStatusEl = document.getElementById('opp-status');
                         oppStatusEl.textContent = "Ready to battle!";
-                        oppStatusEl.style.color = "#4ade80"; // Green
+                        oppStatusEl.style.color = "#4ade80"; 
                     }
                 }
+            } else {
+                oppStatusEl.textContent = "Waiting for opponent...";
+                oppStatusEl.style.color = "#facc15"; 
             }
         })
         .on('broadcast', { event: 'correct_answer' }, (payload) => {
             if (payload.winner !== mySessionId) {
-                const inputEl = document.getElementById('answer-input');
-                const oppStatusEl = document.getElementById('opp-status');
-                
                 inputEl.disabled = true;
                 oppStatusEl.textContent = "Opponent answered first! ⚡";
                 oppStatusEl.style.color = "#ef4444";
@@ -93,7 +106,7 @@ async function initBattle() {
             }
         })
         .subscribe(async (status) => {
-            // Once subscribed, broadcast our name and avatar so the opponent can see it
+            // Broadcast our profile to the room once connected
             if (status === 'SUBSCRIBED') {
                 await arenaChannel.track({
                     nickname: myNickname,
@@ -102,15 +115,14 @@ async function initBattle() {
             }
         });
 
-    // Start the first question
     loadQuestion(sample1D5R);
 }
 
-// --- 4. GAME UI LOGIC ---
+// --- 5. GAME UI LOGIC ---
 function loadQuestion(numbersArray) {
     gridEl.innerHTML = ''; 
     currentAnswer = 0;
-    inputEl.disabled = false; // Unlock input
+    inputEl.disabled = false; 
 
     numbersArray.forEach((num, index) => {
         currentAnswer += num;
@@ -129,13 +141,13 @@ function submitAnswer() {
     if (isNaN(userAnswer)) return;
 
     if (userAnswer === currentAnswer) {
-        // CORRECT! We are the fastest finger.
-        inputEl.disabled = true; // Lock input so we don't submit twice
-        inputEl.style.backgroundColor = '#4ade80'; // Flash green
+        // We won the race!
+        inputEl.disabled = true; 
+        inputEl.style.backgroundColor = '#4ade80'; 
         
         updateScore('p1');
 
-        // BROADCAST OUR WIN TO THE ROOM
+        // Broadcast victory
         arenaChannel.send({
             type: 'broadcast',
             event: 'correct_answer',
@@ -144,11 +156,11 @@ function submitAnswer() {
 
         setTimeout(() => {
             inputEl.style.backgroundColor = 'white';
-            loadQuestion(nextQuestion); // Load next sum
+            loadQuestion(nextQuestion); 
         }, 1500);
 
     } else {
-        // WRONG ANSWER - Penalty visual
+        // Wrong Answer Penalty
         inputEl.style.backgroundColor = '#fca5a5';
         setTimeout(() => inputEl.style.backgroundColor = 'white', 500);
         inputEl.value = '';
@@ -159,25 +171,21 @@ function updateScore(winner) {
     if (winner === 'p1') {
         p1Score += 10;
         p1ScoreEl.textContent = p1Score;
-        tugPosition += 10; // Pull rope left
+        tugPosition += 10; 
     } else {
         p2Score += 10;
         p2ScoreEl.textContent = p2Score;
-        tugPosition -= 10; // Pull rope right
+        tugPosition -= 10; 
     }
     
-    // Keep the tug of war bar within bounds
     tugPosition = Math.max(5, Math.min(95, tugPosition));
     tugBarEl.style.width = `${tugPosition}%`;
 }
 
-// Press Enter to submit
+// Listen for "Enter" key
 inputEl.addEventListener("keypress", function(event) {
   if (event.key === "Enter" && !inputEl.disabled) {
     event.preventDefault();
     submitAnswer();
   }
 });
-
-// Boot up the game
-initBattle();
