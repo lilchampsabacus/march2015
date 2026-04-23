@@ -22,11 +22,34 @@ const p1ScoreEl = document.getElementById('score-p1');
 const p2ScoreEl = document.getElementById('score-p2');
 const oppStatusEl = document.getElementById('opp-status');
 
-// Sample Data 
-const sample1D5R = [5, -2, 4, -1, 3];
-const nextQuestion = [8, -5, 2, -1, 4]; 
+// --- 3. AUTO QUESTION GENERATOR ---
+function generateQuestion(digits, rows) {
+    let sumArray = [];
+    let runningTotal = 0;
 
-// --- 3. LOBBY LOGIC ---
+    for (let i = 0; i < rows; i++) {
+        let num;
+        let max = Math.pow(10, digits) - 1; // 9 for 1D, 99 for 2D
+        let min = Math.pow(10, digits - 1); // 1 for 1D, 10 for 2D
+        if (digits === 1) min = 1;
+
+        // First number is positive. Others have 50% chance to be minus.
+        let isMinus = i === 0 ? false : Math.random() > 0.5;
+
+        do {
+             num = Math.floor(Math.random() * (max - min + 1)) + min;
+             // Ensure the running total doesn't drop below zero
+        } while (isMinus && (runningTotal - num < 0));
+
+        if (isMinus) num = -num;
+
+        sumArray.push(num);
+        runningTotal += num;
+    }
+    return sumArray;
+}
+
+// --- 4. LOBBY LOGIC ---
 function selectAvatar(emoji) {
     myAvatar = emoji;
     const buttons = document.querySelectorAll('.avatar-btn');
@@ -55,14 +78,13 @@ async function joinLobby() {
     await initBattle();
 }
 
-// --- 4. SUPABASE AUTH & REALTIME LOGIC ---
+// --- 5. SUPABASE AUTH & REALTIME LOGIC ---
 async function initBattle() {
-    // ⚠️ CRITICAL FIX: Make sure this says 'supabaseClient.auth'
     const { data: authData, error: authError } = await supabaseClient.auth.signInAnonymously();
     if (authError) return console.error("Auth Error:", authError);
     mySessionId = authData.user.id;
 
-    // ⚠️ CRITICAL FIX: Make sure this says 'supabaseClient.channel'
+    // Join the Battle Arena Channel
     arenaChannel = supabaseClient.channel('battle_room_1', {
         config: {
             presence: { key: mySessionId },
@@ -100,7 +122,7 @@ async function initBattle() {
                 updateScore('p2');
                 
                 setTimeout(() => {
-                    loadQuestion(nextQuestion);
+                    loadQuestion(generateQuestion(1, 5)); // Load fresh next question
                     oppStatusEl.textContent = "Calculating...";
                     oppStatusEl.style.color = "#94a3b8";
                 }, 2000);
@@ -115,10 +137,11 @@ async function initBattle() {
             }
         });
 
-    loadQuestion(sample1D5R);
+    // Start the game with the first dynamic question
+    loadQuestion(generateQuestion(1, 5));
 }
 
-// --- 5. GAME UI LOGIC ---
+// --- 6. GAME UI LOGIC ---
 function loadQuestion(numbersArray) {
     gridEl.innerHTML = ''; 
     currentAnswer = 0;
@@ -156,7 +179,7 @@ function submitAnswer() {
 
         setTimeout(() => {
             inputEl.style.backgroundColor = 'white';
-            loadQuestion(nextQuestion); 
+            loadQuestion(generateQuestion(1, 5)); // Load fresh next question
         }, 1500);
 
     } else {
