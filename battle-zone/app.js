@@ -106,4 +106,78 @@ async function initBattle() {
     loadQuestion(sample1D5R);
 }
 
-// ... [Keep your existing loadQuestion, submitAnswer, and updateScore functions here below this line] ...
+// --- 4. GAME UI LOGIC ---
+function loadQuestion(numbersArray) {
+    gridEl.innerHTML = ''; 
+    currentAnswer = 0;
+    inputEl.disabled = false; // Unlock input
+
+    numbersArray.forEach((num, index) => {
+        currentAnswer += num;
+        const row = document.createElement('div');
+        let displayStr = (num > 0 && index !== 0) ? `+${num}` : num.toString();
+        row.textContent = displayStr;
+        gridEl.appendChild(row);
+    });
+
+    inputEl.value = ''; 
+    inputEl.focus();
+}
+
+function submitAnswer() {
+    const userAnswer = parseInt(inputEl.value, 10);
+    if (isNaN(userAnswer)) return;
+
+    if (userAnswer === currentAnswer) {
+        // CORRECT! We are the fastest finger.
+        inputEl.disabled = true; // Lock input so we don't submit twice
+        inputEl.style.backgroundColor = '#4ade80'; // Flash green
+        
+        updateScore('p1');
+
+        // BROADCAST OUR WIN TO THE ROOM
+        arenaChannel.send({
+            type: 'broadcast',
+            event: 'correct_answer',
+            payload: { winner: mySessionId }
+        });
+
+        setTimeout(() => {
+            inputEl.style.backgroundColor = 'white';
+            loadQuestion(nextQuestion); // Load next sum
+        }, 1500);
+
+    } else {
+        // WRONG ANSWER - Penalty visual
+        inputEl.style.backgroundColor = '#fca5a5';
+        setTimeout(() => inputEl.style.backgroundColor = 'white', 500);
+        inputEl.value = '';
+    }
+}
+
+function updateScore(winner) {
+    if (winner === 'p1') {
+        p1Score += 10;
+        p1ScoreEl.textContent = p1Score;
+        tugPosition += 10; // Pull rope left
+    } else {
+        p2Score += 10;
+        p2ScoreEl.textContent = p2Score;
+        tugPosition -= 10; // Pull rope right
+    }
+    
+    // Keep the tug of war bar within bounds
+    tugPosition = Math.max(5, Math.min(95, tugPosition));
+    tugBarEl.style.width = `${tugPosition}%`;
+}
+
+// Press Enter to submit
+inputEl.addEventListener("keypress", function(event) {
+  if (event.key === "Enter" && !inputEl.disabled) {
+    event.preventDefault();
+    submitAnswer();
+  }
+});
+
+// Boot up the game
+initBattle();
