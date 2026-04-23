@@ -120,22 +120,28 @@ async function initBattle() {
                 inputEl.disabled = true;
             }
         })
-        .on('broadcast', { event: 'sync_question' }, (payload) => {
-            if (payload.senderId !== mySessionId) {
-                loadQuestion(payload.question);
+        
+        // BUG FIX: Notice how we look inside "message.payload" now!
+        .on('broadcast', { event: 'sync_question' }, (message) => {
+            const data = message.payload; // Opening the envelope!
+            if (data.senderId !== mySessionId) {
+                clearInterval(countdownTimer); // Kill local timer to prevent overwriting
+                loadQuestion(data.question);
                 oppStatusEl.textContent = "Calculating...";
                 oppStatusEl.style.color = "#94a3b8";
             }
         })
-        .on('broadcast', { event: 'correct_answer' }, (payload) => {
-            if (payload.winner !== mySessionId) {
+        
+        .on('broadcast', { event: 'correct_answer' }, (message) => {
+            const data = message.payload; // Opening the envelope!
+            if (data.winner !== mySessionId) {
                 inputEl.disabled = true;
                 oppStatusEl.textContent = "Opponent answered first! ⚡";
                 oppStatusEl.style.color = "#ef4444";
                 updateScore('p2');
                 
                 setTimeout(() => {
-                    loadQuestion(payload.nextQuestion); 
+                    loadQuestion(data.nextQuestion); 
                     oppStatusEl.textContent = "Calculating...";
                     oppStatusEl.style.color = "#94a3b8";
                 }, 1500); 
@@ -181,6 +187,7 @@ function startCountdown() {
 
 // --- 7. GAME UI LOGIC ---
 function loadQuestion(numbersArray) {
+    if (!numbersArray) return; // Safety guard against empty arrays
     gridEl.innerHTML = ''; 
     currentAnswer = 0;
     inputEl.disabled = false; 
