@@ -22,7 +22,7 @@ const p1ScoreEl = document.getElementById('score-p1');
 const p2ScoreEl = document.getElementById('score-p2');
 const oppStatusEl = document.getElementById('opp-status');
 
-// Sample Data (Replace with fetches from your questions_bank table later)
+// Sample Data 
 const sample1D5R = [5, -2, 4, -1, 3];
 const nextQuestion = [8, -5, 2, -1, 4]; 
 
@@ -57,11 +57,12 @@ async function joinLobby() {
 
 // --- 4. SUPABASE AUTH & REALTIME LOGIC ---
 async function initBattle() {
-    const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
+    // ⚠️ CRITICAL FIX: Make sure this says 'supabaseClient.auth'
+    const { data: authData, error: authError } = await supabaseClient.auth.signInAnonymously();
     if (authError) return console.error("Auth Error:", authError);
     mySessionId = authData.user.id;
 
-    // Join the Battle Arena Channel
+    // ⚠️ CRITICAL FIX: Make sure this says 'supabaseClient.channel'
     arenaChannel = supabaseClient.channel('battle_room_1', {
         config: {
             presence: { key: mySessionId },
@@ -106,7 +107,6 @@ async function initBattle() {
             }
         })
         .subscribe(async (status) => {
-            // Broadcast our profile to the room once connected
             if (status === 'SUBSCRIBED') {
                 await arenaChannel.track({
                     nickname: myNickname,
