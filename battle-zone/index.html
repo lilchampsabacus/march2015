@@ -1,13 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Abacus 2.0: Battle Zone</title>
-    <link rel="stylesheet" href="style.css">
-</head>
 <body>
-    <div class="battle-container">
+    <div id="lobby-screen" class="lobby-container">
+        <h1>🔥 WELCOME TO BATTLE ZONE 🔥</h1>
+        <p>Enter your details to find an opponent</p>
+        
+        <input type="text" id="player-name-input" placeholder="Enter your Nickname (e.g. MathWizard)" maxlength="15" autocomplete="off">
+        
+        <div class="avatar-selection">
+            <p>Choose your Avatar:</p>
+            <div class="avatar-options">
+                <button class="avatar-btn selected" onclick="selectAvatar('🥷')">🥷</button>
+                <button class="avatar-btn" onclick="selectAvatar('🦸‍♂️')">🦸‍♂️</button>
+                <button class="avatar-btn" onclick="selectAvatar('🧙‍♀️')">🧙‍♀️</button>
+                <button class="avatar-btn" onclick="selectAvatar('🦁')">🦁</button>
+            </div>
+        </div>
+
+        <button id="join-btn" onclick="joinLobby()">Enter Arena</button>
+    </div>
+
+    <div id="battle-container" class="battle-container" style="display: none;">
         <header class="battle-header">
             <h1>🔥 BATTLE ZONE 🔥</h1>
             <h3 id="current-level">Level: 1D5R</h3>
@@ -18,8 +29,8 @@
 
         <main class="arena">
             <div class="player-panel left">
-                <div class="avatar">🥷</div>
-                <h2 class="player-name">You</h2>
+                <div class="avatar" id="my-avatar-display">🥷</div>
+                <h2 class="player-name" id="my-name-display">You</h2>
                 <div class="score" id="score-p1">0</div>
                 <input type="number" id="answer-input" placeholder="Type answer..." autofocus>
                 <button id="submit-btn" onclick="submitAnswer()">Submit Strike</button>
@@ -32,14 +43,14 @@
             </div>
 
             <div class="player-panel right">
-                <div class="avatar">🤖</div>
-                <h2 class="player-name">Opponent</h2>
+                <div class="avatar" id="opp-avatar-display">🤖</div>
+                <h2 class="player-name" id="opp-name-display">Opponent</h2>
                 <div class="score" id="score-p2">0</div>
-                <div class="opponent-status" id="opp-status">Calculating...</div>
+                <div class="opponent-status" id="opp-status">Waiting in lobby...</div>
             </div>
         </main>
     </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app.js"></script>
 </body>
-</html>
