@@ -15,7 +15,7 @@ let p2Score = 0;
 let tugPosition = 50; 
 let gameStarted = false; 
 let isHostPlayer = false; 
-let countdownTimer = null; // Helps prevent double-timers during flickers
+let countdownTimer = null; 
 
 // UI Elements
 const gridEl = document.getElementById('question-grid');
@@ -84,7 +84,6 @@ async function initBattle() {
             const playersOnline = activeIds.length;
             
             if (playersOnline > 1) {
-                // Determine Host based on ID sorting to guarantee only one host
                 activeIds.sort();
                 isHostPlayer = (activeIds[0] === mySessionId);
 
@@ -104,7 +103,6 @@ async function initBattle() {
                 }
 
             } else {
-                // We are alone. Clean up the board and wait.
                 if (gameStarted) {
                     alert("Opponent disconnected! Waiting for a new challenger...");
                 }
@@ -113,7 +111,6 @@ async function initBattle() {
                 isHostPlayer = false;
                 clearInterval(countdownTimer);
 
-                // Fully clear opponent details
                 document.getElementById('opp-name-display').textContent = "Opponent";
                 document.getElementById('opp-avatar-display').textContent = "🤖";
                 oppStatusEl.textContent = "Waiting for opponent...";
@@ -123,8 +120,6 @@ async function initBattle() {
                 inputEl.disabled = true;
             }
         })
-        
-        // Bulletproof sync: Force load the question if the host sends it
         .on('broadcast', { event: 'sync_question' }, (payload) => {
             if (payload.senderId !== mySessionId) {
                 loadQuestion(payload.question);
@@ -132,7 +127,6 @@ async function initBattle() {
                 oppStatusEl.style.color = "#94a3b8";
             }
         })
-        
         .on('broadcast', { event: 'correct_answer' }, (payload) => {
             if (payload.winner !== mySessionId) {
                 inputEl.disabled = true;
@@ -169,8 +163,8 @@ function startCountdown() {
             clearInterval(countdownTimer);
             gridEl.innerHTML = `<div style="font-size: 40px; color: #4ade80; text-align: center; border: none; padding-top: 50px;">GO!</div>`;
             
-            setTimeout(() => {
-                if (isHostPlayer) {
+            if (isHostPlayer) {
+                setTimeout(() => {
                     const firstQ = generateQuestion(1, 5);
                     loadQuestion(firstQ);
                     
@@ -179,11 +173,8 @@ function startCountdown() {
                         event: 'sync_question',
                         payload: { question: firstQ, senderId: mySessionId }
                     });
-                } else {
-                    // The client waits gracefully for the broadcast
-                    gridEl.innerHTML = `<div style="font-size: 20px; color: #94a3b8; text-align: center; border: none; padding-top: 50px;">Syncing sums...</div>`;
-                }
-            }, 1000);
+                }, 1000);
+            }
         }
     }, 1000);
 }
