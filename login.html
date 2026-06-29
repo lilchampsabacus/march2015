@@ -192,7 +192,21 @@
             width: 100%;
             border-radius: 999px;
             background: linear-gradient(90deg, #4f46e5, #db2777);
-            animation: shrinkProgress 5s linear forwards;
+            animation: shrinkProgress 12s linear forwards;
+        }
+
+        .competition-register {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 10px 18px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #4f46e5, #db2777);
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 900;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            box-shadow: 0 12px 25px rgba(79, 70, 229, 0.25);
         }
 
         @keyframes shrinkProgress {
@@ -260,25 +274,34 @@
         <div class="competition-card">
             <div class="competition-hero">
                 <div class="competition-badge">🏆 National Competition Alert</div>
-                <h2 id="competitionTitle" class="competition-title">Mumbai is Calling!</h2>
-                <p class="competition-subtitle">September • National Level Competition</p>
+                <h2 id="competitionTitle" class="competition-title">Register Today!</h2>
+                <p class="competition-subtitle">September • National Level Competition • Mumbai</p>
             </div>
             <div class="competition-body">
                 <div id="competitionStudentName" class="competition-student-name">Welcome, Champion!</div>
                 <p class="competition-message">
-                    Big stage. Big opportunity. Start serious practice today and prepare to represent Li'l Champs Abacus Academy, Ambernath.
+                    Big stage. Big opportunity. Start serious practice today and get ready to represent Li'l Champs Abacus Academy, Ambernath.
                 </p>
-                <div class="competition-highlight-grid">
-                    <div class="competition-highlight">
-                        <strong>September</strong>
-                        <span>Competition Month</span>
-                    </div>
-                    <div class="competition-highlight">
-                        <strong>Mumbai</strong>
-                        <span>National Stage</span>
-                    </div>
-                </div>
-                <p class="competition-countdown">Your practice dashboard will open in 5 seconds.</p>
+                <div class="competition-register">Register Today</div>
+<div class="competition-highlight-grid">
+    <div class="competition-highlight">
+        <strong>₹2500</strong>
+        <span>Competition Fee</span>
+    </div>
+    <div class="competition-highlight">
+        <strong>Mumbai</strong>
+        <span>National Stage</span>
+    </div>
+    <div class="competition-highlight">
+        <strong>5th September</strong>
+        <span>Competition Date</span>
+    </div>
+    <div class="competition-highlight">
+        <strong>Vashi</strong>
+        <span>CIDCO Exhibition Center</span>
+    </div>
+</div>
+                <p class="competition-countdown">Your practice dashboard will open in 12 seconds.</p>
                 <div class="competition-progress"><div class="competition-progress-bar"></div></div>
             </div>
         </div>
@@ -342,7 +365,7 @@
 
         setTimeout(() => {
             window.location.href = 'practice_options.html';
-        }, 5000);
+        }, 12000);
     }
 
     async function handleLogin() {
