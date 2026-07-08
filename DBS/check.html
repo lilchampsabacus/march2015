@@ -175,7 +175,7 @@
     return `<div class="card ${className}"><h3>${title}</h3>${text}${formulaHtml}</div>`;
   }
 
-  function planRod(num, rodIndex, sign, amount, reason, actions, depth) {
+  function planRod(num, rodIndex, sign, amount, reason, actions, depth, state) {
     if (depth > 5) {
       return card("Teacher Check Needed", "This case goes beyond this beginner checker.", "not-possible");
     }
@@ -237,11 +237,16 @@
         "possible"
       );
       actions.push(`${rName}: ${signedText(innerSign, friendAmount)} from Big Friend formula ${bFormula}`);
+      if (rodIndex === 0 && !state.primaryMode) {
+        state.primaryMode = sign === "+" ? "big-add" : "big-sub";
+        state.primaryFormula = bFormula;
+        state.rightHandMove = signedText(innerSign, friendAmount);
+      }
 
       const nextReason = sign === "+"
         ? `In <b>${bFormula}</b>, <b>+10</b> means add <b>+1</b> on <b>${nextRodShort(rodIndex)}</b>.`
         : `In <b>${bFormula}</b>, <b>-10</b> means subtract <b>-1</b> from <b>${nextRodShort(rodIndex)}</b>.`;
-      html += planRod(num, rodIndex + 1, carrySign, 1, nextReason, actions, depth + 1);
+      html += planRod(num, rodIndex + 1, carrySign, 1, nextReason, actions, depth + 1, state);
       return html;
     }
 
@@ -254,11 +259,16 @@
         sFormulaForInner
       );
       actions.push(`${rName}: ${sFormulaForInner} inside Big Friend formula ${bFormula}`);
+      if (rodIndex === 0 && !state.primaryMode) {
+        state.primaryMode = sign === "+" ? "big-add" : "big-sub";
+        state.primaryFormula = bFormula;
+        state.rightHandMove = signedText(innerSign, friendAmount);
+      }
 
       const nextReason = sign === "+"
         ? `After finishing <b>${signedText(innerSign, friendAmount)}</b> on <b>${rName}</b>, <b>+10</b> means add <b>+1</b> on <b>${nextRodShort(rodIndex)}</b>.`
         : `After finishing <b>${signedText(innerSign, friendAmount)}</b> on <b>${rName}</b>, <b>-10</b> means subtract <b>-1</b> from <b>${nextRodShort(rodIndex)}</b>.`;
-      html += planRod(num, rodIndex + 1, carrySign, 1, nextReason, actions, depth + 1);
+      html += planRod(num, rodIndex + 1, carrySign, 1, nextReason, actions, depth + 1, state);
       return html;
     }
 
@@ -277,6 +287,10 @@
         sFormula
       );
       actions.push(`${rName}: ${sFormula}`);
+      if (rodIndex === 0 && !state.primaryMode) {
+        state.primaryMode = "small";
+        state.primaryFormula = sFormula;
+      }
       return html;
     }
 
@@ -288,9 +302,29 @@
     return html;
   }
 
-  function finalCard(actions, answerText) {
+  function getImportantNote(state) {
+    if (!state || !state.primaryMode) return "";
+
+    if (state.primaryMode === "big-add") {
+      return `Important Note: In <b>${state.primaryFormula}</b>, do <b>${state.rightHandMove}</b> with right hand and <b>+10</b> with left hand simultaneously.`;
+    }
+
+    if (state.primaryMode === "big-sub") {
+      return `Important Note: In <b>${state.primaryFormula}</b>, do <b>-10</b> with left hand and <b>${state.rightHandMove}</b> with right hand simultaneously.`;
+    }
+
+    if (state.primaryMode === "small") {
+      return `Important Note: In <b>${state.primaryFormula}</b>, use right hand only.`;
+    }
+
+    return "";
+  }
+
+  function finalCard(actions, answerText, state) {
     let list = actions.map(a => `<li>${a}</li>`).join("");
-    return `<div class="card final"><h3>Final Method</h3><ul class="method-list">${list}</ul><div class="answer">${answerText}</div></div>`;
+    const note = getImportantNote(state);
+    const noteHtml = note ? `<div style="margin-top:14px; padding:12px 14px; background:#fff; border-radius:10px; border:1px solid #fcd34d;"><b>Important Note:</b><br>${note.replace(/^Important Note: /, "")}</div>` : "";
+    return `<div class="card final"><h3>Final Method</h3><ul class="method-list">${list}</ul>${noteHtml}<div class="answer">${answerText}</div></div>`;
   }
 
   function checkFriend() {
@@ -320,6 +354,7 @@
     }
 
     let actions = [];
+    let state = { primaryMode: "", primaryFormula: "", rightHandMove: "" };
     let html = "";
     html += card(
       "Given Sum",
@@ -327,8 +362,8 @@
       "thinking"
     );
 
-    html += planRod(firstNumber, 0, sign, amount, "", actions, 0);
-    html += finalCard(actions, `Answer: ${firstNumber} ${sign} ${amount} = ${answer}`);
+    html += planRod(firstNumber, 0, sign, amount, "", actions, 0, state);
+    html += finalCard(actions, `Answer: ${firstNumber} ${sign} ${amount} = ${answer}`, state);
     result.innerHTML = html;
   }
 
