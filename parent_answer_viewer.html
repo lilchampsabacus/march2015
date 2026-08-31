@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Li'l Champs Parent Answer Viewer</title>
+  <style>
+    :root { --blue:#0a4fa3; --green:#e9f6ec; --greenText:#1f7a3f; --soft:#f5f7f9; --line:#d7dde3; --text:#111827; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family: Arial, Helvetica, sans-serif; background:#eef2f5; color:var(--text); }
+    .shell { max-width:900px; margin:0 auto; padding:18px; }
+    .card { background:#fff; border-radius:18px; box-shadow:0 10px 24px rgba(0,0,0,.08); }
+    .hero { padding:18px; display:flex; gap:14px; align-items:center; }
+    .logo { width:68px; height:68px; object-fit:contain; border-radius:50%; background:#fff; }
+    h1 { margin:0 0 4px; font-size:28px; }
+    .sub { margin:0; color:#5f6b77; }
+    .content { margin-top:16px; padding:18px; }
+    .badge { display:inline-block; margin-top:8px; padding:8px 14px; border-radius:18px; background:var(--green); color:var(--greenText); font-weight:700; font-size:14px; }
+    .meta { margin-top:14px; border:2px solid var(--line); background:var(--soft); border-radius:18px; padding:16px; }
+    .level { text-align:center; color:var(--blue); font-weight:800; font-size:36px; margin:0 0 12px; }
+    .meta-line { font-size:20px; margin:6px 0; }
+    .meta-row { display:flex; justify-content:space-between; gap:12px; }
+    .answers { margin-top:16px; border:2px solid var(--line); border-radius:16px; overflow:hidden; display:grid; grid-template-columns:1fr 1fr; }
+    .answer-item { display:flex; align-items:center; gap:10px; min-height:44px; padding:10px 14px; border-bottom:1px solid #e4e8ec; }
+    .answer-item:nth-child(odd) { border-right:1px solid #e4e8ec; }
+    .num { width:52px; font-size:20px; font-weight:700; color:#4b5563; }
+    .val { font-size:24px; font-weight:800; }
+    .note, .help { margin-top:16px; border:1px dashed #c7d0d8; background:#fff; border-radius:16px; padding:16px; }
+    .actions { margin-top:16px; display:flex; gap:10px; flex-wrap:wrap; }
+    button, a.btn { appearance:none; border:none; border-radius:12px; padding:12px 16px; background:var(--blue); color:#fff; text-decoration:none; font-weight:700; font-family:inherit; cursor:pointer; }
+    button.secondary { background:#5a6470; }
+    .hidden { display:none !important; }
+    code.inline { background:#f3f4f6; padding:2px 6px; border-radius:6px; }
+    @media (max-width:700px) {
+      .hero { align-items:flex-start; }
+      h1 { font-size:24px; }
+      .level { font-size:30px; }
+      .meta-line { font-size:18px; }
+      .answers { grid-template-columns:1fr; }
+      .answer-item:nth-child(odd) { border-right:none; }
+      .meta-row { flex-direction:column; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="card hero">
+      <div style="width:68px;height:68px;border-radius:50%;background:#0a4fa3;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;">LC</div>
+      <div>
+        <h1>Li'l Champs Parent Answer Viewer</h1>
+        <p class="sub">Open worksheet answers directly from the QR link.</p>
+      </div>
+    </section>
+
+    <section class="card content">
+      <div id="resultBlock" class="hidden">
+        <div class="badge">PARENT ANSWERS</div>
+        <div class="meta">
+          <div id="levelText" class="level">LEVEL 7</div>
+          <div id="batchText" class="meta-line">Batch: -</div>
+          <div class="meta-row">
+            <div id="dateText" class="meta-line">Date: -</div>
+            <div id="dayText" class="meta-line"><strong>Day -</strong></div>
+          </div>
+        </div>
+        <div id="answersGrid" class="answers"></div>
+      </div>
+
+      <div id="helpBlock" class="help">
+        <h2 style="margin-top:0">How this works</h2>
+        <ol>
+          <li>Parent scans the worksheet QR with the normal mobile camera.</li>
+          <li>The QR opens this page automatically.</li>
+          <li>This page shows answers <strong>1) to 30)</strong>.</li>
+        </ol>
+        <p>If you opened this page directly and do not see answers, that means no answer data is attached in the link yet.</p>
+      </div>
+
+      <div class="actions">
+        <button id="demoBtn" type="button">Show Demo</button>
+        <button id="clearBtn" type="button" class="secondary">Clear Demo</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const resultBlock = document.getElementById('resultBlock');
+    const helpBlock = document.getElementById('helpBlock');
+    const answersGrid = document.getElementById('answersGrid');
+    const levelText = document.getElementById('levelText');
+    const batchText = document.getElementById('batchText');
+    const dateText = document.getElementById('dateText');
+    const dayText = document.getElementById('dayText');
+    const demoBtn = document.getElementById('demoBtn');
+    const clearBtn = document.getElementById('clearBtn');
+
+    function decodePayload(encoded) {
+      if (!encoded) return '';
+      try {
+        const normalized = encoded.replace(/-/g, '+').replace(/_/g, '/');
+        const padded = normalized + '==='.slice((normalized.length + 3) % 4);
+        return decodeURIComponent(escape(atob(padded)));
+      } catch (error) {
+        return '';
+      }
+    }
+
+    function formatNumber(value) {
+      const n = Number(String(value).replace(/,/g, ''));
+      return Number.isFinite(n) ? n.toLocaleString('en-IN') : value;
+    }
+
+    function renderPayload(raw) {
+      const payload = String(raw || '').trim();
+      if (!payload) {
+        resultBlock.classList.add('hidden');
+        helpBlock.classList.remove('hidden');
+        return;
+      }
+
+      const parts = payload.split('|');
+      if (parts.length < 5) {
+        resultBlock.classList.add('hidden');
+        helpBlock.classList.remove('hidden');
+        return;
+      }
+
+      const level = String(parts[0]).replace(/^L/i, '');
+      const date = parts[1] || '-';
+      const batch = parts[2] || '-';
+      const day = parts[3] || '-';
+      const answers = parts.slice(4).join('|').split(',').map(s => s.trim()).filter(Boolean);
+
+      if (answers.length !== 30) {
+        resultBlock.classList.add('hidden');
+        helpBlock.classList.remove('hidden');
+        return;
+      }
+
+      levelText.textContent = `LEVEL ${level}`;
+      batchText.textContent = `Batch: ${batch}`;
+      dateText.textContent = `Date: ${date}`;
+      dayText.innerHTML = `<strong>Day ${day}</strong>`;
+      answersGrid.innerHTML = answers.map((answer, index) => `
+        <div class="answer-item">
+          <div class="num">${index + 1})</div>
+          <div class="val">${formatNumber(answer)}</div>
+        </div>`).join('');
+
+      helpBlock.classList.add('hidden');
+      resultBlock.classList.remove('hidden');
+    }
+
+    function renderFromLocation() {
+      const rawHash = window.location.hash.replace(/^#/, '');
+      const params = new URLSearchParams(window.location.search);
+      const rawParam = params.get('d') || '';
+      const encoded = rawHash || rawParam;
+      renderPayload(decodePayload(encoded));
+    }
+
+    demoBtn.addEventListener('click', () => {
+      renderPayload('L7|31-08-2026|Thursday 7 to 9 PM|1|229,224,375,169,225,2088,2950,3280,4325,3564,7544,940,1035,4608,4686,21472,52018,16351,11712,69696,218,145,41,34,180,1389,237,1696,661,660');
+    });
+
+    clearBtn.addEventListener('click', () => {
+      history.replaceState(null, '', window.location.pathname);
+      renderPayload('');
+    });
+
+    renderFromLocation();
+  </script>
+</body>
+</html>
