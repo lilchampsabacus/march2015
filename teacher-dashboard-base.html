@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Li'l Champs Abacus</title>
+
+    <script>
+        const checkEmail = sessionStorage.getItem('userEmail');
+        const checkRole = sessionStorage.getItem('userRole');
+
+        if (!checkEmail || (checkRole !== 'admin' && checkRole !== 'teacher' && checkEmail !== 'admin.ambernath@gmail.com')) {
+            window.location.replace('practice_options.html'); 
+        }
+    </script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+
+    <style>
+        body { font-family: 'Nunito', sans-serif; background-color: #f0f9ff; min-height: 100vh; display: flex; flex-direction: column; }
+        .option-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border-bottom: 6px solid transparent; }
+        .option-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .card-multi { border-color: #3b82f6; }
+        .card-plus { border-color: #f59e0b; }
+        .card-daily { border-color: #10b981; }
+        
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal-content { background: white; margin: 10% auto; padding: 2rem; border-radius: 1rem; max-width: 500px; animation: slideIn 0.4s ease-out; }
+        @keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="bg-indigo-600 text-white p-6 shadow-lg sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-extrabold text-white">Li'l Champs Abacus Academy, Ambernath</h1>
+                <h2 class="text-indigo-100 text-lg font-semibold">Academy Management System</h2>
+            </div>
+            <div class="bg-indigo-700 px-4 py-2 rounded-lg border border-indigo-500 text-center mt-4 md:mt-0">
+                <span class="text-indigo-200 text-xs uppercase font-bold">Logged In As</span>
+                <div id="welcome-name" class="text-lg font-bold text-white">...</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow p-6 md:p-10 flex flex-col items-center gap-8">
+        
+        <div id="admin-controls" class="w-full max-w-4xl mx-auto hidden">
+            <div class="bg-white p-6 rounded-xl shadow-md border-2 border-indigo-500 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h3 class="text-xl font-bold text-indigo-800">Owner Management Tools</h3>
+                    <p class="text-gray-500 mt-1">Enroll students or perform bulk uploads.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="document.getElementById('addStudentModal').style.display='block'" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-700 transition"> + Add Student</button>
+                    <button onclick="document.getElementById('csv-input').click()" class="bg-white text-indigo-600 border border-indigo-300 px-4 py-2 rounded-lg font-bold hover:bg-indigo-100 transition"> ⬆️ Bulk Import</button>
+                    <input type="file" id="csv-input" accept=".csv" class="hidden" onchange="handleCSV(event)">
+                </div>
+            </div>
+        </div>
+
+        <div id="password-reset-section" class="w-full max-w-4xl mx-auto hidden">
+            <div class="bg-white p-6 rounded-xl shadow-md border border-red-100">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">🔑 Master Password Reset <span class="text-xs font-normal text-gray-400 uppercase tracking-widest">(No Email Required)</span></h3>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <input type="text" id="resetUserEmail" placeholder="Student Email (e.g. rahul.patil@gmail.com)" class="flex-grow border p-3 rounded-lg focus:ring-2 focus:outline-none">
+                    <input type="text" id="newPassInput" placeholder="New Password" class="border p-3 rounded-lg md:w-48 focus:ring-2 focus:outline-none">
+                    <button onclick="forceResetPassword()" class="bg-red-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-red-700 transition">Update Now</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="access-control-section" class="w-full max-w-4xl mx-auto hidden mt-6">
+    <div class="bg-white p-6 rounded-xl shadow-md border-2 border-red-500 relative overflow-hidden">
+        <div class="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">Danger Zone</div>
+        <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">🚫 Student Access Control</h3>
+        <p class="text-sm text-gray-500 mb-4">Block a student from logging in (e.g. fees pending or dropped out).</p>
+        
+        <div class="flex flex-col md:flex-row gap-4 items-center">
+            <input type="text" id="banUserEmail" placeholder="Enter Student Email" class="flex-grow w-full border-2 border-red-100 p-3 rounded-lg focus:border-red-500 focus:outline-none transition">
+            
+            <button onclick="toggleStudentAccess('BLOCKED')" class="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg flex items-center justify-center gap-2 transition transform active:scale-95">
+                <span>🔒 Block Access</span>
+            </button>
+
+            <button onclick="toggleStudentAccess('ACTIVE')" class="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg flex items-center justify-center gap-2 transition transform active:scale-95">
+                <span>✅ Restore Access</span>
+            </button>
+        </div>
+    </div>
+</div>
+        
+        <div id="access-control-section" class="w-full max-w-4xl mx-auto hidden mt-6">
+    <div class="bg-white p-6 rounded-xl shadow-md border border-orange-200">
+        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">🛑 Student Access Control <span class="text-xs font-normal text-gray-400 uppercase tracking-widest">(Block / Unblock)</span></h3>
+        <div class="flex flex-col md:flex-row gap-4 items-center">
+            <input type="text" id="accessUserEmail" placeholder="Student Email (e.g. rahul.patil@gmail.com)" class="flex-grow border p-3 rounded-lg focus:ring-2 focus:outline-none">
+            <div class="flex gap-2">
+                <button onclick="toggleStudentAccess(false)" class="bg-orange-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-orange-700 transition">Block Access</button>
+                <button onclick="toggleStudentAccess(true)" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition">Restore</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 w-full max-w-6xl">
+            <a href="teacher-reports-v2.html" class="option-card card-multi bg-white rounded-2xl p-8 shadow-lg flex flex-col items-center text-center group">
+                <div class="text-6xl mb-6">📑</div>
+                <h4 class="text-2xl font-bold text-gray-800 mb-2">Student Reports</h4>
+                <p class="text-gray-500 mb-6">View detailed progress & graphs.</p>
+                <span class="bg-blue-100 text-blue-700 px-4 py-2 rounded-full font-bold text-sm group-hover:bg-blue-600 group-hover:text-white transition">View Data</span>
+            </a>
+
+            <div class="option-card card-plus bg-white rounded-2xl p-8 shadow-lg flex flex-col items-center text-center group">
+                <div class="text-6xl mb-6">⚠️</div> 
+                <h4 class="text-2xl font-bold text-gray-800 mb-2">Missing Practice</h4>
+                <div id="inactive-count" class="text-4xl font-extrabold text-red-600 my-2">...</div>
+                <p class="text-gray-500 mb-6">Inactive (>3 days)</p>
+                <a href="inactive-students.html" class="bg-red-50 text-red-600 px-4 py-2 rounded-full font-bold text-sm hover:bg-red-600 hover:text-white transition">View List</a>
+            </div>
+
+            <a href="daily-status.html" class="option-card card-daily bg-white rounded-2xl p-8 shadow-lg flex flex-col items-center text-center group">
+                <div class="text-6xl mb-6">📅</div>
+                <h4 class="text-2xl font-bold text-gray-800 mb-2">Daily Status</h4>
+                <p class="text-gray-500 mb-6">Who practiced today?</p>
+                <div id="daily-stats" class="text-3xl font-extrabold text-green-600 mb-2">...</div>
+                <span class="bg-green-100 text-green-700 px-4 py-2 rounded-full font-bold text-sm group-hover:bg-green-600 group-hover:text-white transition">View Today's List</span>
+            </a>
+
+            <a href="teacher-formula-report.html" class="option-card bg-white rounded-2xl p-8 shadow-lg flex flex-col items-center text-center group" style="border-bottom: 6px solid #8b5cf6;">
+                <div class="text-6xl mb-6">🧮</div>
+                <h4 class="text-2xl font-bold text-gray-800 mb-2">Formula Reports</h4>
+                <p class="text-gray-500 mb-6">Small, Big & Mix Friend practice.</p>
+                <span class="bg-purple-100 text-purple-700 px-4 py-2 rounded-full font-bold text-sm group-hover:bg-purple-600 group-hover:text-white transition">View Reports</span>
+            </a>
+
+            <a href="Core.html" class="option-card bg-white rounded-2xl p-8 shadow-lg flex flex-col items-center text-center group" style="border-bottom: 6px solid #f97316;">
+                <div class="text-6xl mb-6">⚡</div>
+                <h4 class="text-2xl font-bold text-gray-800 mb-2">Core Activity</h4>
+                <p class="text-gray-500 mb-6">Track core abacus activities.</p>
+                <span class="bg-orange-100 text-orange-700 px-4 py-2 rounded-full font-bold text-sm group-hover:bg-orange-600 group-hover:text-white transition">View Activity</span>
+            </a>
+        </div>
+
+        <div id="security-log-section" class="w-full max-w-4xl mx-auto hidden mb-10">
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <div class="bg-gray-800 p-4 flex justify-between items-center text-white">
+                    <h3 class="font-bold flex items-center gap-2">🛡️ Live Security Audit Trail</h3>
+                    <button onclick="fetchSecurityLogs()" class="text-xs bg-gray-700 px-3 py-1 rounded">Refresh</button>
+                </div>
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                        <tr><th class="px-6 py-3">Timestamp</th><th class="px-6 py-3">Action</th><th class="px-6 py-3">Student</th><th class="px-6 py-3">Status</th></tr>
+                    </thead>
+                    <tbody id="securityLogBody" class="divide-y divide-gray-100"></tbody>
+                </table>
+            </div>
+        </div>
+
+         <div class="mt-16">
+            <button onclick="logout()" class="flex items-center gap-2 text-gray-500 hover:text-red-600 font-bold py-3 px-8 rounded-full border-2 border-gray-200 hover:border-red-200 hover:bg-red-50 transition-all duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Log Out
+            </button>
+        </div>
+
+    </main>
+
+    <div id="addStudentModal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold mb-4">Enroll New Student</h3>
+            <div class="space-y-4">
+                <input type="text" id="stdFirstName" placeholder="First Name" class="w-full border p-3 rounded-lg" oninput="updateEmailPreview()">
+                <input type="text" id="stdLastName" placeholder="Surname" class="w-full border p-3 rounded-lg" oninput="updateEmailPreview()">
+                <p class="text-sm text-gray-500">ID: <span id="emailPreview" class="font-bold text-indigo-600">...</span></p>
+                <select id="stdLevel" class="w-full border p-3 rounded-lg">
+                    <option value="1">Level 1</option><option value="2">Level 2</option><option value="8">Level 8</option>
+                </select>
+                <button onclick="addNewStudent()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg shadow-md">Enroll Student</button>
+                <button onclick="document.getElementById('addStudentModal').style.display='none'" class="w-full text-gray-400 py-2">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://portal-bridge.ucmas-ambernath-pg.workers.dev";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk";
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const userRole = sessionStorage.getItem('userRole');
+        const userEmail = sessionStorage.getItem('userEmail');
+
+        function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isOwner = (userRole === 'admin' || userEmail === 'admin.ambernath@gmail.com');
+            
+            document.getElementById('welcome-name').innerText = isOwner ? "Center Owner" : "Teacher";
+            if (isOwner) {
+                document.getElementById('admin-controls').classList.remove('hidden');
+                document.getElementById('password-reset-section').classList.remove('hidden');
+                document.getElementById('access-control-section').classList.remove('hidden');
+                document.getElementById('security-log-section').classList.remove('hidden');
+                
+                fetchSecurityLogs();
+            }
+
+            const { data: reports } = await supabase.from('reports').select('*').order('indian_time', { ascending: false });
+            if (reports) { processMissingPractice(reports); processDailyStatus(reports); }
+        });
+
+        async function forceResetPassword() {
+            const email = document.getElementById('resetUserEmail').value.trim();
+            const newPassword = document.getElementById('newPassInput').value.trim();
+            const { error } = await supabase.functions.invoke('manage-student', {
+                body: { action: 'resetPassword', email, newPassword, adminEmail: userEmail }
+            });
+            if (error) alert(error.message); else { alert("Updated!"); fetchSecurityLogs(); }
+        }
+
+        async function fetchSecurityLogs() {
+            const { data } = await supabase.from('security_logs').select('*').order('created_at', { ascending: false }).limit(5);
+            const body = document.getElementById('securityLogBody');
+            body.innerHTML = data.map(log => `<tr>
+                <td class="px-6 py-4 text-xs font-mono">${new Date(log.created_at).toLocaleString('en-IN')}</td>
+                <td class="px-6 py-4 font-bold text-indigo-600 text-xs">${log.action_type}</td>
+                <td class="px-6 py-4 text-xs">${log.target_student_email}</td>
+                <td class="px-6 py-4"><span class="bg-green-100 text-green-700 px-2 rounded-full text-[10px] font-bold">SUCCESS</span></td>
+            </tr>`).join('');
+        }
+
+        function updateEmailPreview() {
+            const f = document.getElementById('stdFirstName').value.trim().toLowerCase();
+            const l = document.getElementById('stdLastName').value.trim().toLowerCase();
+            document.getElementById('emailPreview').innerText = f && l ? `${f}.${l}@gmail.com` : "...";
+        }
+
+        async function addNewStudent() {
+            const firstName = document.getElementById('stdFirstName').value;
+            const lastName = document.getElementById('stdLastName').value;
+            const level = document.getElementById('stdLevel').value;
+
+            // 1. Basic validation to prevent empty submissions
+            if (!firstName || !lastName) {
+                alert("Please enter both First Name and Surname.");
+                return;
+            }
+
+            const { data, error } = await supabase.functions.invoke('manage-student', {
+                body: { action: 'enroll', firstName, lastName, level, adminEmail: userEmail }
+            });
+
+            if (error) {
+                if (error.message && error.message.includes("non-2xx")) {
+                    alert("User already existed");
+                } else {
+                    alert(error.message);
+                }
+            } else {
+                alert("Student enrolled successfully!");
+                location.reload();
+            }
+        }
+
+        async function toggleStudentAccess(newStatus) {
+    const email = document.getElementById('banUserEmail').value.trim();
+    const userEmail = sessionStorage.getItem('userEmail');
+
+    if (!email) return alert("Please enter the student's email first.");
+
+    const confirmMsg = newStatus === 'BLOCKED' 
+        ? `Are you sure you want to BLOCK ${email}? They will be logged out immediately.` 
+        : `Restore access for ${email}?`;
+
+    if (!confirm(confirmMsg)) return;
+
+    const { data, error } = await supabase.functions.invoke('manage-student', {
+        body: { 
+            action: 'toggleAccess', 
+            email: email, 
+            status: newStatus,
+            adminEmail: userEmail 
+        }
+    });
+
+    if (error) {
+        alert("Error: " + error.message);
+    } else {
+        alert("Success: " + data.message);
+        document.getElementById('banUserEmail').value = '';
+        fetchSecurityLogs();
+    }
+}
+        
+        async function handleCSV(event) {
+            const file = event.target.files[0];
+            Papa.parse(file, { header: true, complete: async (results) => {
+                for (const student of results.data) {
+                    await supabase.functions.invoke('manage-student', {
+                        body: { action: 'enroll', firstName: student.firstName, lastName: student.lastName, level: student.level, adminEmail: userEmail }
+                    });
+                }
+                alert("Bulk Upload Done!"); location.reload();
+            }});
+        }
+
+        function processMissingPractice(reports) {
+            const lastActive = {};
+            reports.forEach(r => { if(!lastActive[r.student_name] || new Date(r.indian_time) > lastActive[r.student_name]) lastActive[r.student_name] = new Date(r.indian_time); });
+            const count = Object.values(lastActive).filter(date => Math.ceil(Math.abs(new Date() - date) / (1000 * 60 * 60 * 24)) > 3).length;
+            document.getElementById('inactive-count').innerText = count;
+        }
+
+        function processDailyStatus(reports) {
+            const today = new Date().toISOString().split('T')[0];
+            const all = new Set(reports.map(r => r.student_name));
+            const done = new Set(reports.filter(r => r.indian_time?.startsWith(today)).map(r => r.student_name));
+            document.getElementById('daily-stats').innerHTML = `${done.size} <span class="text-sm text-gray-400">/ ${all.size}</span>`;
+        }
+    </script>
+</body>
+</html>
