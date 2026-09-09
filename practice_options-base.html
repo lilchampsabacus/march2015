@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practice Options</title>
+    
+    <link rel="stylesheet" href="elegant-theme.css">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        html {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        html::-webkit-scrollbar {
+            display: none;
+        }
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0f9ff; 
+            background-image: radial-gradient(#e0f2fe 2px, transparent 2px);
+            background-size: 24px 24px;
+            
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .option-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-bottom: 6px solid transparent;
+        }
+
+        .option-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .card-multi { border-color: #3b82f6; } /* Blue */
+        .card-multi:hover { border-bottom-color: #1d4ed8; }
+
+        .card-div { border-color: #8b5cf6; } /* Purple */
+        .card-div:hover { border-bottom-color: #6d28d9; }
+
+        .card-plus { border-color: #f59e0b; } /* Amber */
+        .card-plus:hover { border-bottom-color: #b45309; }
+
+        .card-flash { border-color: #ef4444; } /* Red */
+        .card-flash:hover { border-bottom-color: #b91c1c; }
+
+        .card-speed { border-color: #10b981; } /* Green */
+        .card-speed:hover { border-bottom-color: #047857; }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+        }
+        .option-card:hover .card-icon {
+            animation: wiggle 1s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <script>
+        if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = 'index.html'; 
+        }
+
+        function logout() {
+            sessionStorage.removeItem('isLoggedIn');
+            sessionStorage.removeItem('studentIdentifier');
+            window.location.href = 'index.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const studentId = sessionStorage.getItem('studentIdentifier');
+            if (studentId) {
+                const namePart = studentId.split('@')[0];
+                const formattedName = namePart.split('.').map(part => 
+                    part.charAt(0).toUpperCase() + part.slice(1)
+                ).join(' ');
+                
+                document.getElementById('welcome-name').textContent = formattedName;
+            }
+        });
+    </script>
+
+    <header class="bg-indigo-600 text-white p-6 shadow-lg sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div class="text-center md:text-left mb-4 md:mb-0">
+                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Li'l Champs Abacus Academy</h1>
+                <h2 class="text-indigo-100 text-lg font-semibold">Daily Practice Dashboard</h2>
+            </div>
+            <div class="bg-indigo-700 px-4 py-2 rounded-lg shadow-inner border border-indigo-500">
+                <span class="text-indigo-200 text-sm uppercase tracking-wide font-bold">Student</span>
+                <div id="welcome-name" class="text-xl font-bold text-white">Welcome!</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow p-6 md:p-10 flex flex-col items-center">
+        
+    <div class="w-full max-w-4xl mx-auto mb-10 space-y-4">
+    
+    <div class="bg-orange-50 border-l-8 border-orange-500 p-6 rounded-r-lg shadow-md text-left flex flex-col md:flex-row items-start md:items-center gap-4">
+        <div class="text-4xl">⚠️</div>
+        <div>
+            <h3 class="text-xl font-bold text-orange-800">Stop! Are you using your Physical Abacus?</h3>
+            <p class="text-orange-900 mt-1 font-medium">
+                If "NO" then trying to do "Mental Math" now will result in <span class="underline decoration-red-500 decoration-2 font-bold">Low Accuracy</span>. 
+                You must move the physical beads on abacus to build muscle memory!
+            </p>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <h4 class="text-gray-600 font-semibold">
+            🎯 <span class="text-indigo-600 font-bold">Daily Goal:</span> 
+            3 sets Multiplication (Level4+), 3 sets Division (Level5+), and 3 sets Plus/Minus (Level2+)
+        </h4>
+    </div>
+    
+    </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
+
+            <a href="multiplication.html" class="option-card card-multi bg-white rounded-2xl p-8 shadow-lg flex flex-col items-center text-center group cursor-pointer no-underline relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-20 h-20 bg-blue-100 rounded-bl-full -mr-10 -mt-10 z-0"></div>
+                <div class="card-icon text-6xl mb-6 z-10">✖️</div>
+                <h4 class="text-2xl font-bold text-gray-800 mb-2 z-10">Multiplication</h4>
+                <p class="text-gray-500 mb-6 z-10">Master your times tables with rapid sums.</p>
+                <span class="bg-blue-100 text-blue-700 px-4 py-2 rounded-full font-bold text-sm group-hover:bg-blue-600 group-hover:text-white transition-colors z-10">Start Now</span>
+            </a>
+
+            <a href="division.html" class="option-card card-div bg-white rounded-2xl p-8 shadow-lg flex flex-col items-center text-center group cursor-pointer no-underline relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-20 h-20 bg-purple-100 rounded-bl-full -mr-10 -mt-10 z-0"></div>
+                <div class="card-icon text-6xl mb-6 z-10">➗</div>
+                <h4 class="text-2xl font-bold text-gray-800 mb-2 z-10">Division</h4>
+                <p class="text-gray-500 mb-6 z-10">Practice dividing large numbers easily.</p>
+                <span class="bg-purple-100 text-purple-700 px-4 py-2 rounded-full font-bold text-sm group-hover:bg-purple-600 group-hover:text-white transition-colors z-10">Start Now</span>
+            </a>
+
+            <a href="plus_minus.html" class="option-card card-plus bg-white rounded-2xl p-8 shadow-lg flex flex-col items-center text-center group cursor-pointer no-underline relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-20 h-20 bg-amber-100 rounded-bl-full -mr-10 -mt-10 z-0"></div>
+                <div class="card-icon text-6xl mb-6 z-10">🧮</div>
+                <h4 class="text-2xl font-bold text-gray-800 mb-2 z-10">Plus & Minus</h4>
+                <p class="text-gray-500 mb-6 z-10">Addition and subtraction challenges.</p>
+                <span class="bg-amber-100 text-amber-700 px-4 py-2 rounded-full font-bold text-sm group-hover:bg-amber-600 group-hover:text-white transition-colors z-10">Start Now</span>
+            </a>
+
+            <a href="ListeningAI.html" class="option-card card-div bg-white rounded-2xl p-8 shadow-lg flex flex-col items-center text-center group cursor-pointer no-underline relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-20 h-20 bg-purple-100 rounded-bl-full -mr-10 -mt-10 z-0"></div>
+                <div class="card-icon text-6xl mb-6 z-10">📢</div>
+                <h4 class="text-2xl font-bold text-gray-800 mb-2 z-10">Listening Sums</h4>
+                <p class="text-gray-500 mb-6 z-10">Check your listening skill.</p>
+                <span class="bg-purple-100 text-purple-700 px-4 py-2 rounded-full font-bold text-sm group-hover:bg-purple-600 group-hover:text-white transition-colors z-10">Start Now</span>
+            </a>
+
+            <a href="FlashCardsV1.html" class="option-card card-flash bg-white rounded-2xl p-8 shadow-lg flex flex-col items-center text-center group cursor-pointer no-underline relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-20 h-20 bg-red-100 rounded-bl-full -mr-10 -mt-10 z-0"></div>
+                <div class="card-icon text-6xl mb-6 z-10">⚡</div>
+                <h4 class="text-2xl font-bold text-gray-800 mb-2 z-10">Flash Cards</h4>
+                <p class="text-gray-500 mb-6 z-10">Boost your visual memory speed.</p>
+                <span class="bg-red-100 text-red-700 px-4 py-2 rounded-full font-bold text-sm group-hover:bg-red-600 group-hover:text-white transition-colors z-10">Start Now</span>
+            </a>
+
+            <a href="3MinChallenge.html" class="option-card card-speed bg-white rounded-2xl p-8 shadow-lg flex flex-col items-center text-center group cursor-pointer no-underline relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-20 h-20 bg-green-100 rounded-bl-full -mr-10 -mt-10 z-0"></div>
+                <div class="card-icon text-6xl mb-6 z-10">⏱️</div>
+                <h4 class="text-2xl font-bold text-gray-800 mb-2 z-10">1 Min Challenge</h4>
+                <p class="text-gray-500 mb-6 z-10">Test your speed against the clock!</p>
+                <span class="bg-green-100 text-green-700 px-4 py-2 rounded-full font-bold text-sm group-hover:bg-green-600 group-hover:text-white transition-colors z-10">Start Now</span>
+            </a>
+
+            <a href="FormulaMaster.html" class="option-card card-multi bg-white rounded-2xl p-8 shadow-lg flex flex-col items-center text-center group cursor-pointer no-underline relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-20 h-20 bg-blue-100 rounded-bl-full -mr-10 -mt-10 z-0"></div>
+                <div class="card-icon text-6xl mb-6 z-10">📖</div>
+                <h4 class="text-2xl font-bold text-gray-800 mb-2 z-10">Formula Challenge</h4>
+                <p class="text-gray-500 mb-6 z-10">Test your formula against the clock!</p>
+                <span class="bg-blue-100 text-blue-700 px-4 py-2 rounded-full font-bold text-sm group-hover:bg-blue-600 group-hover:text-white transition-colors z-10">Start Now</span>
+            </a>
+
+            <a href="Level1and2.html" class="option-card card-plus bg-white rounded-2xl p-8 shadow-lg flex flex-col items-center text-center group cursor-pointer no-underline relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-20 h-20 bg-amber-100 rounded-bl-full -mr-10 -mt-10 z-0"></div>
+                <div class="card-icon text-6xl mb-6 z-10">1️⃣</div>
+                <h4 class="text-2xl font-bold text-gray-800 mb-2 z-10">Formula Practice</h4>
+                <p class="text-gray-500 mb-6 z-10">Small Friend/Big friend formula</p>
+                <span class="bg-amber-100 text-amber-700 px-4 py-2 rounded-full font-bold text-sm group-hover:bg-amber-600 group-hover:text-white transition-colors z-10">Start Now</span>
+            </a>
+
+            <a href="Pressure.html" class="option-card card-div bg-white rounded-2xl p-8 shadow-lg flex flex-col items-center text-center group cursor-pointer no-underline relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-20 h-20 bg-purple-100 rounded-bl-full -mr-10 -mt-10 z-0"></div>
+                <div class="card-icon text-6xl mb-6 z-10">⏰</div>
+                <h4 class="text-2xl font-bold text-gray-800 mb-2 z-10">10 Seconds to Answer</h4>
+                <p class="text-gray-500 mb-6 z-10">Can You Handle Pressure?</p>
+                <span class="bg-purple-100 text-purple-700 px-4 py-2 rounded-full font-bold text-sm group-hover:bg-purple-600 group-hover:text-white transition-colors z-10">Start Now</span>
+            </a>
+
+            <a href="Report.html" class="option-card card-multi bg-white rounded-2xl p-8 shadow-lg flex flex-col items-center text-center group cursor-pointer no-underline relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-20 h-20 bg-gray-200 rounded-bl-full -mr-10 -mt-10 z-0"></div>
+                <div class="card-icon text-6xl mb-6 z-10">📑</div>
+                <h4 class="text-2xl font-bold text-gray-800 mb-2 z-10">My Report</h4>
+                <p class="text-gray-500 mb-6 z-10">View your practice history and scores.</p>
+                <span class="bg-gray-100 text-gray-700 px-4 py-2 rounded-full font-bold text-sm group-hover:bg-gray-600 group-hover:text-white transition-colors z-10">View Report</span>
+            </a>
+        
+             <a href="formula_report.html" class="option-card card-multi bg-white rounded-2xl p-8 shadow-lg flex flex-col items-center text-center group cursor-pointer no-underline relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-20 h-20 bg-gray-200 rounded-bl-full -mr-10 -mt-10 z-0"></div>
+                <div class="card-icon text-6xl mb-6 z-10">📑</div>
+                <h4 class="text-2xl font-bold text-gray-800 mb-2 z-10">Formula practice Report</h4>
+                <p class="text-gray-500 mb-6 z-10">For 1st and 2nd level students.</p>
+                <span class="bg-gray-100 text-gray-700 px-4 py-2 rounded-full font-bold text-sm group-hover:bg-gray-600 group-hover:text-white transition-colors z-10">View Report</span>
+            </a>    
+        </div>
+
+        <div class="mt-16">
+            <button onclick="logout()" class="flex items-center gap-2 text-gray-500 hover:text-red-600 font-bold py-3 px-8 rounded-full border-2 border-gray-200 hover:border-red-200 hover:bg-red-50 transition-all duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Log Out
+            </button>
+        </div>
+
+    </main>
+
+    <footer class="bg-white text-gray-500 p-6 text-center border-t border-gray-200">
+        <p class="text-sm">Developed by: Practice Buddy Pvt Ltd</p>
+    </footer>
+
+    <div class="fixed bottom-3 right-3 z-40">
+        <a href="MistakeTracker.html" 
+           class="flex items-center gap-1 text-gray-300 hover:text-indigo-500 transition-all duration-500 opacity-20 hover:opacity-100 no-underline group">
+            
+            <span class="text-xs font-semibold tracking-widest hidden group-hover:block">HELP</span>
+            
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </a>
+    </div>
+</body>
+</html>
+
