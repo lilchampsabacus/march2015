@@ -18,200 +18,12 @@
         }
         .input-field { transition: all 0.3s ease; }
         .input-field:focus { transform: translateY(-2px); }
-        
-        /* Status Light Animation */
         .status-pulse {
             animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: .5; }
-        }
-
-        .competition-modal {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 18px;
-            background: rgba(15, 23, 42, 0.72);
-            backdrop-filter: blur(8px);
-        }
-
-        .competition-modal.show {
-            display: flex;
-        }
-
-        .competition-card {
-            width: 100%;
-            max-width: 440px;
-            overflow: hidden;
-            border-radius: 28px;
-            background: linear-gradient(145deg, #ffffff 0%, #eef2ff 100%);
-            box-shadow: 0 28px 70px rgba(15, 23, 42, 0.38);
-            animation: modalPop 0.35s ease-out forwards;
-        }
-
-        @keyframes modalPop {
-            from { opacity: 0; transform: scale(0.92) translateY(16px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        .competition-hero {
-            position: relative;
-            padding: 26px 26px 22px;
-            color: #ffffff;
-            text-align: center;
-            background: linear-gradient(135deg, #4338ca 0%, #7c3aed 52%, #db2777 100%);
-        }
-
-        .competition-hero::before,
-        .competition-hero::after {
-            content: '';
-            position: absolute;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.16);
-        }
-
-        .competition-hero::before {
-            width: 110px;
-            height: 110px;
-            top: -34px;
-            left: -30px;
-        }
-
-        .competition-hero::after {
-            width: 145px;
-            height: 145px;
-            right: -58px;
-            bottom: -70px;
-        }
-
-        .competition-badge {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 14px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.18);
-            border: 1px solid rgba(255, 255, 255, 0.32);
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
-
-        .competition-title {
-            position: relative;
-            margin-top: 16px;
-            font-size: 30px;
-            line-height: 1.05;
-            font-weight: 900;
-            letter-spacing: -0.03em;
-        }
-
-        .competition-subtitle {
-            position: relative;
-            margin-top: 10px;
-            font-size: 15px;
-            font-weight: 800;
-            color: #fde68a;
-        }
-
-        .competition-body {
-            padding: 24px 26px 26px;
-            text-align: center;
-        }
-
-        .competition-student-name {
-            color: #3730a3;
-            font-size: 18px;
-            font-weight: 900;
-        }
-
-        .competition-message {
-            margin-top: 10px;
-            color: #334155;
-            font-size: 15px;
-            line-height: 1.45;
-            font-weight: 700;
-        }
-
-        .competition-highlight-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 18px;
-        }
-
-        .competition-highlight {
-            padding: 13px 10px;
-            border-radius: 16px;
-            background: #ffffff;
-            border: 1px solid #e0e7ff;
-            box-shadow: 0 10px 22px rgba(79, 70, 229, 0.09);
-        }
-
-        .competition-highlight strong {
-            display: block;
-            color: #111827;
-            font-size: 15px;
-            font-weight: 900;
-        }
-
-        .competition-highlight span {
-            display: block;
-            margin-top: 2px;
-            color: #64748b;
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-
-        .competition-countdown {
-            margin-top: 20px;
-            color: #475569;
-            font-size: 13px;
-            font-weight: 800;
-        }
-
-        .competition-progress {
-            height: 8px;
-            margin-top: 9px;
-            overflow: hidden;
-            border-radius: 999px;
-            background: #e2e8f0;
-        }
-
-        .competition-progress-bar {
-            height: 100%;
-            width: 100%;
-            border-radius: 999px;
-            background: linear-gradient(90deg, #4f46e5, #db2777);
-            animation: shrinkProgress 12s linear forwards;
-        }
-
-        .competition-register {
-            display: inline-block;
-            margin-top: 16px;
-            padding: 10px 18px;
-            border-radius: 999px;
-            background: linear-gradient(90deg, #4f46e5, #db2777);
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: 900;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-            box-shadow: 0 12px 25px rgba(79, 70, 229, 0.25);
-        }
-
-        @keyframes shrinkProgress {
-            from { width: 100%; }
-            to { width: 0%; }
         }
     </style>
 </head>
@@ -270,62 +82,22 @@
         <p>Developed by: Practice Buddy Pvt Ltd</p>
     </footer>
 
-    <div id="competitionPopup" class="competition-modal" aria-hidden="true" role="dialog" aria-labelledby="competitionTitle">
-        <div class="competition-card">
-            <div class="competition-hero">
-                <div class="competition-badge">🏆 National Competition Alert</div>
-                <h2 id="competitionTitle" class="competition-title">Register Today!</h2>
-                <p class="competition-subtitle">September • National Level Competition • Mumbai</p>
-            </div>
-            <div class="competition-body">
-                <div id="competitionStudentName" class="competition-student-name">Welcome, Champion!</div>
-                <p class="competition-message">
-                    Big stage. Big opportunity. Start serious practice today and get ready to represent Li'l Champs Abacus Academy, Ambernath.
-                </p>
-                <div class="competition-register">Register Today</div>
-<div class="competition-highlight-grid">
-    <div class="competition-highlight">
-        <strong>₹2500</strong>
-        <span>Competition Fee</span>
-    </div>
-    <div class="competition-highlight">
-        <strong>Mumbai</strong>
-        <span>National Stage</span>
-    </div>
-    <div class="competition-highlight">
-        <strong>5th September</strong>
-        <span>Competition Date</span>
-    </div>
-    <div class="competition-highlight">
-        <strong>Vashi</strong>
-        <span>CIDCO Exhibition Center</span>
-    </div>
-</div>
-                <p class="competition-countdown">Your practice dashboard will open in 12 seconds.</p>
-                <div class="competition-progress"><div class="competition-progress-bar"></div></div>
-            </div>
-        </div>
-    </div>
-
     <script>
     const SUPABASE_URL = "https://portal-bridge.ucmas-ambernath-pg.workers.dev";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk";
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // --- NEW: Connection Health Check ---
     async function checkServerConnection() {
         const light = document.getElementById('statusLight');
         const text = document.getElementById('statusText');
         
         try {
-            // Ping the Supabase health endpoint
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-            
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
             const response = await fetch(`${SUPABASE_URL}/auth/v1/health`, { signal: controller.signal });
             clearTimeout(timeoutId);
 
-            if (response.ok || response.status === 401) { // 401 is expected if no key is sent
+            if (response.ok || response.status === 401) {
                 light.className = "h-3 w-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]";
                 text.innerHTML = "Server: <span class='text-green-600 font-bold'>Connected</span>";
                 text.className = "text-xs mt-1 italic";
@@ -339,7 +111,6 @@
         }
     }
 
-    // Run check on load
     checkServerConnection();
 
     function togglePassword() {
@@ -354,28 +125,14 @@
         }
     }
 
-    function showNationalCompetitionPopup(studentName) {
-        const popup = document.getElementById('competitionPopup');
-        const nameElement = document.getElementById('competitionStudentName');
-        const safeName = studentName || 'Champion';
-
-        nameElement.textContent = `Welcome, ${safeName}!`;
-        popup.classList.add('show');
-        popup.setAttribute('aria-hidden', 'false');
-
-        setTimeout(() => {
-            window.location.href = 'practice_options.html';
-        }, 1000);
-    }
-
     async function handleLogin() {
         let emailInput = document.getElementById('emailInput').value.trim().toLowerCase();
         const password = document.getElementById('password').value.trim();
         const messageElement = document.getElementById('login-message');
         const loginBtn = document.getElementById('loginBtn');
-        const originalBtnText = "Log In"; 
+        const originalBtnHtml = loginBtn.innerHTML;
 
-        messageElement.innerHTML = ''; 
+        messageElement.innerHTML = '';
 
         if (!emailInput || !password) {
             messageElement.innerHTML = '<span class="text-red-600 font-bold">Please enter email and password.</span>';
@@ -398,8 +155,7 @@
             if (error) throw new Error("Incorrect Password or Email.");
 
             const user = data.user;
-            
-            const { data: profile, error: profileError } = await supabaseClient
+            const { data: profile } = await supabaseClient
                 .from('profiles')
                 .select('is_active, role, current_level, full_name')
                 .eq('id', user.id)
@@ -407,7 +163,7 @@
 
             if (profile) {
                 if (profile.is_active === false) {
-                    await supabaseClient.auth.signOut(); 
+                    await supabaseClient.auth.signOut();
                     throw new Error("🚫 Access Denied: This account has been deactivated.");
                 }
                 if (profile.role === 'student' && profile.current_level > 8) {
@@ -428,13 +184,13 @@
                 const studentName = profile ? profile.full_name : emailInput.split('@')[0];
                 sessionStorage.setItem('studentIdentifier', studentName);
                 messageElement.innerHTML = `<span class="text-green-600 font-bold">✅ Welcome, ${studentName}!</span>`;
-                showNationalCompetitionPopup(studentName);
+                setTimeout(() => window.location.href = 'practice_options.html', 1000);
             }
 
         } catch (err) {
             console.error("Login Error:", err);
             loginBtn.disabled = false;
-            loginBtn.innerHTML = `<span>${originalBtnText}</span><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>`;
+            loginBtn.innerHTML = originalBtnHtml;
             
             if (err.message.includes("Access Denied") || err.message.includes("Course Completed")) {
                 messageElement.innerHTML = `<span class="text-red-600 font-bold">${err.message}</span>`;
@@ -444,9 +200,9 @@
         }
     }
 
-    document.getElementById('password').addEventListener('keypress', (e) => { 
-        if (e.key === 'Enter') handleLogin(); 
+    document.getElementById('password').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleLogin();
     });
-</script>
+    </script>
 </body>
 </html>
