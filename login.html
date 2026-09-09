@@ -4,205 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Li'l Champs - Academy Login</title>
-
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
-        body {
-            font-family: 'Nunito', sans-serif;
-            background-color: #f0f9ff;
-            background-image: radial-gradient(#e0f2fe 2px, transparent 2px);
-            background-size: 24px 24px;
-        }
-        .input-field { transition: all 0.3s ease; }
-        .input-field:focus { transform: translateY(-2px); }
-        .status-pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: .5; }
-        }
+        body {font-family:'Nunito',sans-serif;background-color:#f0f9ff;background-image:radial-gradient(#e0f2fe 2px,transparent 2px);background-size:24px 24px;}
+        .input-field{transition:all .3s ease}.input-field:focus{transform:translateY(-2px)}
+        .status-pulse{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
     </style>
 </head>
 <body class="min-h-screen flex flex-col justify-center items-center p-4">
-
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-        <div class="bg-indigo-600 p-6 text-center">
-            <h1 class="text-2xl font-extrabold text-white tracking-wide uppercase">Li'l Champs</h1>
-            <p class="text-indigo-200 text-sm font-semibold mt-1">Abacus Academy • Ambernath</p>
-        </div>
-
-        <div class="p-8">
-            <div class="text-center mb-8 relative">
-                <h2 class="text-xl font-bold text-gray-800 inline-flex items-center gap-2">
-                    Academy Portal
-                    <span id="statusLight" class="h-3 w-3 rounded-full bg-gray-400" title="Checking Connection..."></span>
-                </h2>
-                <p id="statusText" class="text-gray-500 text-xs mt-1 italic">Checking server connection...</p>
-            </div>
-
-            <form id="loginForm" class="space-y-6">
-                <div>
-                    <label for="emailInput" class="block text-sm font-bold text-gray-700 mb-1">Email or Username</label>
-                    <input type="text" id="emailInput" placeholder="e.g. rahul.patil"
-                        class="input-field w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-gray-700 bg-gray-50 placeholder-gray-400" required>
-                </div>
-
-                <div>
-                    <label for="password" class="block text-sm font-bold text-gray-700 mb-1">Password</label>
-                    <div class="relative">
-                        <input type="password" id="password" placeholder="••••"
-                            class="input-field w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-gray-700 bg-gray-50 placeholder-gray-400" required>
-                        <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-indigo-600">
-                            <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <button type="button" onclick="handleLogin()" id="loginBtn"
-                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform active:scale-95 flex justify-center items-center gap-2">
-                    <span>Log In</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                </button>
-            </form>
-
-            <div id="login-message" class="mt-4 text-center text-sm font-semibold min-h-[20px]"></div>
-        </div>
-    </div>
-
-    <footer class="mt-8 text-center text-gray-500 text-sm">
-        <p>Developed by: Practice Buddy Pvt Ltd</p>
-    </footer>
-
-    <script>
-    const SUPABASE_URL = "https://portal-bridge.ucmas-ambernath-pg.workers.dev";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk";
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    async function checkServerConnection() {
-        const light = document.getElementById('statusLight');
-        const text = document.getElementById('statusText');
-        
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-            const response = await fetch(`${SUPABASE_URL}/auth/v1/health`, { signal: controller.signal });
-            clearTimeout(timeoutId);
-
-            if (response.ok || response.status === 401) {
-                light.className = "h-3 w-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]";
-                text.innerHTML = "Server: <span class='text-green-600 font-bold'>Connected</span>";
-                text.className = "text-xs mt-1 italic";
-            } else {
-                throw new Error();
-            }
-        } catch (e) {
-            light.className = "h-3 w-3 rounded-full bg-red-500 status-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]";
-            text.innerHTML = "Server: <span class='text-red-600 font-bold'>Blocked. Switch to Mobile Data.</span>";
-            text.className = "text-xs mt-1 italic";
-        }
-    }
-
-    checkServerConnection();
-
-    function togglePassword() {
-        const passwordInput = document.getElementById('password');
-        const eyeIcon = document.getElementById('eyeIcon');
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            eyeIcon.setAttribute('stroke', '#4f46e5');
-        } else {
-            passwordInput.type = 'password';
-            eyeIcon.setAttribute('stroke', 'currentColor');
-        }
-    }
-
-    async function handleLogin() {
-        let emailInput = document.getElementById('emailInput').value.trim().toLowerCase();
-        const password = document.getElementById('password').value.trim();
-        const messageElement = document.getElementById('login-message');
-        const loginBtn = document.getElementById('loginBtn');
-        const originalBtnHtml = loginBtn.innerHTML;
-
-        messageElement.innerHTML = '';
-
-        if (!emailInput || !password) {
-            messageElement.innerHTML = '<span class="text-red-600 font-bold">Please enter email and password.</span>';
-            return;
-        }
-
-        if (!emailInput.includes('@')) {
-            emailInput += "@gmail.com";
-        }
-
-        loginBtn.disabled = true;
-        loginBtn.innerHTML = `<span>Verifying...</span>`;
-
-        try {
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
-                email: emailInput,
-                password: password
-            });
-
-            if (error) throw new Error("Incorrect Password or Email.");
-
-            const user = data.user;
-            const { data: profile } = await supabaseClient
-                .from('profiles')
-                .select('is_active, role, current_level, full_name')
-                .eq('id', user.id)
-                .single();
-
-            if (profile) {
-                if (profile.is_active === false) {
-                    await supabaseClient.auth.signOut();
-                    throw new Error("🚫 Access Denied: This account has been deactivated.");
-                }
-                if (profile.role === 'student' && profile.current_level > 8) {
-                    await supabaseClient.auth.signOut();
-                    throw new Error("🎓 Course Completed. Please contact the center.");
-                }
-            }
-
-            sessionStorage.setItem('isLoggedIn', 'true');
-            sessionStorage.setItem('userId', user.id);
-            sessionStorage.setItem('userEmail', user.email);
-            sessionStorage.setItem('userRole', profile ? profile.role : 'student');
-
-            if (profile && (profile.role === 'admin' || profile.role === 'teacher')) {
-                messageElement.innerHTML = '<span class="text-indigo-600 font-bold">✅ Welcome, Teacher!</span>';
-                setTimeout(() => window.location.href = 'teacher-dashboard.html', 1000);
-            } else {
-                const studentName = profile ? profile.full_name : emailInput.split('@')[0];
-                sessionStorage.setItem('studentIdentifier', studentName);
-                messageElement.innerHTML = `<span class="text-green-600 font-bold">✅ Welcome, ${studentName}!</span>`;
-                setTimeout(() => window.location.href = 'practice_options.html', 1000);
-            }
-
-        } catch (err) {
-            console.error("Login Error:", err);
-            loginBtn.disabled = false;
-            loginBtn.innerHTML = originalBtnHtml;
-            
-            if (err.message.includes("Access Denied") || err.message.includes("Course Completed")) {
-                messageElement.innerHTML = `<span class="text-red-600 font-bold">${err.message}</span>`;
-            } else {
-                messageElement.innerHTML = '<span class="text-red-600 font-bold">❌ Login Failed. Check Password.</span>';
-            }
-        }
-    }
-
-    document.getElementById('password').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleLogin();
-    });
-    </script>
-</body>
-</html>
+<div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+<div class="bg-indigo-600 p-6 text-center"><h1 class="text-2xl font-extrabold text-white tracking-wide uppercase">Li'l Champs</h1><p class="text-indigo-200 text-sm font-semibold mt-1">Abacus Academy • Ambernath</p></div>
+<div class="p-8"><div class="text-center mb-8 relative"><h2 class="text-xl font-bold text-gray-800 inline-flex items-center gap-2">Academy Portal <span id="statusLight" class="h-3 w-3 rounded-full bg-gray-400" title="Checking Connection..."></span></h2><p id="statusText" class="text-gray-500 text-xs mt-1 italic">Checking server connection...</p></div>
+<form id="loginForm" class="space-y-6"><div><label for="emailInput" class="block text-sm font-bold text-gray-700 mb-1">Email or Username</label><input type="text" id="emailInput" placeholder="e.g. rahul.patil" class="input-field w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-gray-700 bg-gray-50 placeholder-gray-400" required></div>
+<div><label for="password" class="block text-sm font-bold text-gray-700 mb-1">Password</label><div class="relative"><input type="password" id="password" placeholder="••••" class="input-field w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-gray-700 bg-gray-50 placeholder-gray-400" required><button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-indigo-600"><svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></button></div></div>
+<button type="button" onclick="handleLogin()" id="loginBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform active:scale-95 flex justify-center items-center gap-2"><span>Log In</span><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg></button></form><div id="login-message" class="mt-4 text-center text-sm font-semibold min-h-[20px]"></div></div></div>
+<footer class="mt-8 text-center text-gray-500 text-sm"><p>Developed by: Practice Buddy Pvt Ltd</p></footer>
+<script>
+const SUPABASE_URL="https://portal-bridge.ucmas-ambernath-pg.workers.dev";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+async function checkServerConnection(){const light=document.getElementById('statusLight'),text=document.getElementById('statusText');try{const controller=new AbortController();const timeoutId=setTimeout(()=>controller.abort(),10000);const response=await fetch(`${SUPABASE_URL}/auth/v1/health`,{signal:controller.signal});clearTimeout(timeoutId);if(response.ok||response.status===401){light.className="h-3 w-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]";text.innerHTML="Server: <span class='text-green-600 font-bold'>Connected</span>";text.className="text-xs mt-1 italic"}else throw new Error()}catch(e){light.className="h-3 w-3 rounded-full bg-red-500 status-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]";text.innerHTML="Server: <span class='text-red-600 font-bold'>Blocked. Switch to Mobile Data.</span>";text.className="text-xs mt-1 italic"}}
+checkServerConnection();
+function togglePassword(){const p=document.getElementById('password'),eye=document.getElementById('eyeIcon');if(p.type==='password'){p.type='text';eye.setAttribute('stroke','#4f46e5')}else{p.type='password';eye.setAttribute('stroke','currentColor')}}
+async function handleLogin(){let emailInput=document.getElementById('emailInput').value.trim().toLowerCase();const password=document.getElementById('password').value.trim(),messageElement=document.getElementById('login-message'),loginBtn=document.getElementById('loginBtn'),originalBtnHtml=loginBtn.innerHTML;messageElement.innerHTML='';if(!emailInput||!password){messageElement.innerHTML='<span class="text-red-600 font-bold">Please enter email and password.</span>';return}if(!emailInput.includes('@'))emailInput+="@gmail.com";loginBtn.disabled=true;loginBtn.innerHTML='<span>Verifying...</span>';try{const{data,error}=await supabaseClient.auth.signInWithPassword({email:emailInput,password});if(error)throw new Error("Incorrect Password or Email.");const user=data.user;const{data:profile}=await supabaseClient.from('profiles').select('is_active, role, current_level, full_name').eq('id',user.id).single();if(profile){if(profile.is_active===false){await supabaseClient.auth.signOut();throw new Error("🚫 Access Denied: This account has been deactivated.")}if(profile.role==='student'&&profile.current_level>8){await supabaseClient.auth.signOut();throw new Error("🎓 Course Completed. Please contact the center.")}}
+sessionStorage.setItem('isLoggedIn','true');sessionStorage.setItem('userId',user.id);sessionStorage.setItem('userEmail',user.email);sessionStorage.setItem('userRole',profile?profile.role:'student');if(profile&&Number.isInteger(Number(profile.current_level)))sessionStorage.setItem('currentLevel',String(profile.current_level));else sessionStorage.removeItem('currentLevel');
+if(profile&&(profile.role==='admin'||profile.role==='teacher')){messageElement.innerHTML='<span class="text-indigo-600 font-bold">✅ Welcome, Teacher!</span>';setTimeout(()=>window.location.href='teacher-dashboard.html',1000)}else{const studentName=profile?profile.full_name:emailInput.split('@')[0];sessionStorage.setItem('studentIdentifier',studentName);messageElement.innerHTML=`<span class="text-green-600 font-bold">✅ Welcome, ${studentName}!</span>`;setTimeout(()=>window.location.href='practice_options.html',1000)}}catch(err){console.error("Login Error:",err);loginBtn.disabled=false;loginBtn.innerHTML=originalBtnHtml;if(err.message.includes("Access Denied")||err.message.includes("Course Completed"))messageElement.innerHTML=`<span class="text-red-600 font-bold">${err.message}</span>`;else messageElement.innerHTML='<span class="text-red-600 font-bold">❌ Login Failed. Check Password.</span>'}}
+document.getElementById('password').addEventListener('keypress',e=>{if(e.key==='Enter')handleLogin()});
+</script></body></html>
