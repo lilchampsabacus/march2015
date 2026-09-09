@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login | Li'l Champs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>body{font-family:'Nunito',sans-serif;background:#f0f9ff;background-image:radial-gradient(#e0f2fe 2px,transparent 2px);background-size:24px 24px}</style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+    <div class="bg-indigo-700 p-6 text-center text-white">
+      <h1 class="text-2xl font-extrabold">Admin Login</h1>
+      <p class="text-indigo-100 mt-1">Student Level Management</p>
+    </div>
+    <div class="p-7">
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm text-amber-800 mb-5">This page is for the Li'l Champs owner/admin account only.</div>
+      <form id="adminLoginForm" class="space-y-5">
+        <label class="block"><span class="block text-sm font-bold text-gray-700 mb-1">Admin Email or Username</span><input id="emailInput" type="text" autocomplete="username" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-300 outline-none" placeholder="admin.ambernath" required /></label>
+        <label class="block"><span class="block text-sm font-bold text-gray-700 mb-1">Password</span><input id="passwordInput" type="password" autocomplete="current-password" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-300 outline-none" placeholder="••••••••" required /></label>
+        <button id="loginBtn" type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3 rounded-lg shadow">Login as Admin</button>
+      </form>
+      <div id="message" class="mt-4 text-center text-sm font-bold min-h-[22px]"></div>
+      <div class="mt-5 text-center"><a href="index.html" class="text-gray-500 hover:text-indigo-600 font-bold text-sm">← Back to website</a></div>
+    </div>
+  </div>
+  <script>
+    const SUPABASE_URL="https://portal-bridge.ucmas-ambernath-pg.workers.dev";
+    const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk";
+    const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+    const params=new URLSearchParams(location.search);
+    const requestedNext=params.get('next')||'student-level-management-app.html';
+    const nextPage=/^[a-zA-Z0-9._-]+\.html$/.test(requestedNext)?requestedNext:'student-level-management-app.html';
+    const message=document.getElementById('message'); const loginBtn=document.getElementById('loginBtn');
+    if(params.get('reason')==='admin') message.innerHTML='<span class="text-red-600">Please log in with the admin account.</span>';
+    async function checkExistingAdmin(){
+      const {data:{session}}=await supabaseClient.auth.getSession(); if(!session) return;
+      const {data:profile}=await supabaseClient.from('profiles').select('role,is_active').eq('id',session.user.id).single();
+      if(profile&&profile.role==='admin'&&profile.is_active!==false){sessionStorage.setItem('isLoggedIn','true');sessionStorage.setItem('userId',session.user.id);sessionStorage.setItem('userEmail',session.user.email||'');sessionStorage.setItem('userRole','admin');location.replace(nextPage);}
+    }
+    document.getElementById('adminLoginForm').addEventListener('submit',async e=>{
+      e.preventDefault(); let email=document.getElementById('emailInput').value.trim().toLowerCase(); const password=document.getElementById('passwordInput').value; if(!email||!password)return; if(!email.includes('@')) email+='@gmail.com';
+      loginBtn.disabled=true; loginBtn.textContent='Checking...'; message.textContent='';
+      try{await supabaseClient.auth.signOut(); const {data,error}=await supabaseClient.auth.signInWithPassword({email,password}); if(error||!data.user) throw new Error('Incorrect admin email or password.');
+        const {data:profile,error:profileError}=await supabaseClient.from('profiles').select('role,is_active,full_name').eq('id',data.user.id).single(); if(profileError||!profile) throw new Error('Admin profile could not be verified.'); if(profile.is_active===false){await supabaseClient.auth.signOut();throw new Error('This admin account is inactive.');} if(profile.role!=='admin'){await supabaseClient.auth.signOut();throw new Error('Admin access only. This account is not an admin account.');}
+        sessionStorage.clear();sessionStorage.setItem('isLoggedIn','true');sessionStorage.setItem('userId',data.user.id);sessionStorage.setItem('userEmail',data.user.email||'');sessionStorage.setItem('userRole','admin');message.innerHTML='<span class="text-green-600">Admin verified. Opening level management...</span>';setTimeout(()=>location.replace(nextPage),300);
+      }catch(err){message.innerHTML=`<span class="text-red-600">${escapeHtml(err.message||'Login failed.')}</span>`;loginBtn.disabled=false;loginBtn.textContent='Login as Admin';}
+    });
+    function escapeHtml(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');}
+    checkExistingAdmin();
+  </script>
+</body>
+</html>
