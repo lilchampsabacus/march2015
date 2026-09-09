@@ -1,336 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Student Level Management | Li'l Champs</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body { font-family: 'Nunito', sans-serif; background:#f0f9ff; }
-    .sticky-head th { position: sticky; top: 0; z-index: 5; }
-    .level-select { min-width: 92px; }
-    .toast { transition: opacity .25s ease, transform .25s ease; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Student Level Management | Li'l Champs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>body{font-family:Arial,sans-serif;background:#f0f9ff}.sticky th{position:sticky;top:0;background:#f3f4f6;z-index:2}</style>
 </head>
 <body class="min-h-screen text-gray-800">
-  <header class="bg-indigo-600 text-white shadow-lg">
-    <div class="max-w-7xl mx-auto px-4 py-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-      <div>
-        <h1 class="text-2xl md:text-3xl font-extrabold">Student Level Management</h1>
-        <p class="text-indigo-100 font-semibold">Admin access only • Li'l Champs Abacus Academy, Ambernath</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <a href="teacher-dashboard.html" class="bg-white/10 hover:bg-white/20 border border-white/30 px-4 py-2 rounded-lg font-bold">← Dashboard</a>
-        <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg font-bold">Log Out</button>
-      </div>
+<header class="bg-indigo-600 text-white shadow">
+  <div class="max-w-7xl mx-auto px-4 py-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div><h1 class="text-2xl md:text-3xl font-extrabold">Student Level Management</h1><p class="text-indigo-100 font-semibold">Admin access only • Li'l Champs Abacus Academy, Ambernath</p></div>
+    <div class="flex gap-2"><a href="teacher-dashboard.html" class="bg-white/10 border border-white/30 px-4 py-2 rounded-lg font-bold">← Dashboard</a><button id="logoutBtn" class="bg-red-500 px-4 py-2 rounded-lg font-bold">Log Out</button></div>
+  </div>
+</header>
+<main class="max-w-7xl mx-auto p-4 md:p-6 space-y-5">
+  <div id="loader" class="bg-white rounded-xl shadow p-6 text-center font-bold text-indigo-600">Checking admin access...</div>
+  <section id="app" class="hidden space-y-5">
+    <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm text-sm text-amber-900"><b>Important:</b> Most older profiles currently show Level 1 because that was the old default. Review and correct levels before automatic level-based daily practice is enabled.</div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="bg-white rounded-xl shadow p-4"><div class="text-sm font-bold text-gray-500">Students</div><div id="countAll" class="text-3xl font-extrabold text-indigo-600">0</div></div>
+      <div class="bg-white rounded-xl shadow p-4"><div class="text-sm font-bold text-gray-500">Active</div><div id="countActive" class="text-3xl font-extrabold text-green-600">0</div></div>
+      <div class="bg-white rounded-xl shadow p-4"><div class="text-sm font-bold text-gray-500">Inactive</div><div id="countInactive" class="text-3xl font-extrabold text-red-600">0</div></div>
+      <div class="bg-white rounded-xl shadow p-4"><div class="text-sm font-bold text-gray-500">Selected</div><div id="countSelected" class="text-3xl font-extrabold text-purple-600">0</div></div>
     </div>
-  </header>
-
-  <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-5">
-    <div id="accessLoader" class="bg-white rounded-xl shadow p-6 text-center font-bold text-indigo-600">Checking admin access...</div>
-
-    <section id="app" class="hidden space-y-5">
-      <div class="bg-amber-50 border-l-4 border-amber-500 rounded-r-xl p-4 shadow-sm">
-        <p class="font-bold text-amber-900">Important</p>
-        <p class="text-sm text-amber-800 mt-1">Most older student profiles currently show Level 1 because Level 1 was the old database default. Review and correct levels here before level-based Daily Practice is switched on.</p>
-      </div>
-
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div class="bg-white rounded-xl shadow p-4"><div class="text-sm text-gray-500 font-bold">Students</div><div id="countAll" class="text-3xl font-extrabold text-indigo-600">0</div></div>
-        <div class="bg-white rounded-xl shadow p-4"><div class="text-sm text-gray-500 font-bold">Active</div><div id="countActive" class="text-3xl font-extrabold text-green-600">0</div></div>
-        <div class="bg-white rounded-xl shadow p-4"><div class="text-sm text-gray-500 font-bold">Inactive</div><div id="countInactive" class="text-3xl font-extrabold text-red-600">0</div></div>
-        <div class="bg-white rounded-xl shadow p-4"><div class="text-sm text-gray-500 font-bold">Selected</div><div id="countSelected" class="text-3xl font-extrabold text-purple-600">0</div></div>
-      </div>
-
-      <section class="bg-white rounded-xl shadow p-4 md:p-5 space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <label class="md:col-span-2">
-            <span class="block text-sm font-bold text-gray-600 mb-1">Search Student</span>
-            <input id="searchInput" type="search" placeholder="Type student name or email" class="w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-300 outline-none" />
-          </label>
-          <label>
-            <span class="block text-sm font-bold text-gray-600 mb-1">Status</span>
-            <select id="statusFilter" class="w-full border rounded-lg px-3 py-2.5">
-              <option value="active" selected>Active Students</option>
-              <option value="all">All Students</option>
-              <option value="inactive">Inactive Only</option>
-            </select>
-          </label>
-          <label>
-            <span class="block text-sm font-bold text-gray-600 mb-1">Current Level</span>
-            <select id="levelFilter" class="w-full border rounded-lg px-3 py-2.5">
-              <option value="all">All Levels</option>
-              <option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option><option value="4">Level 4</option>
-              <option value="5">Level 5</option><option value="6">Level 6</option><option value="7">Level 7</option><option value="8">Level 8</option>
-              <option value="unset">Not Set</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3 border-t pt-4">
-          <div class="flex flex-wrap items-end gap-2">
-            <button id="selectVisibleBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-bold">Select Visible</button>
-            <button id="clearSelectionBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-bold">Clear Selection</button>
-          </div>
-          <div class="flex flex-wrap items-end gap-2">
-            <label>
-              <span class="block text-xs font-bold text-gray-500 mb-1">Bulk Level</span>
-              <select id="bulkLevel" class="border rounded-lg px-3 py-2 level-select">
-                <option value="">Choose</option>
-                <option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option><option value="4">Level 4</option>
-                <option value="5">Level 5</option><option value="6">Level 6</option><option value="7">Level 7</option><option value="8">Level 8</option>
-              </select>
-            </label>
-            <button id="bulkUpdateBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-lg font-bold disabled:opacity-50">Update Selected</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="bg-white rounded-xl shadow overflow-hidden">
-        <div class="px-4 py-3 border-b flex items-center justify-between gap-3">
-          <div>
-            <h2 class="font-extrabold text-lg">Students</h2>
-            <p id="visibleCount" class="text-sm text-gray-500">Showing 0 students</p>
-          </div>
-          <button id="refreshBtn" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-4 py-2 rounded-lg font-bold">Refresh</button>
-        </div>
-        <div class="overflow-auto max-h-[65vh]">
-          <table class="w-full min-w-[850px] text-sm">
-            <thead class="sticky-head bg-gray-100 text-gray-600 uppercase text-xs">
-              <tr>
-                <th class="px-4 py-3 text-center"><input id="masterCheckbox" type="checkbox" /></th>
-                <th class="px-4 py-3 text-left">Student</th>
-                <th class="px-4 py-3 text-left">Email</th>
-                <th class="px-4 py-3 text-center">Status</th>
-                <th class="px-4 py-3 text-center">Current</th>
-                <th class="px-4 py-3 text-center">Change To</th>
-                <th class="px-4 py-3 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody id="studentBody" class="divide-y"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="bg-white rounded-xl shadow overflow-hidden">
-        <div class="px-4 py-3 border-b flex items-center justify-between">
-          <div>
-            <h2 class="font-extrabold text-lg">Recent Level Changes</h2>
-            <p class="text-sm text-gray-500">Latest admin changes are recorded automatically.</p>
-          </div>
-          <button id="refreshHistoryBtn" class="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg font-bold">Refresh</button>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full min-w-[600px] text-sm">
-            <thead class="bg-gray-50 text-gray-500 uppercase text-xs"><tr><th class="px-4 py-3 text-left">Student</th><th class="px-4 py-3 text-center">Old</th><th class="px-4 py-3 text-center">New</th><th class="px-4 py-3 text-left">Changed At</th></tr></thead>
-            <tbody id="historyBody" class="divide-y"><tr><td colspan="4" class="p-5 text-center text-gray-400">No changes yet.</td></tr></tbody>
-          </table>
-        </div>
-      </section>
+    <div class="bg-white rounded-xl shadow p-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+      <input id="search" class="border rounded-lg px-3 py-2 md:col-span-2" placeholder="Search name or email">
+      <select id="status" class="border rounded-lg px-3 py-2"><option value="active">Active Students</option><option value="all">All Students</option><option value="inactive">Inactive Only</option></select>
+      <select id="level" class="border rounded-lg px-3 py-2"><option value="all">All Levels</option><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option><option value="4">Level 4</option><option value="5">Level 5</option><option value="6">Level 6</option><option value="7">Level 7</option><option value="8">Level 8</option></select>
+      <button id="selectVisible" class="bg-gray-100 rounded-lg px-4 py-2 font-bold">Select Visible</button>
+      <button id="clearSelected" class="bg-gray-100 rounded-lg px-4 py-2 font-bold">Clear Selection</button>
+      <select id="bulkLevel" class="border rounded-lg px-3 py-2"><option value="">Bulk Level</option><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option><option value="4">Level 4</option><option value="5">Level 5</option><option value="6">Level 6</option><option value="7">Level 7</option><option value="8">Level 8</option></select>
+      <button id="bulkUpdate" class="bg-purple-600 text-white rounded-lg px-4 py-2 font-bold">Update Selected</button>
+    </div>
+    <section class="bg-white rounded-xl shadow overflow-hidden">
+      <div class="px-4 py-3 border-b flex justify-between"><div><h2 class="font-extrabold text-lg">Students</h2><p id="visibleCount" class="text-sm text-gray-500"></p></div><button id="refresh" class="bg-indigo-50 text-indigo-700 rounded-lg px-4 py-2 font-bold">Refresh</button></div>
+      <div class="overflow-auto max-h-[65vh]"><table class="w-full min-w-[850px] text-sm"><thead class="sticky"><tr><th class="p-3"><input id="master" type="checkbox"></th><th class="p-3 text-left">Student</th><th class="p-3 text-left">Email</th><th class="p-3">Status</th><th class="p-3">Current</th><th class="p-3">Change To</th><th class="p-3">Action</th></tr></thead><tbody id="studentBody" class="divide-y"></tbody></table></div>
     </section>
-  </main>
-
-  <div id="toast" class="toast fixed bottom-5 right-5 max-w-sm bg-gray-900 text-white px-5 py-3 rounded-xl shadow-xl opacity-0 translate-y-3 pointer-events-none z-50"></div>
-
-  <script>
-    const SUPABASE_URL = "https://portal-bridge.ucmas-ambernath-pg.workers.dev";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk";
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    let students = [];
-    const selectedIds = new Set();
-
-    const app = document.getElementById('app');
-    const accessLoader = document.getElementById('accessLoader');
-    const body = document.getElementById('studentBody');
-    const historyBody = document.getElementById('historyBody');
-    const searchInput = document.getElementById('searchInput');
-    const statusFilter = document.getElementById('statusFilter');
-    const levelFilter = document.getElementById('levelFilter');
-    const countSelected = document.getElementById('countSelected');
-    const masterCheckbox = document.getElementById('masterCheckbox');
-
-    function showToast(message, type = 'ok') {
-      const toast = document.getElementById('toast');
-      toast.textContent = message;
-      toast.className = `toast fixed bottom-5 right-5 max-w-sm px-5 py-3 rounded-xl shadow-xl z-50 ${type === 'error' ? 'bg-red-600' : 'bg-gray-900'} text-white opacity-100 translate-y-0`;
-      setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-3'); }, 2600);
-    }
-
-    async function verifyAdmin() {
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (!session) {
-        window.location.replace('login.html');
-        return false;
-      }
-
-      const { data: profile, error } = await supabaseClient
-        .from('profiles')
-        .select('role,is_active,full_name')
-        .eq('id', session.user.id)
-        .single();
-
-      if (error || !profile || profile.role !== 'admin' || profile.is_active === false) {
-        alert('Admin access only.');
-        window.location.replace(profile?.role === 'teacher' ? 'teacher-dashboard.html' : 'practice_options.html');
-        return false;
-      }
-
-      sessionStorage.setItem('userRole', 'admin');
-      accessLoader.classList.add('hidden');
-      app.classList.remove('hidden');
-      return true;
-    }
-
-    async function loadStudents() {
-      body.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-indigo-600 font-bold">Loading students...</td></tr>';
-      const { data, error } = await supabaseClient.rpc('admin_list_student_levels');
-      if (error) {
-        body.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-red-600 font-bold">${escapeHtml(error.message)}</td></tr>`;
-        return;
-      }
-      students = data || [];
-      selectedIds.clear();
-      updateCounts();
-      renderStudents();
-    }
-
-    function filteredStudents() {
-      const q = searchInput.value.trim().toLowerCase();
-      const status = statusFilter.value;
-      const level = levelFilter.value;
-      return students.filter(s => {
-        const matchesText = !q || `${s.full_name || ''} ${s.email || ''}`.toLowerCase().includes(q);
-        const matchesStatus = status === 'all' || (status === 'active' ? s.is_active !== false : s.is_active === false);
-        const matchesLevel = level === 'all' || (level === 'unset' ? s.current_level == null : Number(s.current_level) === Number(level));
-        return matchesText && matchesStatus && matchesLevel;
-      });
-    }
-
-    function renderStudents() {
-      const rows = filteredStudents();
-      document.getElementById('visibleCount').textContent = `Showing ${rows.length} student${rows.length === 1 ? '' : 's'}`;
-      masterCheckbox.checked = rows.length > 0 && rows.every(s => selectedIds.has(s.id));
-
-      if (!rows.length) {
-        body.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-gray-400 font-bold">No students match this filter.</td></tr>';
-        return;
-      }
-
-      body.innerHTML = rows.map(s => {
-        const current = s.current_level == null ? 'Not Set' : `Level ${s.current_level}`;
-        const statusBadge = s.is_active === false
-          ? '<span class="bg-red-100 text-red-700 px-2 py-1 rounded-full font-bold text-xs">Inactive</span>'
-          : '<span class="bg-green-100 text-green-700 px-2 py-1 rounded-full font-bold text-xs">Active</span>';
-        const options = [1,2,3,4,5,6,7,8].map(l => `<option value="${l}" ${Number(s.current_level) === l ? 'selected' : ''}>Level ${l}</option>`).join('');
-        return `<tr class="hover:bg-indigo-50/40">
-          <td class="px-4 py-3 text-center"><input type="checkbox" class="row-check" data-id="${s.id}" ${selectedIds.has(s.id) ? 'checked' : ''}></td>
-          <td class="px-4 py-3 font-bold text-gray-800">${escapeHtml(s.full_name || 'Unnamed Student')}</td>
-          <td class="px-4 py-3 text-gray-500">${escapeHtml(s.email || '')}</td>
-          <td class="px-4 py-3 text-center">${statusBadge}</td>
-          <td class="px-4 py-3 text-center font-extrabold ${s.current_level == null ? 'text-red-600' : 'text-indigo-700'}">${current}</td>
-          <td class="px-4 py-3 text-center"><select id="level-${s.id}" class="level-select border rounded-lg px-2 py-2">${options}</select></td>
-          <td class="px-4 py-3 text-center"><button onclick="saveOne('${s.id}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold">Save</button></td>
-        </tr>`;
-      }).join('');
-
-      document.querySelectorAll('.row-check').forEach(cb => cb.addEventListener('change', e => {
-        const id = e.target.dataset.id;
-        if (e.target.checked) selectedIds.add(id); else selectedIds.delete(id);
-        updateSelectedCount();
-        masterCheckbox.checked = filteredStudents().every(s => selectedIds.has(s.id));
-      }));
-    }
-
-    async function saveOne(id) {
-      const select = document.getElementById(`level-${id}`);
-      const newLevel = Number(select.value);
-      const student = students.find(s => s.id === id);
-      if (!student) return;
-      if (Number(student.current_level) === newLevel) {
-        showToast(`${student.full_name}: already Level ${newLevel}`);
-        return;
-      }
-      if (!confirm(`Change ${student.full_name} from Level ${student.current_level ?? 'Not Set'} to Level ${newLevel}?`)) return;
-
-      const { error } = await supabaseClient.rpc('admin_update_student_level', { p_student_id: id, p_new_level: newLevel });
-      if (error) {
-        showToast(error.message, 'error');
-        return;
-      }
-      showToast(`${student.full_name} updated to Level ${newLevel}`);
-      await loadStudents();
-      await loadHistory();
-    }
-
-    async function bulkUpdate() {
-      const newLevel = Number(document.getElementById('bulkLevel').value);
-      if (!newLevel) { showToast('Choose a bulk level first.', 'error'); return; }
-      const ids = Array.from(selectedIds);
-      if (!ids.length) { showToast('Select at least one student.', 'error'); return; }
-      if (!confirm(`Update ${ids.length} selected student${ids.length === 1 ? '' : 's'} to Level ${newLevel}?`)) return;
-
-      const btn = document.getElementById('bulkUpdateBtn');
-      btn.disabled = true;
-      btn.textContent = 'Updating...';
-      const { data, error } = await supabaseClient.rpc('admin_bulk_update_student_levels', { p_student_ids: ids, p_new_level: newLevel });
-      btn.disabled = false;
-      btn.textContent = 'Update Selected';
-      if (error) { showToast(error.message, 'error'); return; }
-      showToast(`${data || 0} student level${Number(data) === 1 ? '' : 's'} changed.`);
-      await loadStudents();
-      await loadHistory();
-    }
-
-    async function loadHistory() {
-      const { data, error } = await supabaseClient.rpc('admin_recent_level_changes', { p_limit: 50 });
-      if (error) {
-        historyBody.innerHTML = `<tr><td colspan="4" class="p-5 text-center text-red-500">${escapeHtml(error.message)}</td></tr>`;
-        return;
-      }
-      if (!data?.length) {
-        historyBody.innerHTML = '<tr><td colspan="4" class="p-5 text-center text-gray-400">No level changes recorded yet.</td></tr>';
-        return;
-      }
-      historyBody.innerHTML = data.map(h => `<tr>
-        <td class="px-4 py-3 font-bold">${escapeHtml(h.student_name || 'Student')}</td>
-        <td class="px-4 py-3 text-center">${h.old_level == null ? '-' : `L${h.old_level}`}</td>
-        <td class="px-4 py-3 text-center font-extrabold text-indigo-700">L${h.new_level}</td>
-        <td class="px-4 py-3 text-gray-500">${new Date(h.changed_at).toLocaleString('en-IN')}</td>
-      </tr>`).join('');
-    }
-
-    function updateCounts() {
-      document.getElementById('countAll').textContent = students.length;
-      document.getElementById('countActive').textContent = students.filter(s => s.is_active !== false).length;
-      document.getElementById('countInactive').textContent = students.filter(s => s.is_active === false).length;
-      updateSelectedCount();
-    }
-
-    function updateSelectedCount() { countSelected.textContent = selectedIds.size; }
-    function escapeHtml(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])); }
-
-    searchInput.addEventListener('input', renderStudents);
-    statusFilter.addEventListener('change', renderStudents);
-    levelFilter.addEventListener('change', renderStudents);
-    document.getElementById('refreshBtn').addEventListener('click', loadStudents);
-    document.getElementById('refreshHistoryBtn').addEventListener('click', loadHistory);
-    document.getElementById('bulkUpdateBtn').addEventListener('click', bulkUpdate);
-    document.getElementById('selectVisibleBtn').addEventListener('click', () => { filteredStudents().forEach(s => selectedIds.add(s.id)); updateSelectedCount(); renderStudents(); });
-    document.getElementById('clearSelectionBtn').addEventListener('click', () => { selectedIds.clear(); updateSelectedCount(); renderStudents(); });
-    masterCheckbox.addEventListener('change', () => {
-      filteredStudents().forEach(s => masterCheckbox.checked ? selectedIds.add(s.id) : selectedIds.delete(s.id));
-      updateSelectedCount(); renderStudents();
-    });
-    document.getElementById('logoutBtn').addEventListener('click', async () => { await supabaseClient.auth.signOut(); sessionStorage.clear(); window.location.replace('login.html'); });
-
-    (async () => {
-      if (await verifyAdmin()) {
-        await Promise.all([loadStudents(), loadHistory()]);
-      }
-    })();
-  </script>
+    <section class="bg-white rounded-xl shadow overflow-hidden"><div class="px-4 py-3 border-b"><h2 class="font-extrabold text-lg">Recent Level Changes</h2></div><div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="p-3 text-left">Student</th><th class="p-3">Old</th><th class="p-3">New</th><th class="p-3 text-left">Changed At</th></tr></thead><tbody id="historyBody" class="divide-y"></tbody></table></div></section>
+  </section>
+</main>
+<script>
+const SUPABASE_URL='https://portal-bridge.ucmas-ambernath-pg.workers.dev';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+let students=[];const selected=new Set();
+const $=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+async function verifyAdmin(){
+  const {data:{session}}=await supabaseClient.auth.getSession();
+  if(!session){location.replace('login.html');return false;}
+  const {data:profile,error}=await supabaseClient.from('profiles').select('role,is_active').eq('id',session.user.id).single();
+  if(error||!profile||profile.role!=='admin'||profile.is_active===false){alert('Admin access only.');location.replace('teacher-dashboard.html');return false;}
+  sessionStorage.setItem('isLoggedIn','true');sessionStorage.setItem('userId',session.user.id);sessionStorage.setItem('userEmail',session.user.email||'');sessionStorage.setItem('userRole','admin');
+  $('loader').classList.add('hidden');$('app').classList.remove('hidden');return true;
+}
+function filtered(){const q=$('search').value.trim().toLowerCase(),st=$('status').value,lv=$('level').value;return students.filter(s=>(!q||(`${s.full_name||''} ${s.email||''}`).toLowerCase().includes(q))&&(st==='all'||(st==='active'?s.is_active!==false:s.is_active===false))&&(lv==='all'||Number(s.current_level)===Number(lv)));}
+function counts(){ $('countAll').textContent=students.length;$('countActive').textContent=students.filter(s=>s.is_active!==false).length;$('countInactive').textContent=students.filter(s=>s.is_active===false).length;$('countSelected').textContent=selected.size; }
+function render(){const rows=filtered();$('visibleCount').textContent=`Showing ${rows.length} students`;$('master').checked=rows.length>0&&rows.every(s=>selected.has(s.id));$('studentBody').innerHTML=rows.length?rows.map(s=>`<tr class="hover:bg-indigo-50"><td class="p-3 text-center"><input class="rowCheck" data-id="${s.id}" type="checkbox" ${selected.has(s.id)?'checked':''}></td><td class="p-3 font-bold">${esc(s.full_name||'Unnamed')}</td><td class="p-3 text-gray-500">${esc(s.email||'')}</td><td class="p-3 text-center">${s.is_active===false?'<span class="text-red-600 font-bold">Inactive</span>':'<span class="text-green-600 font-bold">Active</span>'}</td><td class="p-3 text-center font-bold">Level ${s.current_level??'-'}</td><td class="p-3 text-center"><select id="level-${s.id}" class="border rounded px-2 py-1">${[1,2,3,4,5,6,7,8].map(l=>`<option value="${l}" ${Number(s.current_level)===l?'selected':''}>Level ${l}</option>`).join('')}</select></td><td class="p-3 text-center"><button class="saveBtn bg-indigo-600 text-white px-3 py-1.5 rounded font-bold" data-id="${s.id}">Save</button></td></tr>`).join(''):'<tr><td colspan="7" class="p-8 text-center text-gray-400">No students found.</td></tr>';document.querySelectorAll('.rowCheck').forEach(x=>x.onchange=()=>{x.checked?selected.add(x.dataset.id):selected.delete(x.dataset.id);counts();});document.querySelectorAll('.saveBtn').forEach(b=>b.onclick=()=>saveOne(b.dataset.id));counts();}
+async function loadStudents(){ $('studentBody').innerHTML='<tr><td colspan="7" class="p-8 text-center text-indigo-600 font-bold">Loading students...</td></tr>';const {data,error}=await supabaseClient.rpc('admin_list_student_levels');if(error){$('studentBody').innerHTML=`<tr><td colspan="7" class="p-8 text-center text-red-600 font-bold">${esc(error.message)}</td></tr>`;return;}students=data||[];selected.clear();render();}
+async function saveOne(id){const lvl=Number($(`level-${id}`).value);const {error}=await supabaseClient.rpc('admin_update_student_level',{p_student_id:id,p_new_level:lvl});if(error){alert(error.message);return;}await loadStudents();await loadHistory();}
+async function loadHistory(){const {data,error}=await supabaseClient.rpc('admin_recent_level_changes',{p_limit:50});if(error){$('historyBody').innerHTML=`<tr><td colspan="4" class="p-4 text-red-600">${esc(error.message)}</td></tr>`;return;}$('historyBody').innerHTML=(data||[]).length?(data||[]).map(r=>`<tr><td class="p-3 font-bold">${esc(r.student_name||'')}</td><td class="p-3 text-center">L${r.old_level??'-'}</td><td class="p-3 text-center font-bold text-indigo-600">L${r.new_level}</td><td class="p-3">${new Date(r.changed_at).toLocaleString('en-IN')}</td></tr>`).join(''):'<tr><td colspan="4" class="p-4 text-center text-gray-400">No changes yet.</td></tr>';}
+$('search').oninput=render;$('status').onchange=render;$('level').onchange=render;$('refresh').onclick=loadStudents;$('master').onchange=()=>{filtered().forEach(s=>$('master').checked?selected.add(s.id):selected.delete(s.id));render();};$('selectVisible').onclick=()=>{filtered().forEach(s=>selected.add(s.id));render();};$('clearSelected').onclick=()=>{selected.clear();render();};$('bulkUpdate').onclick=async()=>{const lvl=Number($('bulkLevel').value);if(!lvl||!selected.size){alert('Select students and choose a level.');return;}if(!confirm(`Update ${selected.size} selected students to Level ${lvl}?`))return;const {error}=await supabaseClient.rpc('admin_bulk_update_student_levels',{p_student_ids:[...selected],p_new_level:lvl});if(error){alert(error.message);return;}await loadStudents();await loadHistory();};$('logoutBtn').onclick=async()=>{await supabaseClient.auth.signOut();sessionStorage.clear();location.replace('login.html');};
+(async()=>{if(await verifyAdmin()){await loadStudents();await loadHistory();}})();
+</script>
 </body>
 </html>
