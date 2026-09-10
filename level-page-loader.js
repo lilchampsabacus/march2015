@@ -5,7 +5,7 @@
   if (!base) return;
 
   try {
-    const res = await fetch(base + '?v=9', { cache: 'no-store' });
+    const res = await fetch(base + '?v=10', { cache: 'no-store' });
     if (!res.ok) throw new Error('Base page could not be loaded.');
 
     let html = await res.text();
@@ -25,7 +25,8 @@
           '\n<style id="formulaPracticeDefaultHide">a[href="Level1and2.html"]{display:none!important}</style>' +
           '\n<style id="reportAccessHide">html{visibility:hidden!important}</style>' +
           '\n<script src="low-level-access.js?v=1" data-page="practice-options"></script>' +
-          '\n<script src="report-access.js?v=1"></script>';
+          '\n<script src="report-access.js?v=1"></script>' +
+          '\n<script src="daily-card.js?v=1"></script>';
       }
     }
 
