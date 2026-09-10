@@ -23,7 +23,9 @@
         inject += '\n<style id="formulaMasterHide">a[href="FormulaMaster.html"]{display:none!important}</style>' +
           '\n<style id="formulaReportDefaultHide">a[href="formula_report.html"]{display:none!important}</style>' +
           '\n<style id="formulaPracticeDefaultHide">a[href="Level1and2.html"]{display:none!important}</style>' +
-          '\n<script src="low-level-access.js?v=1" data-page="practice-options"></script>';
+          '\n<style id="reportAccessHide">html{visibility:hidden!important}</style>' +
+          '\n<script src="low-level-access.js?v=1" data-page="practice-options"></script>' +
+          '\n<script src="report-access.js?v=1"></script>';
       }
     }
 
