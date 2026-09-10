@@ -1,249 +1,255 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Practice Report | Li'l Champs Abacus</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    
-    <style>
-        body { font-family: 'Nunito', sans-serif; background-color: #f0f9ff; }
-        .pdf-btn { transition: all 0.3s ease; }
-        .pdf-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); }
-        .table-container { max-height: 400px; overflow-y: auto; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Official Daily Practice Status | Li'l Champs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:'Nunito',sans-serif;background:#f0f9ff;color:#1f2937}
+    .status-pill{display:inline-flex;align-items:center;border-radius:999px;padding:.25rem .65rem;font-size:.75rem;font-weight:800;white-space:nowrap}
+    .table-wrap{overflow-x:auto}
+    tr[data-row]{cursor:pointer}
+  </style>
 </head>
-<body class="p-4 md:p-10">
-
-    <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-            <h1 class="text-3xl font-extrabold text-gray-800">Daily Practice Report</h1>
-            <p id="dateHeader" class="text-indigo-600 font-semibold italic">Loading date...</p>
-        </div>
-        <div class="flex gap-3 w-full md:w-auto">
-            <button onclick="generatePDF()" class="pdf-btn flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-xl flex items-center justify-center gap-2 shadow-lg">
-                📥 Download Professional PDF
-            </button>
-            <a href="teacher-dashboard.html" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-xl">← Back</a>
-        </div>
+<body class="min-h-screen p-3 md:p-8">
+  <main class="max-w-7xl mx-auto">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-black text-gray-800">Official Daily Practice Status</h1>
+        <p class="text-gray-500 mt-1">Only the official Daily Practice assignment counts here. Level 1 is excluded.</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button id="todayBtn" class="bg-indigo-100 text-indigo-700 font-black px-4 py-2 rounded-xl">Today</button>
+        <button id="pdfBtn" class="bg-indigo-600 text-white font-black px-4 py-2 rounded-xl">Download PDF</button>
+        <a href="teacher-dashboard.html" class="bg-white border border-gray-200 text-gray-700 font-black px-4 py-2 rounded-xl no-underline">← Dashboard</a>
+      </div>
     </div>
 
-    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-        <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-red-500">
-            <p class="text-gray-500 text-sm font-bold uppercase">Pending Alert</p>
-            <h3 id="pendingCountHeader" class="text-3xl font-black text-red-600">0</h3>
+    <section id="loading" class="bg-white rounded-2xl shadow p-8 text-center font-bold text-indigo-600">Loading official Daily Practice status...</section>
+
+    <section id="app" class="hidden">
+      <div class="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-4 gap-3">
+        <label class="block"><span class="text-xs font-black text-gray-500 uppercase">Date</span><input id="dateFilter" type="date" class="mt-1 w-full border rounded-xl px-3 py-2 font-bold"></label>
+        <label class="block"><span class="text-xs font-black text-gray-500 uppercase">Level</span><select id="levelFilter" class="mt-1 w-full border rounded-xl px-3 py-2 font-bold"><option value="all">All Levels 2–8</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label>
+        <label class="block"><span class="text-xs font-black text-gray-500 uppercase">Status</span><select id="statusFilter" class="mt-1 w-full border rounded-xl px-3 py-2 font-bold"><option value="all">All Status</option><option value="completed">Completed</option><option value="in_progress">In Progress</option><option value="not_started">Not Started</option></select></label>
+        <label class="block"><span class="text-xs font-black text-gray-500 uppercase">Student</span><input id="searchFilter" type="search" placeholder="Search name" class="mt-1 w-full border rounded-xl px-3 py-2 font-bold"></label>
+      </div>
+
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+        <div class="bg-white rounded-2xl shadow p-4 border-l-4 border-gray-500"><div class="text-xs font-black uppercase text-gray-500">Eligible Students</div><div id="totalCount" class="text-3xl font-black mt-1">0</div></div>
+        <div class="bg-white rounded-2xl shadow p-4 border-l-4 border-green-500"><div class="text-xs font-black uppercase text-green-600">Completed</div><div id="completeCount" class="text-3xl font-black text-green-700 mt-1">0</div></div>
+        <div class="bg-white rounded-2xl shadow p-4 border-l-4 border-amber-500"><div class="text-xs font-black uppercase text-amber-600">In Progress</div><div id="progressCount" class="text-3xl font-black text-amber-700 mt-1">0</div></div>
+        <div class="bg-white rounded-2xl shadow p-4 border-l-4 border-red-500"><div class="text-xs font-black uppercase text-red-600">Not Started</div><div id="notStartedCount" class="text-3xl font-black text-red-700 mt-1">0</div></div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow overflow-hidden">
+        <div class="px-4 py-3 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div><h2 class="font-black text-lg">Student Status</h2><p id="dateLabel" class="text-sm text-gray-500"></p></div>
+          <p class="text-xs text-gray-400">Click a student row for section-wise details.</p>
         </div>
-        <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-green-500">
-            <p class="text-gray-500 text-sm font-bold uppercase">Completed Today</p>
-            <h3 id="doneCountHeader" class="text-3xl font-black text-green-600">0</h3>
+        <div class="table-wrap">
+          <table class="min-w-full">
+            <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+              <tr>
+                <th class="px-4 py-3 text-left">Student</th>
+                <th class="px-4 py-3 text-center">Level</th>
+                <th class="px-4 py-3 text-left">Status</th>
+                <th class="px-4 py-3 text-center">Sections</th>
+                <th class="px-4 py-3 text-center">First Attempt</th>
+                <th class="px-4 py-3 text-center">Wrong</th>
+                <th class="px-4 py-3 text-center">Skipped</th>
+                <th class="px-4 py-3 text-center">Time</th>
+                <th class="px-4 py-3 text-center">Corrections</th>
+                <th class="px-4 py-3 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="statusBody" class="divide-y"></tbody>
+          </table>
         </div>
+      </div>
+    </section>
+
+    <section id="denied" class="hidden bg-white rounded-2xl shadow p-8 text-center"><div class="text-5xl">🔒</div><h2 class="text-2xl font-black mt-2">Staff Access Only</h2><p class="text-gray-500 mt-2">This page is available only to active teacher and admin accounts.</p><a href="teacher-dashboard.html" class="inline-block mt-5 bg-indigo-600 text-white font-black px-5 py-3 rounded-xl no-underline">Back to Dashboard</a></section>
+    <section id="errorBox" class="hidden bg-white rounded-2xl shadow p-8 text-center"><div class="text-5xl">⚠️</div><h2 class="text-xl font-black mt-2">Unable to load status</h2><p id="errorText" class="text-gray-500 mt-2"></p><button onclick="location.reload()" class="mt-4 bg-indigo-600 text-white font-black px-5 py-3 rounded-xl">Try Again</button></section>
+  </main>
+
+  <div id="detailModal" class="hidden fixed inset-0 bg-black/50 z-50 p-3 flex items-center justify-center">
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl max-h-[92vh] overflow-y-auto">
+      <div class="p-5 border-b flex justify-between gap-3"><div><h3 id="modalName" class="text-2xl font-black"></h3><p id="modalMeta" class="text-sm text-gray-500"></p></div><button id="closeModal" class="text-2xl font-black text-gray-400">×</button></div>
+      <div class="p-5"><div id="modalSections" class="space-y-3"></div><div id="modalRetries" class="mt-5"></div></div>
     </div>
+  </div>
 
-    <div class="max-w-6xl mx-auto mb-10">
-        <h2 class="text-xl font-bold text-red-600 mb-4 flex items-center gap-2">
-            ALERT LIST: Not Started Yet <span id="pendingBadge" class="bg-red-100 text-red-600 px-2 py-1 rounded text-sm">0</span>
-        </h2>
-        <div class="bg-white rounded-2xl shadow-lg border border-red-100 overflow-hidden">
-            <div class="table-container"> 
-                <table class="min-w-full">
-                    <thead class="bg-red-50 sticky top-0">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-bold text-red-800 uppercase">Student Name</th>
-                            <th class="px-6 py-3 text-right text-xs font-bold text-red-800 uppercase">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pendingList" class="divide-y divide-gray-100"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+  <script>
+    const SUPABASE_URL='https://portal-bridge.ucmas-ambernath-pg.workers.dev';
+    const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
+    const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+    let allRows=[];
+    let filteredRows=[];
+    const $=id=>document.getElementById(id);
 
-    <div class="max-w-6xl mx-auto">
-        <h2 class="text-xl font-bold text-green-600 mb-4 flex items-center gap-2">
-            COMPLETION REPORT: Practice Finished <span id="doneBadge" class="bg-green-100 text-green-600 px-2 py-1 rounded text-sm">0</span>
-        </h2>
-        <div class="bg-white rounded-2xl shadow-lg border border-green-100 overflow-hidden">
-            <table class="min-w-full">
-                <thead class="bg-green-50 border-b border-green-100">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-bold text-green-800 uppercase">Student</th>
-                        <th class="px-6 py-3 text-left text-xs font-bold text-green-800 uppercase">Type</th>
-                        <th class="px-6 py-3 text-left text-xs font-bold text-green-800 uppercase">Score</th>
-                        <th class="px-6 py-3 text-left text-xs font-bold text-green-800 uppercase">Accuracy</th>
-                    </tr>
-                </thead>
-                <tbody id="doneList" class="divide-y divide-gray-100"></tbody>
-            </table>
-        </div>
-    </div>
+    function indiaDateISO(){
+      const p={};
+      new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).forEach(x=>p[x.type]=x.value);
+      return `${p.year}-${p.month}-${p.day}`;
+    }
+    function formatDate(iso){
+      const [y,m,d]=iso.split('-').map(Number);
+      return new Intl.DateTimeFormat('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date(y,m-1,d));
+    }
+    function sectionsFor(level){return Number(level)>=5?['plusminus','multiplication','division']:['plusminus','multiplication'];}
+    function sectionName(s){return s==='plusminus'?'Plus & Minus':s==='multiplication'?'Multiplication':'Division';}
+    function fmtTime(sec){sec=Math.max(0,Number(sec)||0);return `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(Math.floor(sec%60)).padStart(2,'0')}`;}
+    function sectionStats(row,s){
+      const arr=Array.isArray(row.responses?.[s])?row.responses[s]:[];
+      return {
+        correct:arr.filter(x=>x?.correct===true).length,
+        wrong:arr.filter(x=>x&&x.correct!==true&&!x.skipped).length,
+        skipped:arr.filter(x=>x?.skipped===true).length,
+        answered:arr.length,
+        time:Number(row.section_seconds?.[s]||0),
+        complete:Array.isArray(row.completed_sections)&&row.completed_sections.includes(s)
+      };
+    }
+    function overall(row){
+      const secs=sectionsFor(row.level);
+      const stats=secs.map(s=>sectionStats(row,s));
+      return {
+        correct:stats.reduce((a,b)=>a+b.correct,0),
+        wrong:stats.reduce((a,b)=>a+b.wrong,0),
+        skipped:stats.reduce((a,b)=>a+b.skipped,0),
+        answered:stats.reduce((a,b)=>a+b.answered,0),
+        time:stats.reduce((a,b)=>a+b.time,0),
+        total:secs.length*10,
+        done:stats.filter(x=>x.complete).length,
+        required:secs.length
+      };
+    }
+    function normalizedStatus(row){
+      if(!row.practice_id)return 'not_started';
+      if(row.practice_status==='completed')return 'completed';
+      const o=overall(row);
+      return (o.answered>0||o.done>0||row.practice_status==='in_progress')?'in_progress':'not_started';
+    }
+    function statusPill(status){
+      if(status==='completed')return '<span class="status-pill bg-green-100 text-green-700">✅ Completed</span>';
+      if(status==='in_progress')return '<span class="status-pill bg-amber-100 text-amber-700">🟡 In Progress</span>';
+      return '<span class="status-pill bg-red-100 text-red-700">🔴 Not Started</span>';
+    }
+    function retryInfo(row){
+      const retries=Array.isArray(row.retry_summary)?row.retry_summary:[];
+      const completed=retries.filter(r=>r?.completed).length;
+      const targeted=retries.filter(r=>r?.completed&&(r.retry_type==='wrong'||r.retry_type==='skipped')).length;
+      return {completed,targeted};
+    }
+    function escapeHtml(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
 
-    <div id="msgModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center z-50 backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-800">WhatsApp Reminder</h3>
-                <button onclick="closeModal()" class="text-gray-400 font-bold text-xl hover:text-gray-600">&times;</button>
-            </div>
-            <textarea id="msgBox" class="w-full h-32 p-3 border border-gray-300 rounded-lg text-gray-700 font-medium focus:ring-2 focus:ring-indigo-500 resize-none" readonly></textarea>
-            <div class="mt-4 flex justify-end gap-3">
-                <button onclick="closeModal()" class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg font-bold">Cancel</button>
-                <button onclick="copyText()" id="copyBtn" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold shadow-md flex items-center gap-2">📋 Copy Text</button>
-            </div>
-        </div>
-    </div>
+    async function verifyStaff(){
+      const {data:{session}}=await client.auth.getSession();
+      if(!session){location.replace('login.html');return false;}
+      const {data,error}=await client.from('profiles').select('role,is_active').eq('id',session.user.id).single();
+      if(error||!data||data.is_active===false||!['admin','teacher'].includes(data.role)){
+        $('loading').classList.add('hidden');$('denied').classList.remove('hidden');return false;
+      }
+      return true;
+    }
 
-    <script>
-        const SUPABASE_URL = "https://portal-bridge.ucmas-ambernath-pg.workers.dev";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk";
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    async function loadData(){
+      $('loading').classList.remove('hidden');$('app').classList.add('hidden');$('errorBox').classList.add('hidden');
+      const date=$('dateFilter').value;
+      const {data,error}=await client.rpc('staff_official_daily_practice_status',{p_date:date});
+      if(error){
+        $('loading').classList.add('hidden');$('errorBox').classList.remove('hidden');$('errorText').textContent=error.message||'Could not load official Daily Practice records.';return;
+      }
+      allRows=(data||[]).map(r=>({...r,_status:normalizedStatus(r)}));
+      $('dateLabel').textContent=formatDate(date);
+      $('loading').classList.add('hidden');$('app').classList.remove('hidden');
+      applyFilters();
+    }
 
-        let globalTodaysRecords = [];
-        let globalPendingStudents = [];
+    function applyFilters(){
+      const level=$('levelFilter').value;
+      const status=$('statusFilter').value;
+      const search=$('searchFilter').value.trim().toLowerCase();
+      filteredRows=allRows.filter(r=>(level==='all'||String(r.level)===level)&&(status==='all'||r._status===status)&&(!search||String(r.student_name).toLowerCase().includes(search)));
+      renderCounts();renderTable();
+    }
+    function renderCounts(){
+      $('totalCount').textContent=allRows.length;
+      $('completeCount').textContent=allRows.filter(r=>r._status==='completed').length;
+      $('progressCount').textContent=allRows.filter(r=>r._status==='in_progress').length;
+      $('notStartedCount').textContent=allRows.filter(r=>r._status==='not_started').length;
+    }
+    function renderTable(){
+      const body=$('statusBody');
+      if(!filteredRows.length){body.innerHTML='<tr><td colspan="10" class="px-4 py-10 text-center text-gray-400 font-bold">No students match the selected filters.</td></tr>';return;}
+      body.innerHTML=filteredRows.map((r,i)=>{
+        const o=overall(r),ret=retryInfo(r),score=r._status==='completed'?`${o.correct}/${o.total}`:'—',time=r.practice_id?fmtTime(o.time):'—';
+        const correction=ret.completed?`${ret.completed} ${ret.targeted?'✅':''}`:'—';
+        return `<tr data-row="${i}" class="hover:bg-indigo-50">
+          <td class="px-4 py-3 font-black text-gray-800">${escapeHtml(r.student_name)}</td>
+          <td class="px-4 py-3 text-center font-bold">${r.level}</td>
+          <td class="px-4 py-3">${statusPill(r._status)}</td>
+          <td class="px-4 py-3 text-center font-bold">${o.done}/${o.required}</td>
+          <td class="px-4 py-3 text-center font-black text-indigo-700">${score}</td>
+          <td class="px-4 py-3 text-center font-bold text-red-600">${r.practice_id?o.wrong:'—'}</td>
+          <td class="px-4 py-3 text-center font-bold text-amber-600">${r.practice_id?o.skipped:'—'}</td>
+          <td class="px-4 py-3 text-center font-bold">${time}</td>
+          <td class="px-4 py-3 text-center font-bold">${correction}</td>
+          <td class="px-4 py-3 text-center"><button class="view-btn bg-indigo-100 text-indigo-700 font-black text-xs px-3 py-2 rounded-lg" data-view="${i}">View</button>${r._status==='not_started'?`<button class="remind-btn ml-1 bg-green-100 text-green-700 font-black text-xs px-3 py-2 rounded-lg" data-remind="${i}">Remind</button>`:''}</td>
+        </tr>`;
+      }).join('');
+    }
 
-        async function loadData() {
-            const now = new Date();
-            const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC + 5:30
-            const istTime = new Date(now.getTime() + istOffset);
-            const dateStr = now.toLocaleDateString('en-IN', { 
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
-            });
-            document.getElementById('dateHeader').innerText = dateStr;
-            const todayISO = istTime.toISOString().split('T')[0];
-            
-            const { data: reports, error } = await supabase.from('reports').select('*').order('indian_time', { ascending: false });
-            if (error) return;
+    function openDetails(row){
+      const o=overall(row),ret=retryInfo(row);
+      $('modalName').textContent=row.student_name;
+      $('modalMeta').textContent=`Level ${row.level} · ${formatDate($('dateFilter').value)} · ${row._status.replace('_',' ')}`;
+      $('modalSections').innerHTML=sectionsFor(row.level).map(s=>{
+        const st=sectionStats(row,s);
+        return `<div class="rounded-xl border p-4"><div class="flex justify-between gap-3"><div class="font-black text-lg">${sectionName(s)}</div><div class="font-black ${st.complete?'text-green-600':'text-gray-400'}">${st.complete?'Completed':'Pending'}</div></div><div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3 text-sm"><div><span class="text-gray-400">Correct</span><br><b>${st.correct}</b></div><div><span class="text-gray-400">Wrong</span><br><b class="text-red-600">${st.wrong}</b></div><div><span class="text-gray-400">Skipped</span><br><b class="text-amber-600">${st.skipped}</b></div><div><span class="text-gray-400">Answered</span><br><b>${st.answered}/10</b></div><div><span class="text-gray-400">Time</span><br><b>${fmtTime(st.time)}</b></div></div></div>`;
+      }).join('');
+      const retries=Array.isArray(row.retry_summary)?row.retry_summary.filter(x=>x?.completed):[];
+      $('modalRetries').innerHTML=retries.length?`<div class="font-black mb-2">Correction / Retry Practice</div>${retries.map(x=>`<div class="text-sm bg-blue-50 border border-blue-100 rounded-lg p-3 mb-2"><b>${sectionName(x.section)}</b> · ${escapeHtml(x.retry_type)} · ${x.correct_count||0} correct · ${x.wrong_count||0} wrong · Time ${fmtTime(x.duration_seconds||0)}</div>`).join('')}`:'<div class="text-sm text-gray-400">No correction or retry practice recorded yet.</div>';
+      $('detailModal').classList.remove('hidden');
+    }
+    async function remind(row){
+      const text=`Hello! A gentle reminder that ${row.student_name} has not started today's official Daily Practice. Please ensure the practice is completed today. – Li'l Champs Abacus Academy, Ambernath`;
+      try{await navigator.clipboard.writeText(text);alert('Reminder copied to clipboard.');}catch{alert(text);}
+    }
 
-            const allStudents = new Set();
-            const practicedTodaySet = new Set();
-            globalTodaysRecords = [];
+    function generatePDF(){
+      const {jsPDF}=window.jspdf;
+      const doc=new jsPDF('l','mm','a4');
+      doc.setFontSize(18);doc.text("Li'l Champs Abacus Academy – Official Daily Practice",148,14,{align:'center'});
+      doc.setFontSize(10);doc.text(formatDate($('dateFilter').value),148,20,{align:'center'});
+      const rows=filteredRows.map(r=>{const o=overall(r),ret=retryInfo(r);return [r.student_name,`L${r.level}`,r._status.replace('_',' '),`${o.done}/${o.required}`,r._status==='completed'?`${o.correct}/${o.total}`:'—',r.practice_id?o.wrong:'—',r.practice_id?o.skipped:'—',r.practice_id?fmtTime(o.time):'—',ret.completed||'—'];});
+      doc.autoTable({startY:25,head:[['Student','Level','Status','Sections','First Attempt','Wrong','Skipped','Time','Retries']],body:rows,styles:{fontSize:8},headStyles:{fillColor:[79,70,229]}});
+      doc.save(`Official_Daily_Practice_${$('dateFilter').value}.pdf`);
+    }
 
-            reports.forEach(r => { 
-                if(r.student_name) allStudents.add(r.student_name); 
-                if(r.indian_time && r.indian_time.startsWith(todayISO)) {
-                    practicedTodaySet.add(r.student_name);
-                    globalTodaysRecords.push(r);
-                }
-            });
-
-            globalPendingStudents = Array.from(allStudents).filter(name => !practicedTodaySet.has(name)).sort();
-
-            document.getElementById('pendingCountHeader').innerText = globalPendingStudents.length;
-            document.getElementById('pendingBadge').innerText = globalPendingStudents.length;
-            document.getElementById('doneCountHeader').innerText = globalTodaysRecords.length;
-            document.getElementById('doneBadge').innerText = globalTodaysRecords.length;
-
-            document.getElementById('pendingList').innerHTML = globalPendingStudents.map(name => `
-                <tr class="hover:bg-red-50 border-b border-red-50">
-                    <td class="px-6 py-3 font-bold text-gray-700">${name}</td>
-                    <td class="px-6 py-3 text-right">
-                        <button onclick="openPopup('${name}')" class="text-green-600 font-bold text-xs border border-green-500 px-3 py-1 rounded-lg hover:bg-green-50 transition">💬 Remind</button>
-                    </td>
-                </tr>
-            `).join('');
-
-            document.getElementById('doneList').innerHTML = globalTodaysRecords.length === 0 
-                ? `<tr><td colspan="4" class="px-6 py-8 text-center text-gray-400 font-bold">No records found.</td></tr>`
-                : globalTodaysRecords.map(row => {
-                    let acc = row.accuracy || (row.total_val > 0 ? Math.round((row.score_val / row.total_val) * 100) + "%" : "-");
-                    return `<tr class="hover:bg-green-50 border-b border-green-50">
-                        <td class="px-6 py-4 font-bold text-gray-800">${row.student_name}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600 capitalize">${row.challenge_type || 'Practice'}</td>
-                        <td class="px-6 py-4 text-sm font-bold text-indigo-600">${row.score_text || row.score}</td>
-                        <td class="px-6 py-4 text-sm font-bold text-green-600">${acc}</td>
-                    </tr>`;
-                }).join('');
-        }
-
-        function generatePDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('p', 'mm', 'a4');
-            const dateLabel = document.getElementById('dateHeader').innerText;
-
-            const addHeader = (doc) => {
-                doc.setFontSize(20);
-                doc.setTextColor(40, 44, 52); 
-                doc.text("Li'l Champs Abacus Academy", 105, 15, { align: 'center' });
-                doc.setFontSize(11);
-                doc.setTextColor(100);
-                doc.text("Daily Practice Progress Report", 105, 21, { align: 'center' });
-                doc.text(dateLabel, 105, 27, { align: 'center' });
-                doc.setLineWidth(0.5);
-                doc.setDrawColor(79, 70, 229); 
-                doc.line(15, 31, 195, 31);
-            };
-
-            addHeader(doc);
-            doc.setFontSize(12);
-            doc.setTextColor(220, 38, 38);
-            doc.setFont(undefined, 'bold');
-            doc.text("ALERT LIST: Students Not Started Yet", 15, 42);
-            doc.setFont(undefined, 'normal');
-
-            const pendingData = globalPendingStudents.map(name => [name, "Pending"]);
-            doc.autoTable({
-                startY: 45,
-                head: [['Student Name', 'Status']],
-                body: pendingData,
-                theme: 'striped',
-                headStyles: { fillColor: [220, 38, 38], fontSize: 10 },
-                alternateRowStyles: { fillColor: [255, 245, 245] },
-                margin: { top: 35, bottom: 20 },
-                didDrawPage: (data) => { if (data.pageNumber > 1) addHeader(doc); }
-            });
-
-            let nextY = doc.lastAutoTable.finalY + 15;
-            if (nextY > 260) { doc.addPage(); addHeader(doc); nextY = 40; }
-
-            doc.setFontSize(12);
-            doc.setTextColor(22, 163, 74);
-            doc.setFont(undefined, 'bold');
-            doc.text("COMPLETION REPORT: Practice Finished", 15, nextY);
-            doc.setFont(undefined, 'normal');
-
-            const completedData = globalTodaysRecords.map(r => [
-                r.student_name, r.challenge_type || 'Practice', r.score_text || r.score,
-                r.accuracy || (r.total_val > 0 ? Math.round((r.score_val / r.total_val) * 100) + "%" : "-")
-            ]);
-
-            doc.autoTable({
-                startY: nextY + 4,
-                head: [['Student', 'Type', 'Score', 'Acc %']],
-                body: completedData,
-                theme: 'grid',
-                headStyles: { fillColor: [22, 163, 74], fontSize: 10 },
-                margin: { top: 35, bottom: 20 },
-                didDrawPage: (data) => { if (data.pageNumber > 1 && data.cursor.y < 40) addHeader(doc); }
-            });
-
-            const pages = doc.internal.getNumberOfPages();
-            for(let i = 1; i <= pages; i++) {
-                doc.setPage(i);
-                doc.setFontSize(8);
-                doc.setTextColor(150);
-                doc.text(`Page ${i} of ${pages}`, 195, 288, { align: 'right' });
-                doc.text("Li'l Champs Abacus Academy • www.lilchampsabacus.co.in", 105, 288, { align: 'center' });
-            }
-
-            doc.save(`Daily_Report_${new Date().toISOString().split('T')[0]}.pdf`);
-        }
-
-        function openPopup(name) {
-            const msg = `Hello! Only a gentle reminder that ${name} has not completed today's practice on the Li'l Champs App. Please ensure they practice today!`;
-            document.getElementById('msgBox').value = msg;
-            document.getElementById('msgModal').classList.remove('hidden');
-        }
-        function closeModal() { document.getElementById('msgModal').classList.add('hidden'); }
-        function copyText() {
-            const box = document.getElementById('msgBox');
-            box.select(); navigator.clipboard.writeText(box.value);
-            document.getElementById('copyBtn').innerHTML = '✅ Copied!';
-            setTimeout(closeModal, 1000);
-        }
-
-        document.addEventListener('DOMContentLoaded', loadData);
-    </script>
+    document.addEventListener('DOMContentLoaded',async()=>{
+      $('dateFilter').value=indiaDateISO();
+      if(!await verifyStaff())return;
+      await loadData();
+      $('dateFilter').addEventListener('change',loadData);
+      $('levelFilter').addEventListener('change',applyFilters);
+      $('statusFilter').addEventListener('change',applyFilters);
+      $('searchFilter').addEventListener('input',applyFilters);
+      $('todayBtn').addEventListener('click',()=>{$('dateFilter').value=indiaDateISO();loadData();});
+      $('pdfBtn').addEventListener('click',generatePDF);
+      $('statusBody').addEventListener('click',e=>{
+        const v=e.target.closest('[data-view]');if(v){openDetails(filteredRows[Number(v.dataset.view)]);return;}
+        const r=e.target.closest('[data-remind]');if(r){remind(filteredRows[Number(r.dataset.remind)]);}
+      });
+      $('closeModal').addEventListener('click',()=>$('detailModal').classList.add('hidden'));
+      $('detailModal').addEventListener('click',e=>{if(e.target===$('detailModal'))$('detailModal').classList.add('hidden');});
+    });
+  </script>
 </body>
 </html>
