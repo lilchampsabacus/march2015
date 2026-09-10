@@ -101,6 +101,7 @@
       const div = document.querySelector('a[href="division.html"]');
       const challenge3Min = document.querySelector('a[href="3MinChallenge.html"]');
       const pressure = document.querySelector('a[href="Pressure.html"]');
+      const listeningAI = document.querySelector('a[href="ListeningAI.html"]');
 
       if (Number.isInteger(level)) {
         if (level < 3) {
@@ -108,6 +109,7 @@
           if (challenge3Min) challenge3Min.style.display = 'none';
           if (pressure) pressure.style.display = 'none';
         }
+        if (level === 1 && listeningAI) listeningAI.style.display = 'none';
         if (level < 5) lockDashboardCard(div, 'Level 5+');
       }
       reveal();
