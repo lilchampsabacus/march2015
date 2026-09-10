@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Today's Daily Practice | Li'l Champs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *{box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f9ff;margin:0;color:#1f2937;min-height:100vh}.safe-bottom{padding-bottom:max(16px,env(safe-area-inset-bottom))}.section-card{transition:.18s transform,.18s box-shadow}.section-card:not([disabled]):active{transform:scale(.985)}.num-btn{min-height:58px;font-size:1.45rem;font-weight:800;border-radius:14px;background:#fff;border:1px solid #dbeafe;box-shadow:0 2px 7px rgba(0,0,0,.06)}.num-btn:active{background:#eef2ff;transform:scale(.97)}.pm-rows{font-variant-numeric:tabular-nums;line-height:1.03}.answer-box{font-variant-numeric:tabular-nums}@media(max-height:720px){.num-btn{min-height:48px}.pm-rows{font-size:1.45rem!important}}
+  </style>
+</head>
+<body>
+  <header class="bg-indigo-600 text-white shadow-lg sticky top-0 z-30">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <div><div class="font-black text-lg sm:text-xl">Li'l Champs Abacus Academy</div><div class="text-indigo-100 text-sm">Today's Daily Practice</div></div>
+      <a href="practice_options.html" class="bg-white text-indigo-700 font-bold px-3 py-2 rounded-xl text-sm no-underline">Home</a>
+    </div>
+  </header>
+  <main class="max-w-5xl mx-auto p-3 sm:p-5 safe-bottom">
+    <div id="loading" class="bg-white rounded-2xl shadow p-8 text-center font-bold text-indigo-600">Loading today's practice...</div>
+    <section id="app" class="hidden">
+      <div class="bg-white rounded-2xl shadow p-4 mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div><div id="student-name" class="font-black text-xl"></div><div class="text-gray-500 text-sm"><span id="level-label"></span> · <span id="date-label"></span></div></div>
+        <div class="text-right"><div id="overall-status" class="inline-flex px-3 py-1 rounded-full text-sm font-black bg-amber-100 text-amber-800">Not Started</div><div id="overall-progress" class="text-xs text-gray-500 mt-1"></div></div>
+      </div>
+      <section id="choose-screen">
+        <div class="mb-3"><h1 class="text-2xl sm:text-3xl font-black">What do you want to solve first?</h1><p class="text-gray-500 mt-1">Complete one section, then choose the next section.</p></div>
+        <div id="section-cards" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+        <div class="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-900"><b>Rule:</b> Plus & Minus has no skip. Multiplication and Division allow Skip when you cannot solve a sum.</div>
+      </section>
+      <section id="question-screen" class="hidden">
+        <div class="flex items-center justify-between gap-3 mb-3"><div><div id="section-title" class="font-black text-xl"></div><div id="question-progress" class="text-sm text-gray-500"></div></div><div class="text-right"><div class="text-xs text-gray-500">Section Time</div><div id="timer" class="font-black text-indigo-700 text-xl tabular-nums">00:00</div></div></div>
+        <div class="w-full bg-gray-200 rounded-full h-2 mb-3 overflow-hidden"><div id="progress-bar" class="bg-indigo-600 h-2 rounded-full" style="width:0%"></div></div>
+        <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-3 min-h-[210px] flex items-center justify-center"><div id="question-display" class="w-full text-center"></div></div>
+        <div class="bg-white rounded-2xl shadow p-3 sticky bottom-0 z-20 safe-bottom">
+          <div id="answer-display" class="answer-box w-full h-14 rounded-xl bg-gray-50 border-2 border-indigo-200 flex items-center justify-center text-3xl font-black text-gray-800 mb-3">—</div>
+          <div class="grid grid-cols-3 gap-2 mb-2">
+            <button class="num-btn" data-key="1">1</button><button class="num-btn" data-key="2">2</button><button class="num-btn" data-key="3">3</button>
+            <button class="num-btn" data-key="4">4</button><button class="num-btn" data-key="5">5</button><button class="num-btn" data-key="6">6</button>
+            <button class="num-btn" data-key="7">7</button><button class="num-btn" data-key="8">8</button><button class="num-btn" data-key="9">9</button>
+            <button class="num-btn text-red-600" data-key="back">⌫</button><button class="num-btn" data-key="0">0</button><button class="num-btn text-gray-500" data-key="clear">C</button>
+          </div>
+          <div class="grid grid-cols-2 gap-2"><button id="skip-btn" class="hidden min-h-[52px] rounded-xl bg-gray-100 text-gray-700 font-black text-lg">Skip</button><button id="next-btn" class="min-h-[52px] rounded-xl bg-indigo-600 text-white font-black text-lg disabled:opacity-40 disabled:cursor-not-allowed col-span-2">Submit & Next</button></div>
+        </div>
+      </section>
+      <section id="section-result" class="hidden bg-white rounded-2xl shadow-xl p-6 text-center"><div class="text-5xl mb-2">✅</div><h2 id="section-result-title" class="text-2xl font-black"></h2><div id="section-result-stats" class="text-gray-600 mt-2"></div><button id="choose-next-btn" class="mt-5 bg-indigo-600 text-white font-black px-6 py-3 rounded-xl">Choose Next Section</button></section>
+      <section id="final-screen" class="hidden bg-white rounded-2xl shadow-xl p-6"><div class="text-center"><div class="text-6xl">🏁</div><h2 class="text-3xl font-black mt-2">Daily Practice Completed!</h2><p class="text-gray-500">Your official first-attempt result has been saved.</p></div><div id="final-stats" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5"></div><a href="practice_options.html" class="mt-5 block text-center bg-indigo-600 text-white font-black px-6 py-3 rounded-xl no-underline">Back to Practice Dashboard</a></section>
+    </section>
+    <section id="locked" class="hidden bg-white rounded-2xl shadow p-8 text-center"><div class="text-6xl mb-2">🔒</div><h1 class="text-2xl font-black">Daily Practice Not Available</h1><p id="locked-text" class="text-gray-500 mt-2"></p><a href="practice_options.html" class="mt-5 inline-block bg-indigo-600 text-white font-bold px-5 py-3 rounded-xl no-underline">Back to Dashboard</a></section>
+    <section id="error-screen" class="hidden bg-white rounded-2xl shadow p-8 text-center"><div class="text-5xl mb-2">⚠️</div><h1 class="text-xl font-black">Unable to load Daily Practice</h1><p id="error-text" class="text-gray-500 mt-2">Please check your internet and try again.</p><button onclick="location.reload()" class="mt-5 bg-indigo-600 text-white font-bold px-5 py-3 rounded-xl">Try Again</button></section>
+  </main>
+  <script src="daily-practice.js?v=1"></script>
+</body>
+</html>
