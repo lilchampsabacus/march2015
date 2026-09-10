@@ -11,15 +11,15 @@
     let html = await res.text();
 
     let inject = '<style id="levelAccessHide">html{visibility:hidden}</style>\n' +
-      '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\\/script>\n';
+      '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>\n';
 
     if (page === 'formula-report') {
-      inject += '<script src="formula-report-access.js?v=1" data-page="formula-report"><\\/script>';
+      inject += '<script src="formula-report-access.js?v=1" data-page="formula-report"></script>';
     } else {
-      inject += `<script src="level-access.js?v=3" data-page="${page}"><\\/script>`;
+      inject += `<script src="level-access.js?v=3" data-page="${page}"></script>`;
       if (page === 'practice-options') {
         inject += '\n<style id="formulaReportDefaultHide">a[href="formula_report.html"]{display:none!important}</style>' +
-          '\n<script src="formula-report-access.js?v=1" data-page="practice-options"><\\/script>';
+          '\n<script src="formula-report-access.js?v=1" data-page="practice-options"></script>';
       }
     }
 
