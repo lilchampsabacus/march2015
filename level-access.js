@@ -18,7 +18,7 @@
     5: ['div-3d1d'],
     6: ['div-4d1d', 'div-5d1d'],
     7: ['div-4d2d', 'div-5d2d'],
-    8: ['div-5d3d']
+    8: ['div-4d2d', 'div-5d2d', 'div-5d3d']
   };
 
   function onReady(fn) {
@@ -185,9 +185,12 @@
         card.classList.remove('flex');
       });
 
-      document.querySelectorAll(`.group-level${level}`).forEach(card => {
-        card.classList.remove('hidden');
-        card.classList.add('flex');
+      const groupsToShow = level === 8 ? ['level7', 'level8'] : [`level${level}`];
+      groupsToShow.forEach(groupName => {
+        document.querySelectorAll(`.group-${groupName}`).forEach(card => {
+          card.classList.remove('hidden');
+          card.classList.add('flex');
+        });
       });
 
       const special = document.querySelector('a[href="special_division.html"]');
