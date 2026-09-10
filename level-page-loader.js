@@ -5,11 +5,23 @@
   if (!base) return;
 
   try {
-    const res = await fetch(base + '?v=3', { cache: 'no-store' });
+    const res = await fetch(base + '?v=4', { cache: 'no-store' });
     if (!res.ok) throw new Error('Base page could not be loaded.');
 
     let html = await res.text();
-    const inject = `<style id="levelAccessHide">html{visibility:hidden}</style>\n<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>\n<script src="level-access.js?v=3" data-page="${page}"><\/script>`;
+
+    let inject = '<style id="levelAccessHide">html{visibility:hidden}</style>\n' +
+      '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\\/script>\n';
+
+    if (page === 'formula-report') {
+      inject += '<script src="formula-report-access.js?v=1" data-page="formula-report"><\\/script>';
+    } else {
+      inject += `<script src="level-access.js?v=3" data-page="${page}"><\\/script>`;
+      if (page === 'practice-options') {
+        inject += '\n<style id="formulaReportDefaultHide">a[href="formula_report.html"]{display:none!important}</style>' +
+          '\n<script src="formula-report-access.js?v=1" data-page="practice-options"><\\/script>';
+      }
+    }
 
     html = html.replace('</head>', inject + '</head>');
     document.open();
