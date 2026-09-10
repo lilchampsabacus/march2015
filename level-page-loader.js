@@ -5,11 +5,11 @@
   if (!base) return;
 
   try {
-    const res = await fetch(base + '?v=2', { cache: 'no-store' });
+    const res = await fetch(base + '?v=3', { cache: 'no-store' });
     if (!res.ok) throw new Error('Base page could not be loaded.');
 
     let html = await res.text();
-    const inject = `<style id="levelAccessHide">html{visibility:hidden}</style>\n<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>\n<script src="level-access.js?v=2" data-page="${page}"><\/script>`;
+    const inject = `<style id="levelAccessHide">html{visibility:hidden}</style>\n<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>\n<script src="level-access.js?v=3" data-page="${page}"><\/script>`;
 
     html = html.replace('</head>', inject + '</head>');
     document.open();
