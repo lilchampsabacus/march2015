@@ -105,14 +105,52 @@
     <section id="locked" class="hidden bg-white rounded-2xl shadow p-8 text-center"><div class="text-6xl mb-2">🔒</div><h1 class="text-2xl font-black">Daily Practice Not Available</h1><p id="locked-text" class="text-gray-500 mt-2"></p><a href="practice_options.html" class="mt-5 inline-block bg-indigo-600 text-white font-bold px-5 py-3 rounded-xl no-underline">Back to Dashboard</a></section>
     <section id="error-screen" class="hidden bg-white rounded-2xl shadow p-8 text-center"><div class="text-5xl mb-2">⚠️</div><h1 class="text-xl font-black">Unable to load Daily Practice</h1><p id="error-text" class="text-gray-500 mt-2">Please check your internet and try again.</p><button onclick="location.reload()" class="mt-5 bg-indigo-600 text-white font-bold px-5 py-3 rounded-xl">Try Again</button></section>
   </main>
-  <script src="daily-practice.js?v=1"></script>
+  <script src="daily-practice.js?v=2"></script>
   <script>
     (function(){
       const q=document.getElementById('question-screen');
-      if(!q)return;
-      function syncSolveMode(){document.body.classList.toggle('solve-mode',!q.classList.contains('hidden'))}
-      new MutationObserver(syncSolveMode).observe(q,{attributes:true,attributeFilter:['class']});
+      const display=document.getElementById('question-display');
+      const progress=document.getElementById('question-progress');
+      if(!q||!display)return;
+
+      function syncSolveMode(){
+        document.body.classList.toggle('solve-mode',!q.classList.contains('hidden'));
+      }
+
+      function refineQuestion(){
+        if(q.classList.contains('hidden'))return;
+
+        const progressText=(progress?.textContent||'').trim();
+        if(progressText&&!display.querySelector('.daily-question-number')){
+          const number=document.createElement('div');
+          number.className='daily-question-number';
+          number.textContent=progressText;
+          number.style.cssText='font-size:clamp(.8rem,2dvh,1rem);font-weight:900;color:#4f46e5;margin-bottom:5px;line-height:1;flex:0 0 auto;';
+          display.prepend(number);
+        }
+
+        const pm=display.querySelector('.pm-rows');
+        if(pm){
+          const rows=Array.from(pm.children);
+          rows.forEach((row,index)=>{
+            if(index===rows.length-1||row.dataset.dailyStyled==='1')return;
+            const raw=row.textContent.trim();
+            if(raw.startsWith('+')){
+              row.textContent=raw.replace(/^\+\s*/,'');
+            }else if(raw.startsWith('−')||raw.startsWith('-')){
+              row.style.color='#dc2626';
+              row.style.fontWeight='900';
+            }
+            row.dataset.dailyStyled='1';
+          });
+        }
+      }
+
+      new MutationObserver(()=>{syncSolveMode();refineQuestion();}).observe(q,{attributes:true,attributeFilter:['class']});
+      new MutationObserver(refineQuestion).observe(display,{childList:true,subtree:true});
+      if(progress)new MutationObserver(refineQuestion).observe(progress,{childList:true,subtree:true,characterData:true});
       syncSolveMode();
+      refineQuestion();
     })();
   </script>
 </body>
