@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lil Champs Abacus - Multiplication Mission</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="gamify.js?v=2" defer></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0f9ff;
+            background-image: radial-gradient(#e0f2fe 2px, transparent 2px);
+            background-size: 24px 24px;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        h1, h2, h3, .btn-font { font-family: 'Fredoka', sans-serif; }
+
+       header { background-color: #4f46e5; color: white; padding: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); z-index: 50; flex-shrink: 0; }
+       footer { background-color: white; border-top: 1px solid #e5e7eb; text-align: center; padding: 0.75rem; flex-shrink: 0; font-weight: 600; color: #6b7280; }
+
+        main { flex-grow: 1; position: relative; width: 100%; display: flex; flex-direction: column; }
+
+        #practice-area {
+            position: absolute; top: 0; left: 0; width: 100%; height: 70%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10;
+        }
+
+        .input-box {
+            font-size: 2.5rem; text-align: center; border: 3px solid #d1d5db; border-radius: 1rem;
+            width: 180px; padding: 10px; outline: none; background: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); font-family: 'Fredoka', sans-serif; color: #374151;
+        }
+        .input-box:focus { border-color: #4ade80; box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.2); }
+
+        #report-section {
+                position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                background: transparent; /* Changed to transparent so dots show through */
+                overflow-y: auto; display: none; padding: 1rem; z-index: 50; padding-bottom: 80px;
+        }
+
+        @keyframes popIn { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .pop-in { animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        .equation-text { font-family: 'Fredoka', monospace; font-size: 3.5rem; color: #4b5563; display: flex; align-items: center; gap: 1rem; }
+        @media (max-width: 380px) { .equation-text { font-size: 2.5rem; } }
+
+        .report-card {
+            background: white; border: 4px solid #dbeafe; border-radius: 1rem; padding: 2rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); max-width: 500px; margin: 0 auto;
+        }
+    </style>
+</head>
+<body oncontextmenu="alert('🚫 Access Denied: Marathon Security Active!'); return false;">
+
+    <header class="flex justify-between items-center">
+        <h1 class="text-xl sm:text-2xl font-bold text-white">Li'l Champs Abacus Academy, Ambernath</h1>
+    </header>
+
+    <main id="main-content">
+        <div id="start-screen" class="absolute inset-0 flex flex-col items-center justify-center z-40 p-6 text-center">
+            <div class="mb-6">
+                <i class="fas fa-calculator text-6xl text-green-500 mb-4"></i>
+                <h1 class="text-4xl text-gray-800 font-bold mb-2">Multiplication Marathon</h1>
+                <h2 class="text-xl text-gray-500">2 Digit x 1 Digit (500 Sums)</h2>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl max-w-md w-full mb-8 text-left border border-gray-200 shadow-sm">
+                <h3 class="text-lg font-bold text-gray-700 mb-2">Mission Rules:</h3>
+                <ul class="list-disc pl-5 text-gray-600 space-y-1">
+                    <li>Solve <strong>500</strong> sums.</li>
+                    <li>No feedback until the end.</li>
+                    <li>Internet required to Start & Finish.</li>
+                    <li>⏱️ Auto-submits after <strong>15 minutes</strong>.</li>
+                </ul>
+            </div>
+
+            <button id="start-btn" onclick="startMission()" class="btn-font bg-green-500 hover:bg-green-600 text-white text-2xl py-4 px-10 rounded-full shadow-lg transform transition active:scale-95">
+                Start Mission 🚀
+            </button>
+        </div>
+
+        <div id="practice-area" style="display: none;">
+            <div class="absolute top-4 w-full px-6 flex justify-between items-center text-gray-400 font-bold">
+                <div class="text-xs uppercase tracking-wider">Mission Progress</div>
+                <div id="countdown-display" class="flex items-center gap-1.5 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full">
+                    <span class="text-indigo-500 text-sm">⏱️</span>
+                    <span id="countdown-text" class="font-black text-indigo-700 text-lg tabular-nums">15:00</span>
+                </div>
+                <div class="bg-gray-200 rounded-full px-4 py-1 text-sm text-gray-700 shadow-inner">
+                    <span id="current-count">1</span> / 500
+                </div>
+            </div>
+
+            <div class="mb-8 pop-in" id="question-container">
+                <div class="equation-text">
+                    <span id="num-top">00</span>
+                    <span class="text-green-500">×</span>
+                    <span id="num-bottom">0</span>
+                    <span class="text-gray-300">=</span>
+                </div>
+            </div>
+
+            <form id="answer-form" onsubmit="submitAnswer(event)" class="flex flex-col items-center w-full">
+                <input type="tel" id="answer-input" class="input-box" placeholder="" autocomplete="off" inputmode="numeric" autofocus>
+                <button type="submit" class="mt-6 bg-green-500 text-white rounded-full p-3 px-8 font-bold shadow-md active:bg-green-600 touch-manipulation transition-colors border-b-4 border-green-600 active:border-b-0 active:translate-y-1">
+                    NEXT <i class="fas fa-arrow-right ml-1"></i>
+                </button>
+            </form>
+        </div>
+
+        <div id="finish-screen" class="hidden absolute inset-0 flex flex-col items-center justify-center z-30">
+            <i class="fas fa-flag-checkered text-6xl text-green-500 mb-6"></i>
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">Mission Complete!</h1>
+            <p class="text-gray-600 mb-8">You have solved all 500 sums.</p>
+            <button id="submit-final-btn" onclick="endMission()" class="btn-font bg-green-600 text-white text-2xl py-4 px-12 rounded-full shadow-lg transform transition active:scale-95 animate-bounce">
+                See Report Card
+            </button>
+        </div>
+
+        <div id="report-section">
+            <div id="report-card" class="report-card relative overflow-hidden mb-6">
+                <div class="text-center border-b border-gray-100 pb-2 mb-4">
+                    <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest">Skill Mastery</span>
+                    <h2 class="text-xl font-bold text-gray-700 mt-2">2 Digit x 1 Digit (500 sums)</h2>
+                </div>
+
+                <h3 id="report-main-msg" class="text-2xl font-black text-center text-blue-800 mb-2">Mission Accomplished!</h3>
+                <p class="text-center text-gray-500 mb-6 border-b pb-4 text-sm"><span id="report-datetime"></span> | Agent: <span id="report-student-name" class="font-bold text-blue-600">Student</span></p>
+                
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-green-50 p-3 rounded-xl border-2 border-green-100 text-center">
+                        <p class="text-xs text-green-600 uppercase font-bold tracking-wider">Accuracy</p>
+                        <p class="text-3xl font-black text-green-700"><span id="report-correct">0</span><span class="text-lg text-gray-400">/500</span></p>
+                    </div>
+                    <div class="bg-purple-50 p-3 rounded-xl border-2 border-purple-100 text-center">
+                        <p class="text-xs text-purple-600 uppercase font-bold tracking-wider">Total Time</p>
+                        <p class="text-2xl font-black text-purple-800" id="report-time-elapsed">0:00</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-3 rounded-lg mb-6 text-center">
+                    <p class="text-xs text-gray-500">Speed per Question</p>
+                    <p class="text-lg font-bold text-gray-700" id="report-avg-time">N/A</p>
+                </div>
+
+                <button onclick="downloadReport()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 mb-3 shadow-lg flex items-center justify-center gap-2 text-sm">
+                    <i class="fas fa-download"></i> Save Badge
+                </button>
+                <button id="see-wrong-button" onclick="showSecureMistakes()" class="w-full bg-red-100 text-red-700 font-bold py-3 rounded-lg hover:bg-red-200 mb-3 text-sm" disabled>
+                    Review Mistakes
+                </button>
+                <button onclick="window.location.reload()" class="w-full border-2 border-gray-300 text-gray-600 font-bold py-3 rounded-lg hover:bg-gray-50 text-sm">Replay Mission</button>
+            </div>
+        </div>
+
+        <div id="wrong-answer-area" class="absolute inset-0 bg-white z-50 overflow-y-auto hidden p-4 pb-20">
+            <div class="max-w-md mx-auto">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center sticky top-0 bg-[#fdfbf7] py-4">Corrections</h3>
+                <div class="bg-white p-4 rounded-xl shadow-lg border border-gray-200">
+                    <div class="grid grid-cols-3 font-bold text-gray-500 border-b pb-2 mb-2 text-center text-sm"><span>Problem</span><span>You Said</span><span>Correct</span></div>
+                    <div id="wrong-sums-list" class="space-y-2 text-sm"></div>
+                </div>
+                <button onclick="backToReport()" class="mt-6 w-full bg-gray-600 text-white font-bold py-3 rounded-lg shadow-lg">&larr; Back to Report</button>
+            </div>
+        </div>
+
+    </main>
+
+    <footer><p class="text-sm font-semibold text-yellow-900">Developed by: Practice Buddy Pvt Ltd</p></footer>
+
+    <div id="encouragement-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl p-8 text-center max-w-sm mx-4 shadow-2xl pop-in">
+            <i class="fas fa-star text-yellow-400 text-5xl mb-4"></i>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Great Job!</h2>
+            <p class="text-gray-600 mb-6" id="encouragement-text">You've completed 100 sums.</p>
+            <button onclick="closeEncouragement()" class="bg-green-500 text-white px-8 py-3 rounded-full font-bold shadow-md hover:bg-green-600">Continue</button>
+        </div>
+    </div>
+
+    <script>
+        if (sessionStorage.getItem('isLoggedIn') !== 'true') { window.location.href = 'index.html'; }
+
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwvkMXKRqBq7Szo1EWQvYhk5nFcDik-n4GDooEqd2Vxv1b_4V4SfxOnr9VauSZYUWy-6Q/exec";
+        const TOTAL_QUESTIONS = 500;
+        const TIMER_SECONDS = 900; // 15 minutes fixed
+        
+        let questionsData = [];
+        let currentQuestionIndex = 0;
+        let startTime;
+        let studentNameFormatted = "Student";
+        let isSubmitting = false;
+        let countdownInterval;
+        let isTimedOut = false;
+
+        const practiceArea = document.getElementById('practice-area');
+        const numTopEl = document.getElementById('num-top');
+        const numBottomEl = document.getElementById('num-bottom');
+        const inputEl = document.getElementById('answer-input');
+        const countEl = document.getElementById('current-count');
+
+        function saveOrQueueResult(payload) {
+            if (navigator.onLine) {
+                if (window.lilChampUtils?.saveResult) {
+                    window.lilChampUtils.saveResult(payload);
+                }
+            } else {
+                payload.offlineTimestamp = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" });
+                
+                let queue = JSON.parse(localStorage.getItem('offlineResultsQueue') || '[]');
+                queue.push(payload);
+                localStorage.setItem('offlineResultsQueue', JSON.stringify(queue));
+                alert("📡 Connection lost! Don't worry, your mission report is saved locally. It will automatically upload to headquarters when you reconnect to the internet.");
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const studentIdentifier = sessionStorage.getItem('studentIdentifier');
+            if (studentIdentifier) {
+                const namePart = studentIdentifier.split('@')[0];
+                studentNameFormatted = namePart.split('.').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+                document.getElementById('report-student-name').textContent = studentNameFormatted;
+            }
+            inputEl.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.code === 'Enter' || e.code === 'NumpadEnter') {
+            e.preventDefault(); 
+            submitAnswer(e);
+            }
+            });
+        });
+
+        async function startMission() {
+            const btn = document.getElementById('start-btn');
+            btn.textContent = "Generating 500 Sums...";
+            btn.disabled = true;
+
+            try {
+                const questions = window.generateQuestions('mul-2x1', 500);
+
+                questionsData = questions.map(q => ({
+                    x: q.x, 
+                    y: q.y, 
+                    type: 'mul',
+                    studentAnswer: null 
+                }));
+
+                document.getElementById('start-screen').style.display = 'none';
+                practiceArea.style.display = 'flex';
+                currentQuestionIndex = 0;
+                startTime = Date.now();
+                startCountdown();
+                showQuestion();
+
+            } catch (err) {
+                console.error(err);
+                btn.textContent = "Error. Retry?";
+                btn.disabled = false;
+                alert("Error launching mission. Please refresh.");
+            }
+        }
+        
+        function showQuestion() {
+            if (currentQuestionIndex >= TOTAL_QUESTIONS) {
+                showFinishScreen();
+                return;
+            }
+
+            const q = questionsData[currentQuestionIndex];
+            numTopEl.textContent = q.x;
+            numBottomEl.textContent = q.y;
+            countEl.textContent = currentQuestionIndex + 1;
+            
+            inputEl.value = '';
+            setTimeout(() => { inputEl.focus(); }, 50);
+        }
+
+        function submitAnswer(e) {
+            e.preventDefault();
+            const val = inputEl.value.trim();
+            if (val === '') return;
+
+            questionsData[currentQuestionIndex].studentAnswer = parseInt(val);
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex > 0 && currentQuestionIndex < TOTAL_QUESTIONS && currentQuestionIndex % 100 === 0) {
+                showEncouragement(currentQuestionIndex);
+            } else {
+                showQuestion();
+            }
+        }
+
+        function showEncouragement(count) {
+            const messages = [
+                "100 sums down! You are warming up nicely.",
+                "200 completed! You are a calculation machine.",
+                "300 done! Keep that focus sharp.",
+                "400 solved! The finish line is close."
+            ];
+            const msgIndex = (count / 100) - 1;
+            document.getElementById('encouragement-text').textContent = messages[msgIndex] || "Great job!";
+            document.getElementById('encouragement-modal').classList.remove('hidden');
+        }
+
+        function closeEncouragement() {
+            document.getElementById('encouragement-modal').classList.add('hidden');
+            showQuestion();
+            setTimeout(() => { inputEl.focus(); }, 50);
+        }
+
+        function showFinishScreen() {
+            practiceArea.style.display = 'none';
+            document.getElementById('finish-screen').classList.remove('hidden');
+            document.getElementById('finish-screen').style.display = 'flex';
+        }
+
+        function startCountdown() {
+            let remaining = TIMER_SECONDS;
+            function updateDisplay() {
+                const m = Math.floor(remaining / 60);
+                const s = remaining % 60;
+                const el = document.getElementById('countdown-text');
+                const wrapper = document.getElementById('countdown-display');
+                el.textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+                if (remaining <= 30) {
+                    wrapper.className = 'flex items-center gap-1.5 bg-red-100 border border-red-400 px-3 py-1 rounded-full animate-pulse';
+                    el.className = 'font-black text-red-600 text-lg tabular-nums';
+                } else if (remaining <= 60) {
+                    wrapper.className = 'flex items-center gap-1.5 bg-orange-50 border border-orange-400 px-3 py-1 rounded-full';
+                    el.className = 'font-black text-orange-600 text-lg tabular-nums';
+                }
+            }
+            updateDisplay();
+            countdownInterval = setInterval(() => {
+                remaining--;
+                updateDisplay();
+                if (remaining <= 0) {
+                    clearInterval(countdownInterval);
+                    isTimedOut = true;
+                    // Close encouragement modal if open
+                    document.getElementById('encouragement-modal').classList.add('hidden');
+                    endMission();
+                }
+            }, 1000);
+        }
+
+        async function endMission() {
+            if (isSubmitting) return;
+            isSubmitting = true;
+
+            clearInterval(countdownInterval);
+            document.getElementById('countdown-text').textContent = '0:00';
+            document.getElementById('countdown-display').className = 'flex items-center gap-1.5 bg-gray-100 border border-gray-300 px-3 py-1 rounded-full';
+
+            // If triggered by timeout: hide practice area + finish screen, go straight to report
+            if (isTimedOut) {
+                practiceArea.style.display = 'none';
+                document.getElementById('finish-screen').style.display = 'none';
+            } else {
+                // Normal finish — update the "See Report Card" button
+                const btn = document.getElementById('submit-final-btn');
+                btn.textContent = "Submitting... 📡";
+                btn.disabled = true;
+                btn.classList.remove('bg-green-600', 'animate-bounce');
+                btn.classList.add('bg-gray-500', 'cursor-not-allowed', 'opacity-75');
+            }
+
+            const endTime = Date.now();
+            const timeElapsedSeconds = Math.floor((endTime - startTime) / 1000);
+            const minutes = Math.floor(timeElapsedSeconds / 60);
+            const seconds = timeElapsedSeconds % 60;
+            const timeFormatted = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+            let score = 0;
+            let mistakesArray = [];
+
+            questionsData.forEach((q, index) => {
+                let correctVal = q.x * q.y; 
+                if (q.studentAnswer === correctVal) {
+                    score++;
+                } else {
+                     if (q.studentAnswer !== null) {
+                        mistakesArray.push({
+                            question: `${q.x} × ${q.y}`,
+                            wrong: q.studentAnswer, 
+                            correct: correctVal
+                        });
+                     }
+                }
+            });
+
+            document.getElementById('finish-screen').style.display = 'none';
+            document.getElementById('report-section').style.display = 'block';
+
+            document.getElementById('report-correct').textContent = score;
+            activateWatchdog(score);
+            document.getElementById('report-time-elapsed').textContent = timeFormatted;
+            const avgTime = (timeElapsedSeconds / TOTAL_QUESTIONS).toFixed(2);
+            document.getElementById('report-avg-time').textContent = `${avgTime}s`;
+
+            const now = new Date();
+            document.getElementById('report-datetime').textContent = now.toLocaleString('en-IN', { 
+                day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+            });
+
+            sessionStorage.setItem('marathonMistakes', JSON.stringify(mistakesArray));
+
+            const wrongBtn = document.getElementById('see-wrong-button');
+            if (mistakesArray.length > 0) {
+                wrongBtn.textContent = `Review ${mistakesArray.length} Mistakes`;
+                wrongBtn.disabled = false;
+                wrongBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                wrongBtn.textContent = "Perfect Score!";
+                wrongBtn.disabled = true;
+                wrongBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+
+            if (isTimedOut) {
+                const reportMsg = document.getElementById('report-main-msg');
+                reportMsg.textContent = "⏰ Time's Up!";
+                reportMsg.classList.replace('text-blue-800', 'text-orange-700');
+            }
+
+            const payload = {
+                challenge: "500 Sum Marathon" + (isTimedOut ? " (T)" : ""),
+                score: score,
+                total: TOTAL_QUESTIONS, 
+                time: timeFormatted,
+                accuracy: Math.round((score / TOTAL_QUESTIONS) * 100) + "%",
+                mistakes: mistakesArray,
+                questions: questionsData,
+                answers: questionsData.map(s => s.studentAnswer)
+            };
+            
+            saveOrQueueResult(payload);
+            
+            if (score === TOTAL_QUESTIONS && !isTimedOut && window.lilChampUtils) {
+                window.lilChampUtils.celebrate();
+            }
+        }
+        
+        function showSecureMistakes() {
+            const mistakes = JSON.parse(sessionStorage.getItem('marathonMistakes') || "[]");
+            const listContainer = document.getElementById('wrong-sums-list');
+            listContainer.innerHTML = '';
+
+            mistakes.forEach(m => {
+                const row = `
+                    <div class="grid grid-cols-3 text-center py-3 border-b hover:bg-red-50">
+                        <span class="font-bold text-gray-700">${m.question}</span>
+                        <span class="text-red-500 font-bold line-through">${m.wrong}</span>
+                        <span class="text-green-600 font-bold">${m.correct}</span>
+                    </div>`;
+                listContainer.innerHTML += row;
+            });
+
+            document.getElementById('report-section').style.display = 'none';
+            document.getElementById('wrong-answer-area').classList.remove('hidden');
+        }
+
+        function backToReport() {
+            document.getElementById('wrong-answer-area').classList.add('hidden');
+            document.getElementById('report-section').style.display = 'block';
+        }
+
+        function downloadReport() {
+            const reportElement = document.getElementById('report-card');
+            html2canvas(reportElement, { scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Marathon_Report_${studentNameFormatted.replace(/\s+/g, '_')}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            if (practiceArea.style.display === 'flex' && 
+                e.target.tagName !== 'BUTTON' && 
+                e.target.tagName !== 'A' &&
+                !document.getElementById('encouragement-modal').contains(e.target)) {
+                inputEl.focus();
+            }
+        });
+        
+        document.addEventListener('dblclick', function(event) { event.preventDefault(); }, { passive: false });
+
+        function activateWatchdog(correctScore) {
+            const scoreElement = document.getElementById('report-correct');
+
+            const enforceScore = () => {
+                const currentText = scoreElement.innerText.trim();
+                const correctText = String(correctScore);
+                
+                if (currentText !== correctText) {
+                    scoreElement.innerText = correctText; 
+                    scoreElement.style.color = "#dc2626"; 
+                    scoreElement.style.textDecoration = "line-through";
+                }
+            };
+
+            const observer = new MutationObserver(enforceScore);
+            observer.observe(scoreElement, { characterData: true, childList: true, subtree: true });
+            setInterval(enforceScore, 100);
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12' || 
+               (e.ctrlKey && e.shiftKey && ['I','C','J'].includes(e.key)) || 
+               (e.ctrlKey && e.key === 'u')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>

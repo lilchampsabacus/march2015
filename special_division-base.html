@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special Division (Zero in Answer)</title>
+    
+    <link rel="stylesheet" href="elegant-theme.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+	<script src="gamify.js?v=3" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+	<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+		html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            position: fixed;
+            touch-action: none;
+            margin: 0;
+
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0f9ff; 
+            background-image: radial-gradient(#e0f2fe 2px, transparent 2px);
+            background-size: 24px 24px;
+
+            display: flex;
+            flex-direction: column;
+        }
+
+        main {
+            flex-grow: 1;  
+			width: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        main::-webkit-scrollbar { display: none; }
+        main { -ms-overflow-style: none; scrollbar-width: none; }
+		
+        .slide-container { display: none; animation: fadeIn 0.5s ease-in-out; }
+        .slide-container.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .sum-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1rem; margin-bottom: 0.5rem; background: white;
+            border: 1px solid #e5e7eb; border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.2s;
+        }
+        .sum-item:focus-within { transform: scale(1.02); border-color: #3b82f6; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1); }
+
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c; animation: shake 0.3s; }
+
+        @keyframes shake {
+            0% { transform: translateX(0); } 25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); } 75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        body.focus-mode header, body.focus-mode footer, body.focus-mode .back-link, body.focus-mode #test-header-bar { display: none !important; }
+        body.focus-mode { background-color: #fbf0d9; color: #433422; }
+        body.focus-mode #test-area { background-color: transparent !important; box-shadow: none !important; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans" oncontextmenu="alert('🚫 Access Denied: This is a secure mission, Agent!'); return false;">
+
+    <header class="bg-indigo-600 text-black p-4 shadow-lg sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl sm:text-2xl font-bold">Li'l Champs Abacus Academy, Ambernath</h1>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl mx-auto w-full p-4 sm:p-6">
+        <h2 class="text-3xl font-extrabold text-gray-800 mb-6 text-center back-link">Special Division Mission</h2>
+
+        <section id="start-screen" class="bg-white p-8 rounded-xl shadow-2xl text-center">
+            <h3 class="text-2xl font-bold mb-4 text-gray-800">Ready for your Mission?</h3>			
+            <div class="mb-6 hidden"> 
+                <input type="text" id="student-identifier-input" class="w-full" readonly>
+            </div>
+            
+            <div class="inline-block bg-blue-100 text-blue-800 px-4 py-2 rounded-full font-bold mb-6">
+                Pilot: <span id="auto-student-name-display">... Loading ...</span>
+            </div>
+            
+            <div class="mb-8 text-left max-w-md mx-auto">
+                <label for="level-select" class="block text-gray-700 font-bold mb-2">Select Difficulty:</label>
+                <div class="relative">
+                    <select id="level-select" class="block w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-indigo-500 shadow-sm appearance-none">
+                        <option value="special-div-3d1d">Option 1: 3-Digit ÷ 1-Digit</option>
+                        <option value="special-div-4d1d">Option 2: 4-Digit ÷ 1-Digit</option>
+                        <option value="special-div-5d1d">Option 3: 5-Digit ÷ 1-Digit</option>
+                        <option value="special-div-4d2d">Option 4: 4-Digit ÷ 2-Digit</option>
+                        <option value="special-div-5d2d">Option 5: 5-Digit ÷ 2-Digit</option>
+                        <option value="special-div-4d3d">Option 6: 4-Digit ÷ 3-Digit</option>
+                        <option value="special-div-5d3d">Option 7: 5-Digit ÷ 3-Digit</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="text-lg text-gray-600 mb-6">
+                30 Special Sums. <br>
+                <strong>Mission:</strong> The answer will always contain a <strong>0</strong> (e.g., 109, 20, 105).
+                <br>Be careful with the zero placement!
+            </p>
+
+            <!-- ⏱️ TIME LIMIT SELECTION -->
+            <div class="mb-6">
+                <p class="text-base font-bold text-gray-700 mb-3">⏱️ Select Your Time Limit:</p>
+                <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                    <button onclick="selectTimeLimit(600, this)" id="time-btn-600"
+                        class="time-option-btn flex-1 py-4 px-4 rounded-xl border-2 border-gray-200 bg-white font-bold text-gray-700 transition-all duration-200 hover:border-green-400 hover:bg-green-50">
+                        <div class="text-2xl mb-1">🐢</div>
+                        <div class="text-lg">10 Minutes</div>
+                        <div class="text-xs font-semibold text-green-600 uppercase tracking-wide mt-1">Beginner</div>
+                    </button>
+                    <button onclick="selectTimeLimit(300, this)" id="time-btn-300"
+                        class="time-option-btn flex-1 py-4 px-4 rounded-xl border-2 border-gray-200 bg-white font-bold text-gray-700 transition-all duration-200 hover:border-yellow-400 hover:bg-yellow-50">
+                        <div class="text-2xl mb-1">🚀</div>
+                        <div class="text-lg">5 Minutes</div>
+                        <div class="text-xs font-semibold text-yellow-600 uppercase tracking-wide mt-1">Intermediate</div>
+                    </button>
+                    <button onclick="selectTimeLimit(180, this)" id="time-btn-180"
+                        class="time-option-btn flex-1 py-4 px-4 rounded-xl border-2 border-gray-200 bg-white font-bold text-gray-700 transition-all duration-200 hover:border-red-400 hover:bg-red-50">
+                        <div class="text-2xl mb-1">⚡</div>
+                        <div class="text-lg">3 Minutes</div>
+                        <div class="text-xs font-semibold text-red-600 uppercase tracking-wide mt-1">Pro</div>
+                    </button>
+                </div>
+            </div>
+
+            <button id="start-button" onclick="startTest()" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold text-xl py-4 px-12 rounded-full shadow-lg transform transition hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none" disabled>
+                🚀 Launch Mission
+            </button>
+        </section>
+
+        <section id="test-area" class="hidden max-w-2xl mx-auto">
+            <div class="bg-white p-4 rounded-xl shadow-md mb-6 sticky top-4 z-20 border-b-4 border-blue-200">
+                <div class="flex justify-between items-center mb-2">
+                    <div class="text-gray-600 font-semibold">Progress</div>
+                    <div class="flex items-center gap-3">
+                        <!-- Countdown Timer -->
+                        <div id="countdown-display" class="flex items-center gap-1.5 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full">
+                            <span class="text-indigo-500 text-sm">⏱️</span>
+                            <span id="countdown-text" class="font-black text-indigo-700 text-lg tabular-nums">--:--</span>
+                        </div>
+                        <div id="streak-display" class="font-bold text-orange-500 text-lg hidden" style="display:none">
+                            🔥 Streak: <span id="streak-count">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative w-full h-8 mt-2 mb-2 select-none">
+                    <div class="absolute top-1/2 left-0 w-full h-1 bg-gray-800 -translate-y-1/2 rounded shadow-inner border border-gray-600"></div>
+                    <div id="progress-bead" class="absolute top-1/2 -translate-y-1/2 transition-all duration-500 transform -translate-x-1/2 z-10 drop-shadow-lg" style="left: 0%">
+                        <svg width="46" height="30" viewBox="0 0 46 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20 15 L26 15" stroke="#333" stroke-width="4"/>
+                            <path d="M3 15 L23 27 L43 15" fill="#A0522D" stroke="#8B4513" stroke-width="1"/>
+                            <path d="M3 15 L23 3 L43 15" fill="#E67C26" stroke="#CD853F" stroke-width="1"/>
+                            <path d="M3 15 L43 15" stroke="rgba(0,0,0,0.1)" stroke-width="0.5"/>
+                            <ellipse cx="23" cy="9" rx="8" ry="3" fill="white" fill-opacity="0.3"/>
+                            <circle cx="23" cy="3" r="1.5" fill="#333" fill-opacity="0.2"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>Start</span>
+                    <span id="progress-text">0/30 Solved</span>
+                </div>
+            </div>
+
+            <div id="question-carousel" class="mb-6"></div>
+            
+            <div class="flex justify-between mt-6">
+                <button id="prev-btn" onclick="changeSlide(-1)" class="hidden px-6 py-3 bg-gray-300 text-gray-700 rounded-lg font-bold">Back</button>
+                <button id="next-btn" onclick="changeSlide(1)" class="hidden ml-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md transition-all">Next Set &rarr;</button>
+                <button id="submit-button" onclick="endTest()" class="hidden ml-auto px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold shadow-lg animate-pulse">Finish Mission 🏁</button>
+            </div>
+        </section>
+
+        <section id="report-area" class="hidden flex justify-center">
+            <div id="report-card" class="max-w-fit w-full bg-white border-4 border-blue-100 p-8 rounded-2xl shadow-2xl relative overflow-hidden">
+                <div class="text-center border-b border-gray-100 pb-2 mb-4">
+                    <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest">Skill Mastery</span>
+                    <h2 class="text-2xl font-extrabold text-gray-700 mt-2">Special Division (Zero)</h2>
+                </div>
+
+                <h3 id="report-main-msg" class="text-3xl font-black text-center text-blue-800 mb-2">Mission Accomplished!</h3>
+                <p class="text-center text-gray-500 mb-6 border-b pb-4"><span id="report-datetime"></span> | Agent: <span id="report-student-name" class="font-bold text-blue-600"></span></p>
+                
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <div class="bg-green-50 p-4 rounded-xl border-2 border-green-100 text-center">
+                        <p class="text-sm text-green-600 uppercase font-bold tracking-wider">Accuracy</p>
+                        <p class="text-4xl font-black text-green-700"><span id="report-correct">0</span><span class="text-xl text-gray-400">/30</span></p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-xl border-2 border-purple-100 text-center">
+                        <p class="text-sm text-purple-600 uppercase font-bold tracking-wider">Total Time</p>
+                        <p class="text-3xl font-black text-purple-800" id="report-time-elapsed">0:00</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg mb-6 text-center">
+                    <p class="text-sm text-gray-500">Speed per Question</p>
+                    <p class="text-xl font-bold text-gray-700" id="report-avg-time">N/A</p>
+                </div>
+
+                <button onclick="downloadReport()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 mb-3 shadow-lg flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Save Badge (Download)
+                </button>
+                
+                <button id="see-wrong-button" onclick="showSecureMistakes()" class="w-full bg-red-100 text-red-700 font-bold py-3 rounded-lg hover:bg-red-200 mb-3" disabled>
+                    Review Mistakes
+                </button>
+                
+                <button onclick="window.location.reload()" class="w-full border-2 border-gray-300 text-gray-600 font-bold py-3 rounded-lg hover:bg-gray-50">🔄 Replay Mission</button>
+            </div>
+        </section>
+        
+        <section id="wrong-answer-area" class="hidden max-w-2xl mx-auto">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Mission Debrief: Corrections</h3>
+            <div class="bg-white p-4 rounded-xl shadow-lg border border-gray-200">
+                <div class="grid grid-cols-3 font-bold text-gray-500 border-b pb-2 mb-2 text-center">
+                    <span>Problem</span><span>You Said</span><span>Correct</span>
+                </div>
+                <div id="wrong-sums-list" class="space-y-2"></div>
+            </div>
+            <button onclick="showReport()" class="mt-6 w-full bg-gray-600 text-white font-bold py-3 rounded-lg">&larr; Back to Scoreboard</button>
+        </section>
+
+    </main>
+
+	<footer class="bg-white text-center p-6 mt-auto border-t border-gray-200"><p class="text-sm text-gray-500">Developed by: Practice Buddy Pvt Ltd</p></footer>
+    
+	<script>
+        if (sessionStorage.getItem('isLoggedIn') !== 'true') { window.location.href = 'index.html'; }
+        
+        const TOTAL_SUMS = 30;
+        const SUMS_PER_SLIDE = 5;
+        const TOTAL_SLIDES = TOTAL_SUMS / SUMS_PER_SLIDE;
+        
+        let timerInterval;
+        let countdownInterval;
+        let sumsData = [];
+        let startTime;
+        let currentSlideIndex = 0;
+        let currentStreak = 0;
+        let selectedLevel = "special-div-3d1d"; // Default
+        let selectedTimeLimit = null;
+        let isTimedOut = false;
+
+        function formatStudentName(identifier) {
+            if (!identifier || typeof identifier !== 'string') return 'Pilot';
+            const namePart = identifier.split('@')[0];
+            return namePart.split('.').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+        }
+
+        function downloadReport() {
+            const reportElement = document.getElementById('report-card');
+            const studentName = document.getElementById('report-student-name').textContent || "Student";
+            html2canvas(reportElement, { scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Mission_Report_SpecialDiv_${studentName.replace(/\s+/g, '_')}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const nameInput = document.getElementById('student-identifier-input');
+            const startButton = document.getElementById('start-button');
+            const studentIdentifier = sessionStorage.getItem('studentIdentifier');
+            const displayStudentName = formatStudentName(studentIdentifier); 
+            
+            if (studentIdentifier) {
+                nameInput.value = studentIdentifier;
+                document.getElementById('auto-student-name-display').textContent = displayStudentName;
+                // Button stays disabled until time is also selected
+            } else {
+                startButton.disabled = true;
+            }
+        });
+
+        function selectTimeLimit(seconds, btn) {
+            selectedTimeLimit = seconds;
+            // Reset all button styles
+            document.querySelectorAll('.time-option-btn').forEach(b => {
+                b.classList.remove('border-green-500', 'bg-green-50', 'border-yellow-500', 'bg-yellow-50', 'border-red-500', 'bg-red-50', 'scale-105', 'shadow-md');
+                b.classList.add('border-gray-200', 'bg-white');
+            });
+            // Highlight selected
+            btn.classList.remove('border-gray-200', 'bg-white');
+            if (seconds === 600) {
+                btn.classList.add('border-green-500', 'bg-green-50', 'scale-105', 'shadow-md');
+            } else if (seconds === 300) {
+                btn.classList.add('border-yellow-500', 'bg-yellow-50', 'scale-105', 'shadow-md');
+            } else {
+                btn.classList.add('border-red-500', 'bg-red-50', 'scale-105', 'shadow-md');
+            }
+            // Enable launch button only if student is also loaded
+            const studentIdentifier = sessionStorage.getItem('studentIdentifier');
+            if (studentIdentifier) {
+                const launchBtn = document.getElementById('start-button');
+                launchBtn.disabled = false;
+                launchBtn.classList.add('animate-pulse');
+                setTimeout(() => launchBtn.classList.remove('animate-pulse'), 1200);
+            }
+        }
+
+        async function startTest() {
+            selectedLevel = document.getElementById('level-select').value;
+
+            document.body.classList.add('focus-mode');
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('test-area').classList.remove('hidden');
+
+            const startBtn = document.getElementById('start-button');
+            startBtn.disabled = true;
+
+            try {
+                const questions = window.generateQuestions(selectedLevel, 30); 
+                
+                sumsData = questions.map(q => ({
+                    ...q, 
+                    studentAnswer: null 
+                }));
+                
+                renderChunks();
+                document.querySelectorAll('.answer-input').forEach(input => input.disabled = false);
+                document.querySelector('.answer-input').focus();
+                document.getElementById('next-btn').classList.remove('hidden');
+
+                startTime = Date.now();
+                startTimer();
+
+            } catch (err) {
+                console.error(err);
+                alert("Error launching mission. Please refresh.");
+                startBtn.disabled = false;
+            }
+        }
+		
+        function renderChunks() {
+            const carousel = document.getElementById('question-carousel');
+            carousel.innerHTML = '';
+            let questionCount = 0;
+
+            for (let slide = 0; slide < TOTAL_SLIDES; slide++) {
+                const slideDiv = document.createElement('div');
+                slideDiv.className = `slide-container ${slide === 0 ? 'active' : ''}`;
+                slideDiv.id = `slide-${slide}`;
+                slideDiv.innerHTML = `<h4 class="text-xl font-bold text-blue-800 mb-4 text-center">Set ${slide + 1} of ${TOTAL_SLIDES}</h4>`;
+
+                for (let i = 0; i < SUMS_PER_SLIDE; i++) {
+                    if (questionCount >= sumsData.length) break;
+                    const data = sumsData[questionCount];
+                    const index = questionCount;
+                    const dividend = data.x.toLocaleString('en-IN'); 
+                    
+                    const sumHtml = `
+                        <div class="sum-item">
+                            <span class="text-xl font-bold text-gray-600 w-8">${index + 1}.</span>
+                            <span class="text-2xl font-bold text-gray-800 tracking-wider">${dividend} &divide; ${data.y} = </span>
+                            <input type="number" data-index="${index}" class="answer-input w-24 p-2 border-2 border-gray-300 rounded-lg text-center text-2xl font-bold focus:outline-none focus:border-blue-500" placeholder="?" disabled>
+                        </div>
+                    `;
+                    slideDiv.innerHTML += sumHtml;
+                    questionCount++;
+                }
+                carousel.appendChild(slideDiv);
+            }
+            setupInputInteraction();
+        }
+
+        function setupInputInteraction() {
+            const inputs = document.querySelectorAll('.answer-input');
+            inputs.forEach((input) => {
+                input.addEventListener('input', (e) => {
+                    const idx = parseInt(input.getAttribute('data-index'));
+                    const val = parseInt(input.value);
+                    input.classList.remove('correct-answer', 'wrong-answer');
+                    if (!isNaN(val)) {
+                        sumsData[idx].studentAnswer = val;
+                    } else {
+                        sumsData[idx].studentAnswer = null;
+                    }
+                    updateProgress();
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const nextInput = inputs[parseInt(input.getAttribute('data-index')) + 1];
+                        if (nextInput) {
+                            if (nextInput.closest('.slide-container').classList.contains('active')) {
+                                nextInput.focus();
+                            } else {
+                                changeSlide(1);
+                            }
+                        } else {
+                            document.getElementById('submit-button').focus();
+                        }
+                    }
+                });
+            });
+        }
+
+        function updateStreak(isCorrect) {
+            const streakDisplay = document.getElementById('streak-display');
+            const streakCount = document.getElementById('streak-count');
+            if (isCorrect) {
+                currentStreak++;
+                if (currentStreak > 2) {
+                    streakDisplay.classList.remove('hidden');
+                    streakDisplay.classList.add('animate-bounce');
+                    setTimeout(() => streakDisplay.classList.remove('animate-bounce'), 1000);
+                }
+            } else {
+                currentStreak = 0;
+                streakDisplay.classList.add('hidden');
+            }
+            streakCount.textContent = currentStreak;
+        }
+
+        function updateProgress() {
+            const totalAnswered = sumsData.filter(s => s.studentAnswer !== null).length;
+            const percentage = (totalAnswered / TOTAL_SUMS) * 100;
+            document.getElementById('progress-bead').style.left = `${percentage}%`;
+            document.getElementById('progress-text').textContent = `${totalAnswered}/${TOTAL_SUMS} Solved`;
+        }
+
+        function changeSlide(direction) {
+            const slides = document.querySelectorAll('.slide-container');
+            slides[currentSlideIndex].classList.remove('active');
+            currentSlideIndex += direction;
+            slides[currentSlideIndex].classList.add('active');
+            
+            const firstInput = slides[currentSlideIndex].querySelector('input');
+            if (firstInput) firstInput.focus();
+            
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const submitBtn = document.getElementById('submit-button');
+            
+            prevBtn.classList.toggle('hidden', currentSlideIndex === 0);
+            if (currentSlideIndex === TOTAL_SLIDES - 1) {
+                nextBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+            }
+            window.scrollTo(0,0);
+        }
+
+        function startTimer() {
+            let remaining = selectedTimeLimit;
+            function updateDisplay() {
+                const m = Math.floor(remaining / 60);
+                const s = remaining % 60;
+                const text = `${m}:${s < 10 ? '0' : ''}${s}`;
+                const el = document.getElementById('countdown-text');
+                const wrapper = document.getElementById('countdown-display');
+                el.textContent = text;
+                if (remaining <= 30) {
+                    wrapper.className = 'flex items-center gap-1.5 bg-red-100 border border-red-400 px-3 py-1 rounded-full animate-pulse';
+                    el.className = 'font-black text-red-600 text-lg tabular-nums';
+                } else if (remaining <= 60) {
+                    wrapper.className = 'flex items-center gap-1.5 bg-orange-50 border border-orange-400 px-3 py-1 rounded-full';
+                    el.className = 'font-black text-orange-600 text-lg tabular-nums';
+                }
+            }
+            updateDisplay();
+            countdownInterval = setInterval(() => {
+                remaining--;
+                updateDisplay();
+                if (remaining <= 0) {
+                    clearInterval(countdownInterval);
+                    isTimedOut = true;
+                    endTest();
+                }
+            }, 1000);
+            timerInterval = setInterval(() => {}, 1000);
+        }
+		
+		function activateWatchdog(correctScore) {
+    	const scoreElement = document.getElementById('report-correct');
+    
+    	const enforceScore = () => {
+        const currentText = scoreElement.innerText.trim();
+        const correctText = String(correctScore);
+        
+        if (currentText !== correctText) {
+            scoreElement.innerText = correctText;
+            scoreElement.style.color = "#dc2626";
+            scoreElement.style.textDecoration = "line-through";
+            console.log("Security: Score tampered. Reverted.");
+        }
+    	};
+			
+    	const observer = new MutationObserver(enforceScore);
+   	 	observer.observe(scoreElement, { 
+        characterData: true, 
+        childList: true, 
+        subtree: true 
+    	});
+			
+    	setInterval(enforceScore, 100);
+		}
+
+        async function endTest() {
+            console.log("🚀 Ending Special Division Test..."); 
+
+            const submitBtn = document.getElementById('submit-button');
+            if (submitBtn.disabled) return;
+            // Make visible in case auto-triggered from a non-last slide
+            submitBtn.classList.remove('hidden');
+            submitBtn.textContent = isTimedOut ? "⏰ Time's Up! Processing..." : "Processing...";
+            submitBtn.disabled = true;
+
+            clearInterval(timerInterval);
+            clearInterval(countdownInterval);
+            document.getElementById('countdown-text').textContent = '0:00';
+            document.getElementById('countdown-display').className = 'flex items-center gap-1.5 bg-gray-100 border border-gray-300 px-3 py-1 rounded-full';
+
+            const endTime = Date.now();
+            const timeElapsedSeconds = Math.floor((endTime - startTime) / 1000);
+            const minutes = Math.floor(timeElapsedSeconds / 60);
+            const seconds = timeElapsedSeconds % 60;
+            const timeFormatted = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+            let score = 0;
+            let mistakesArray = [];
+
+            sumsData.forEach((q, index) => {
+                let correctVal = q.quotient; 
+                let studentVal = parseInt(q.studentAnswer);
+                
+                if (studentVal === correctVal) {
+                    score++;
+                } else {
+                    if (q.studentAnswer !== null && q.studentAnswer !== "") {
+                        mistakesArray.push({
+                            question: `${q.x} ÷ ${q.y}`, 
+                            wrong: q.studentAnswer, 
+                            correct: correctVal
+                        });
+                    }
+                }
+            });
+
+            document.getElementById('report-correct').textContent = score;
+            activateWatchdog(score);
+            document.getElementById('report-time-elapsed').textContent = timeFormatted;
+            
+            let attemptedCount = sumsData.filter(s => s.studentAnswer !== null).length;
+            let avgTimeDisplay = attemptedCount > 0 ? `${(timeElapsedSeconds / attemptedCount).toFixed(2)}s` : 'N/A';
+            document.getElementById('report-avg-time').textContent = avgTimeDisplay;
+
+            const now = new Date();
+            document.getElementById('report-datetime').textContent = now.toLocaleDateString();
+            
+            const studentName = sessionStorage.getItem('studentIdentifier') || "Student";
+            document.getElementById('report-student-name').textContent = studentName;
+
+            sessionStorage.setItem('mistakesData', JSON.stringify(mistakesArray));
+            const wrongBtn = document.getElementById('see-wrong-button');
+            
+            if (mistakesArray.length > 0) {
+                wrongBtn.textContent = `Review ${mistakesArray.length} Mistakes`;
+                wrongBtn.disabled = false;
+                wrongBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                wrongBtn.textContent = "Perfect Score!";
+                wrongBtn.disabled = true;
+                wrongBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+
+            if (window.lilChampUtils && window.lilChampUtils.saveResult) {
+                window.lilChampUtils.saveResult({
+                    challenge: selectedLevel + (isTimedOut ? " (T)" : ""),
+                    score: score,
+                    total: sumsData.length, 
+                    time: timeFormatted,
+                    accuracy: Math.round((score / sumsData.length) * 100) + "%",
+                    mistakes: mistakesArray
+                });
+            } else {
+                console.error("❌ lilChampUtils not found!");
+                alert("Error: Could not save result. Please refresh.");
+            }
+
+            if (isTimedOut) {
+                const reportMsg = document.getElementById('report-main-msg');
+                reportMsg.textContent = "⏰ Time's Up!";
+                reportMsg.classList.replace('text-blue-800', 'text-orange-700');
+            }
+
+            document.body.classList.remove('focus-mode');
+            document.getElementById('test-area').classList.add('hidden');
+            document.getElementById('report-area').classList.remove('hidden');
+            
+            if (score === sumsData.length && !isTimedOut && window.lilChampUtils) {
+                window.lilChampUtils.celebrate();
+            }
+        }
+		
+        function showSecureMistakes() {
+            const mistakes = JSON.parse(sessionStorage.getItem('mistakesData') || "[]");
+            const listContainer = document.getElementById('wrong-sums-list');
+            listContainer.innerHTML = '';
+            
+            mistakes.forEach(m => {
+                const row = `
+                    <div class="grid grid-cols-3 text-center py-2 border-b hover:bg-red-50">
+                        <span class="font-bold text-gray-700">${m.question}</span>
+                        <span class="text-red-500 font-bold line-through">${m.wrong}</span>
+                        <span class="text-green-600 font-bold">${m.correct}</span>
+                    </div>`;
+                listContainer.innerHTML += row;
+            });
+
+            document.getElementById('report-area').classList.add('hidden');
+            document.getElementById('wrong-answer-area').classList.remove('hidden');
+        }
+
+        function showReport() {
+            document.getElementById('wrong-answer-area').classList.add('hidden');
+            document.getElementById('report-area').classList.remove('hidden');
+        }
+
+		document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12') {
+                e.preventDefault();
+                return false;
+            }
+            if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+                e.preventDefault();
+                return false;
+            }
+            if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                e.preventDefault();
+                return false;
+            }
+            if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+                e.preventDefault();
+                return false;
+            }
+            if (e.ctrlKey && e.key === 'u') {
+                e.preventDefault();
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>
