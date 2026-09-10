@@ -5,6 +5,11 @@
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk";
   const page = document.currentScript?.dataset?.page || '';
 
+  function onReady(fn) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true });
+    else fn();
+  }
+
   function revealPage() {
     document.documentElement.style.visibility = 'visible';
     const hider = document.getElementById('levelAccessHide');
@@ -12,7 +17,7 @@
   }
 
   function showLocked(level) {
-    document.addEventListener('DOMContentLoaded', () => {
+    onReady(() => {
       document.body.innerHTML = `
         <div style="min-height:100vh;background:#f0f9ff;display:flex;align-items:center;justify-content:center;padding:24px;font-family:Arial,sans-serif;">
           <div style="max-width:520px;width:100%;background:white;border-radius:18px;padding:32px;text-align:center;box-shadow:0 15px 40px rgba(0,0,0,.12);">
@@ -23,7 +28,7 @@
           </div>
         </div>`;
       revealPage();
-    }, { once: true });
+    });
   }
 
   async function run() {
