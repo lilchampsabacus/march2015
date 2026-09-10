@@ -28,6 +28,16 @@
 
       if (profile.role === 'student') {
         const level = Number(profile.current_level);
+
+        if (level === 1) {
+          document.querySelectorAll('a.practice-card').forEach(card => {
+            const href = card.getAttribute('href') || '';
+            if (href !== 'ContAddSub.html') card.style.display = 'none';
+          });
+          revealPage();
+          return;
+        }
+
         const decimalCard = document.querySelector('a[href="decimal.html"]');
         const negativeCard = document.querySelector('a[href="negative.html"]');
 
