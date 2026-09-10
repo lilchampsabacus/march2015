@@ -2,12 +2,67 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <title>Today's Daily Practice | Li'l Champs</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    *{box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f0f9ff;margin:0;color:#1f2937;min-height:100vh}.safe-bottom{padding-bottom:max(16px,env(safe-area-inset-bottom))}.section-card{transition:.18s transform,.18s box-shadow}.section-card:not([disabled]):active{transform:scale(.985)}.num-btn{min-height:58px;font-size:1.45rem;font-weight:800;border-radius:14px;background:#fff;border:1px solid #dbeafe;box-shadow:0 2px 7px rgba(0,0,0,.06)}.num-btn:active{background:#eef2ff;transform:scale(.97)}.pm-rows{font-variant-numeric:tabular-nums;line-height:1.03}.answer-box{font-variant-numeric:tabular-nums}@media(max-height:720px){.num-btn{min-height:48px}.pm-rows{font-size:1.45rem!important}}
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f0f9ff;color:#1f2937}
+    .safe-bottom{padding-bottom:max(16px,env(safe-area-inset-bottom))}
+    .section-card{transition:.18s transform,.18s box-shadow}
+    .section-card:not([disabled]):active{transform:scale(.985)}
+    .num-btn{min-height:58px;font-size:1.45rem;font-weight:800;border-radius:14px;background:#fff;border:1px solid #dbeafe;box-shadow:0 2px 7px rgba(0,0,0,.06);touch-action:manipulation}
+    .num-btn:active{background:#eef2ff;transform:scale(.97)}
+    .pm-rows{font-variant-numeric:tabular-nums;line-height:1.03}
+    .answer-box{font-variant-numeric:tabular-nums}
+
+    /* During solving: use the complete available screen. No page scrolling. */
+    body.solve-mode{height:100dvh;max-height:100dvh;width:100%;overflow:hidden;position:fixed;inset:0;touch-action:none}
+    body.solve-mode>header{display:none!important}
+    body.solve-mode>main{height:100dvh;max-height:100dvh;max-width:none!important;width:100%;padding:0!important;overflow:hidden!important}
+    body.solve-mode #app{height:100%;width:100%;display:block!important}
+    body.solve-mode #student-summary{display:none!important}
+    body.solve-mode #question-screen{height:100dvh;width:100%;padding:6px;overflow:hidden;display:grid!important;grid-template-rows:minmax(0,1fr) auto;gap:6px;background:#f0f9ff}
+    body.solve-mode #question-topbar,body.solve-mode #question-progress-track{display:none!important}
+    body.solve-mode #question-card{margin:0!important;min-height:0!important;height:100%;overflow:hidden;border-radius:14px;padding:6px 10px!important;display:flex!important;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+    body.solve-mode #question-display{height:100%;width:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden}
+    body.solve-mode #question-display>.text-xs,body.solve-mode #question-display>.text-sm{display:none!important}
+    body.solve-mode .pm-rows{font-size:clamp(1.15rem,3.6dvh,2.35rem)!important;line-height:.96!important;font-weight:800!important}
+    body.solve-mode #question-display>div:last-child:not(.pm-rows){font-size:clamp(2.3rem,8vw,5.5rem)!important;line-height:1.05!important}
+
+    body.solve-mode #keypad-card{position:static!important;margin:0!important;padding:6px!important;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.08);padding-bottom:max(6px,env(safe-area-inset-bottom))!important}
+    body.solve-mode #answer-display{height:clamp(40px,6.6dvh,56px)!important;margin-bottom:5px!important;border-radius:10px;font-size:clamp(1.55rem,4dvh,2.3rem)!important}
+    body.solve-mode #number-grid{gap:5px!important;margin-bottom:5px!important}
+    body.solve-mode .num-btn{min-height:clamp(40px,7dvh,58px)!important;border-radius:10px;font-size:clamp(1.15rem,3.1dvh,1.7rem)!important}
+    body.solve-mode #action-grid{gap:5px!important}
+    body.solve-mode #skip-btn,body.solve-mode #next-btn{min-height:clamp(40px,6.5dvh,54px)!important;border-radius:10px;font-size:clamp(1rem,2.6dvh,1.3rem)!important;touch-action:manipulation}
+
+    /* Laptop/tablet landscape: same concept as existing practice pages — question left, keypad right. */
+    @media (min-width:768px) and (min-aspect-ratio:1.15/1){
+      body.solve-mode #question-screen{grid-template-columns:minmax(0,1.15fr) minmax(330px,.85fr);grid-template-rows:1fr;gap:12px;padding:12px}
+      body.solve-mode #question-card{border-radius:22px;padding:12px!important}
+      body.solve-mode #keypad-card{border-radius:22px;padding:12px!important;display:flex;flex-direction:column;justify-content:center}
+      body.solve-mode #answer-display{height:clamp(50px,8vh,70px)!important;margin-bottom:8px!important}
+      body.solve-mode #number-grid{gap:8px!important;margin-bottom:8px!important}
+      body.solve-mode .num-btn{min-height:clamp(44px,8.5vh,72px)!important;font-size:clamp(1.35rem,3.4vh,2rem)!important}
+      body.solve-mode #action-grid{gap:8px!important}
+      body.solve-mode #skip-btn,body.solve-mode #next-btn{min-height:clamp(46px,7.5vh,62px)!important}
+      body.solve-mode .pm-rows{font-size:clamp(1.55rem,4.2vh,3rem)!important;line-height:.98!important}
+      body.solve-mode #question-display>div:last-child:not(.pm-rows){font-size:clamp(3.2rem,6vw,6.5rem)!important}
+    }
+
+    @media(max-height:620px) and (max-aspect-ratio:1.14/1){
+      body.solve-mode #question-screen{padding:3px;gap:3px}
+      body.solve-mode #question-card{padding:2px 6px!important}
+      body.solve-mode #keypad-card{padding:4px!important}
+      body.solve-mode #answer-display{height:38px!important;margin-bottom:3px!important}
+      body.solve-mode #number-grid{gap:3px!important;margin-bottom:3px!important}
+      body.solve-mode .num-btn{min-height:36px!important}
+      body.solve-mode #action-grid{gap:3px!important}
+      body.solve-mode #skip-btn,body.solve-mode #next-btn{min-height:38px!important}
+      body.solve-mode .pm-rows{font-size:1.05rem!important;line-height:.92!important}
+    }
   </style>
 </head>
 <body>
@@ -20,7 +75,7 @@
   <main class="max-w-5xl mx-auto p-3 sm:p-5 safe-bottom">
     <div id="loading" class="bg-white rounded-2xl shadow p-8 text-center font-bold text-indigo-600">Loading today's practice...</div>
     <section id="app" class="hidden">
-      <div class="bg-white rounded-2xl shadow p-4 mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div id="student-summary" class="bg-white rounded-2xl shadow p-4 mb-4 flex flex-wrap items-center justify-between gap-3">
         <div><div id="student-name" class="font-black text-xl"></div><div class="text-gray-500 text-sm"><span id="level-label"></span> · <span id="date-label"></span></div></div>
         <div class="text-right"><div id="overall-status" class="inline-flex px-3 py-1 rounded-full text-sm font-black bg-amber-100 text-amber-800">Not Started</div><div id="overall-progress" class="text-xs text-gray-500 mt-1"></div></div>
       </div>
@@ -30,18 +85,18 @@
         <div class="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-900"><b>Rule:</b> Plus & Minus has no skip. Multiplication and Division allow Skip when you cannot solve a sum.</div>
       </section>
       <section id="question-screen" class="hidden">
-        <div class="flex items-center justify-between gap-3 mb-3"><div><div id="section-title" class="font-black text-xl"></div><div id="question-progress" class="text-sm text-gray-500"></div></div><div class="text-right"><div class="text-xs text-gray-500">Section Time</div><div id="timer" class="font-black text-indigo-700 text-xl tabular-nums">00:00</div></div></div>
-        <div class="w-full bg-gray-200 rounded-full h-2 mb-3 overflow-hidden"><div id="progress-bar" class="bg-indigo-600 h-2 rounded-full" style="width:0%"></div></div>
-        <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-3 min-h-[210px] flex items-center justify-center"><div id="question-display" class="w-full text-center"></div></div>
-        <div class="bg-white rounded-2xl shadow p-3 sticky bottom-0 z-20 safe-bottom">
+        <div id="question-topbar" class="flex items-center justify-between gap-3 mb-3"><div><div id="section-title" class="font-black text-xl"></div><div id="question-progress" class="text-sm text-gray-500"></div></div><div class="text-right"><div class="text-xs text-gray-500">Section Time</div><div id="timer" class="font-black text-indigo-700 text-xl tabular-nums">00:00</div></div></div>
+        <div id="question-progress-track" class="w-full bg-gray-200 rounded-full h-2 mb-3 overflow-hidden"><div id="progress-bar" class="bg-indigo-600 h-2 rounded-full" style="width:0%"></div></div>
+        <div id="question-card" class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-3 min-h-[210px] flex items-center justify-center"><div id="question-display" class="w-full text-center"></div></div>
+        <div id="keypad-card" class="bg-white rounded-2xl shadow p-3 safe-bottom">
           <div id="answer-display" class="answer-box w-full h-14 rounded-xl bg-gray-50 border-2 border-indigo-200 flex items-center justify-center text-3xl font-black text-gray-800 mb-3">—</div>
-          <div class="grid grid-cols-3 gap-2 mb-2">
+          <div id="number-grid" class="grid grid-cols-3 gap-2 mb-2">
             <button class="num-btn" data-key="1">1</button><button class="num-btn" data-key="2">2</button><button class="num-btn" data-key="3">3</button>
             <button class="num-btn" data-key="4">4</button><button class="num-btn" data-key="5">5</button><button class="num-btn" data-key="6">6</button>
             <button class="num-btn" data-key="7">7</button><button class="num-btn" data-key="8">8</button><button class="num-btn" data-key="9">9</button>
             <button class="num-btn text-red-600" data-key="back">⌫</button><button class="num-btn" data-key="0">0</button><button class="num-btn text-gray-500" data-key="clear">C</button>
           </div>
-          <div class="grid grid-cols-2 gap-2"><button id="skip-btn" class="hidden min-h-[52px] rounded-xl bg-gray-100 text-gray-700 font-black text-lg">Skip</button><button id="next-btn" class="min-h-[52px] rounded-xl bg-indigo-600 text-white font-black text-lg disabled:opacity-40 disabled:cursor-not-allowed col-span-2">Submit & Next</button></div>
+          <div id="action-grid" class="grid grid-cols-2 gap-2"><button id="skip-btn" class="hidden min-h-[52px] rounded-xl bg-gray-100 text-gray-700 font-black text-lg">Skip</button><button id="next-btn" class="min-h-[52px] rounded-xl bg-indigo-600 text-white font-black text-lg disabled:opacity-40 disabled:cursor-not-allowed col-span-2">Submit & Next</button></div>
         </div>
       </section>
       <section id="section-result" class="hidden bg-white rounded-2xl shadow-xl p-6 text-center"><div class="text-5xl mb-2">✅</div><h2 id="section-result-title" class="text-2xl font-black"></h2><div id="section-result-stats" class="text-gray-600 mt-2"></div><button id="choose-next-btn" class="mt-5 bg-indigo-600 text-white font-black px-6 py-3 rounded-xl">Choose Next Section</button></section>
@@ -51,5 +106,14 @@
     <section id="error-screen" class="hidden bg-white rounded-2xl shadow p-8 text-center"><div class="text-5xl mb-2">⚠️</div><h1 class="text-xl font-black">Unable to load Daily Practice</h1><p id="error-text" class="text-gray-500 mt-2">Please check your internet and try again.</p><button onclick="location.reload()" class="mt-5 bg-indigo-600 text-white font-bold px-5 py-3 rounded-xl">Try Again</button></section>
   </main>
   <script src="daily-practice.js?v=1"></script>
+  <script>
+    (function(){
+      const q=document.getElementById('question-screen');
+      if(!q)return;
+      function syncSolveMode(){document.body.classList.toggle('solve-mode',!q.classList.contains('hidden'))}
+      new MutationObserver(syncSolveMode).observe(q,{attributes:true,attributeFilter:['class']});
+      syncSolveMode();
+    })();
+  </script>
 </body>
 </html>
