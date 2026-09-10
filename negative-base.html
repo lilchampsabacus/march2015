@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Negative Answer Mission</title>
+    
+    <link rel="stylesheet" href="elegant-theme.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="gamify.js?v=2" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            position: fixed;
+            touch-action: none;
+            margin: 0;
+
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0f9ff; 
+            background-image: radial-gradient(#e0f2fe 2px, transparent 2px);
+            background-size: 24px 24px;
+
+            display: flex;
+            flex-direction: column;
+        }
+
+        main {
+            flex-grow: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        body.focus-mode header, 
+        body.focus-mode footer, 
+        body.focus-mode .back-link { 
+            display: none !important; 
+        }
+        
+        body.focus-mode #test-area {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .slide-container { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .slide-container.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .sum-table { width: 100%; border-collapse: collapse; margin: 0 auto; background: white; }
+        .number-cell { text-align: center; font-size: 1.5rem; font-weight: 700; padding: 0; border-bottom: 1px solid #e5e7eb; color: #374151; line-height: 1.2; }
+        @media (min-width: 768px) { .number-cell { font-size: 2rem; padding: 0.25rem; } }
+        .sum-table tr:nth-child(even) { background-color: #f9fafb; }
+        .sum-table tr:last-child .number-cell { border-bottom: 4px solid #1f2937; }
+        .row-index { font-size: 0.7rem; color: #9ca3af; text-align: right; padding-right: 6px; width: 25px; border: none; }
+        .negative-number { color: #dc2626; }
+
+        /* Borrow badge column */
+        .borrow-cell {
+            text-align: left;
+            padding-left: 6px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: middle;
+            white-space: nowrap;
+            width: 1%;
+        }
+        .borrow-tag {
+            display: inline-block;
+            background: #fef3c7;
+            border: 1.5px solid #fbbf24;
+            color: #92400e;
+            font-size: 0.58rem;
+            font-weight: 900;
+            padding: 2px 7px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        /* Answer formula box */
+        .answer-formula-wrap {
+            margin: 0.6rem 0.2rem 0.2rem;
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border: 2px solid #86efac;
+            border-radius: 0.6rem;
+            padding: 0.55rem 0.8rem;
+            text-align: center;
+        }
+        .formula-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+        .formula-label {
+            font-size: 0.65rem;
+            font-weight: 900;
+            color: #15803d;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .formula-text {
+            font-size: 0.9rem;
+            font-weight: 900;
+            color: #166534;
+            font-family: 'Courier New', monospace;
+        }
+        
+        body.focus-mode { background-color: #f0f9ff !important; color: #433422; height: 100vh; overflow-y: auto; }
+        body.focus-mode header, body.focus-mode footer, body.focus-mode .back-link { display: none !important; }
+        body.focus-mode #test-area { background-color: transparent !important; box-shadow: none !important; padding: 0 !important; }
+        .hidden { display: none !important; }
+        
+        @media (max-width: 768px) {
+            .sum-table td { padding: 0 !important; height: auto !important; }
+            .number-cell { font-size: 1.25rem !important; line-height: 1.1 !important; padding-bottom: 2px !important; }
+            .row-index { font-size: 0.6rem !important; width: 15px !important; padding-right: 2px !important; }
+            #question-carousel { margin-bottom: 0.5rem; }
+            #question-carousel .text-center { font-size: 0.65rem !important; margin-bottom: 0 !important; }
+        }
+        
+        .review-card { border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 1rem; background: white; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans" oncontextmenu="alert('🚫 Access Denied: Secure Mission Active!'); return false;">
+
+    <header class="bg-indigo-600 text-white p-4 shadow-lg sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl sm:text-2xl font-bold">Li'l Champs Abacus Academy</h1>
+        </div>
+    </header>
+
+    <main class="flex-grow w-full p-2 sm:p-6 flex flex-col items-center">
+        <h2 class="text-2xl font-extrabold text-blue-900 mb-4 text-center back-link">Negative Answer Mission</h2>
+
+        <section id="start-screen" class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-lg w-full">
+            <h3 class="text-2xl font-bold mb-4 text-gray-800">Configure Mission</h3>            
+            <div class="mb-6 hidden"> 
+                <input type="text" id="student-identifier-input" class="w-full" readonly>
+            </div>
+            
+            <div class="inline-block bg-blue-100 text-blue-800 px-4 py-2 rounded-full font-bold mb-6">
+                Pilot: <span id="auto-student-name-display">... Loading ...</span>
+            </div>
+
+            <div class="mb-8 text-left">
+                <label for="practice-type" class="block text-sm font-bold text-gray-700 mb-2">Select Difficulty:</label>
+                <select id="practice-type" class="w-full p-3 border-2 border-blue-300 rounded-lg bg-gray-50 text-lg font-semibold">
+                    <option value="neg-1d10r">1-Digit 10 Rows (Negative)</option>
+                    <option value="neg-2d10r" selected>2-Digit 10 Rows (Negative)</option>
+                    <option value="neg-3d10r">3-Digit 10 Rows (Negative)</option>
+                    <option value="neg-4d10r">4-Digit 10 Rows (Negative)</option>
+                    <option value="neg-5d10r">5-Digit 10 Rows (Negative)</option>
+                </select>
+            </div>
+
+            <div class="mb-8">
+                <p class="inline-block bg-blue-50 text-blue-800 font-semibold px-4 py-2 rounded-lg border border-blue-200 shadow-sm">
+                    ⚠️ The final answer will always be negative (-).
+                </p>
+            </div>
+
+            <!-- ⏱️ TIME LIMIT SELECTION -->
+            <div class="mb-6 w-full">
+                <p class="text-base font-bold text-gray-700 mb-3">⏱️ Select Your Time Limit:</p>
+                <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                    <button onclick="selectTimeLimit(720, this)" id="time-btn-720"
+                        class="time-option-btn flex-1 py-4 px-4 rounded-xl border-2 border-gray-200 bg-white font-bold text-gray-700 transition-all duration-200 hover:border-green-400 hover:bg-green-50">
+                        <div class="text-2xl mb-1">🐢</div>
+                        <div class="text-lg">12 Minutes</div>
+                        <div class="text-xs font-semibold text-green-600 uppercase tracking-wide mt-1">Beginner</div>
+                    </button>
+                    <button onclick="selectTimeLimit(600, this)" id="time-btn-600"
+                        class="time-option-btn flex-1 py-4 px-4 rounded-xl border-2 border-gray-200 bg-white font-bold text-gray-700 transition-all duration-200 hover:border-yellow-400 hover:bg-yellow-50">
+                        <div class="text-2xl mb-1">🚀</div>
+                        <div class="text-lg">10 Minutes</div>
+                        <div class="text-xs font-semibold text-yellow-600 uppercase tracking-wide mt-1">Intermediate</div>
+                    </button>
+                    <button onclick="selectTimeLimit(480, this)" id="time-btn-480"
+                        class="time-option-btn flex-1 py-4 px-4 rounded-xl border-2 border-gray-200 bg-white font-bold text-gray-700 transition-all duration-200 hover:border-red-400 hover:bg-red-50">
+                        <div class="text-2xl mb-1">⚡</div>
+                        <div class="text-lg">8 Minutes</div>
+                        <div class="text-xs font-semibold text-red-600 uppercase tracking-wide mt-1">Pro</div>
+                    </button>
+                </div>
+            </div>
+
+            <button id="start-button" onclick="startTest()" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold text-xl py-4 px-12 rounded-full shadow-lg disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+                🚀 Launch Mission
+            </button>
+        </section>
+
+        <section id="test-area" class="hidden w-full max-w-4xl">
+            <div class="flex flex-col md:flex-row gap-4 items-start justify-center">
+                <div class="w-full md:w-1/2 max-w-sm mx-auto bg-white p-2 md:p-4 rounded-xl shadow-lg border-2 border-blue-100 order-1">
+                    <div id="question-carousel"></div>
+                </div>
+
+                <div class="w-full md:w-1/2 max-w-sm mx-auto order-2 md:sticky md:top-4">
+                    <div class="bg-blue-50 p-3 rounded-xl border border-blue-200 shadow-sm mb-4">
+                        <label class="hidden md:block text-blue-900 font-bold mb-2 text-center">Enter Answer (Use '-' sign):</label>
+                        <input type="text" inputmode="none" id="answer-input" class="answer-input w-full p-3 border-2 border-blue-300 rounded-lg text-center text-3xl font-bold focus:outline-none focus:border-blue-600 bg-white mb-2 shadow-inner" placeholder="-?">
+                    </div>
+
+                    <div class="bg-white p-3 rounded-xl shadow-md border-l-4 border-orange-400">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-gray-500 font-bold text-xs uppercase">Progress</span>
+                            <!-- Countdown Timer -->
+                            <div id="countdown-display" class="flex items-center gap-1 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
+                                <span class="text-indigo-500 text-xs">⏱️</span>
+                                <span id="countdown-text" class="font-black text-indigo-700 text-base tabular-nums">--:--</span>
+                            </div>
+                        </div>
+                        <div class="relative w-full h-8 mt-2 mb-2 select-none">
+                            <div class="absolute top-1/2 left-0 w-full h-1 bg-gray-800 -translate-y-1/2 rounded shadow-inner border border-gray-600"></div>
+                            <div id="progress-bead" class="absolute top-1/2 -translate-y-1/2 transition-all duration-500 transform -translate-x-1/2 z-10 drop-shadow-lg" style="left: 0%">
+                                <svg width="46" height="30" viewBox="0 0 46 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M20 15 L26 15" stroke="#333" stroke-width="4"/>
+                                    <path d="M3 15 L23 27 L43 15" fill="#A0522D" stroke="#8B4513" stroke-width="1"/>
+                                    <path d="M3 15 L23 3 L43 15" fill="#E67C26" stroke="#CD853F" stroke-width="1"/>
+                                    <path d="M3 15 L43 15" stroke="rgba(0,0,0,0.1)" stroke-width="0.5"/>
+                                    <ellipse cx="23" cy="9" rx="8" ry="3" fill="white" fill-opacity="0.3"/>
+                                    <circle cx="23" cy="3" r="1.5" fill="#333" fill-opacity="0.2"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="text-right text-xs text-gray-500 mt-1 font-bold" id="progress-text">0/10</div>
+                    </div>
+
+                    <div id="custom-keypad" class="grid grid-cols-4 gap-2 mt-4 select-none">
+                        <button class="key-btn bg-white border-2 border-gray-200 rounded-lg text-2xl font-bold py-4 shadow-sm active:bg-gray-100" onclick="handleKey('7')">7</button>
+                        <button class="key-btn bg-white border-2 border-gray-200 rounded-lg text-2xl font-bold py-4 shadow-sm active:bg-gray-100" onclick="handleKey('8')">8</button>
+                        <button class="key-btn bg-white border-2 border-gray-200 rounded-lg text-2xl font-bold py-4 shadow-sm active:bg-gray-100" onclick="handleKey('9')">9</button>
+                        <button class="key-btn bg-red-50 border-2 border-red-100 text-red-500 rounded-lg text-xl font-bold py-4 shadow-sm active:bg-red-100" onclick="handleKey('backspace')"><i class="fa-solid fa-delete-left"></i> ⌫</button>
+                        <button class="key-btn bg-white border-2 border-gray-200 rounded-lg text-2xl font-bold py-4 shadow-sm active:bg-gray-100" onclick="handleKey('4')">4</button>
+                        <button class="key-btn bg-white border-2 border-gray-200 rounded-lg text-2xl font-bold py-4 shadow-sm active:bg-gray-100" onclick="handleKey('5')">5</button>
+                        <button class="key-btn bg-white border-2 border-gray-200 rounded-lg text-2xl font-bold py-4 shadow-sm active:bg-gray-100" onclick="handleKey('6')">6</button>
+                        <button class="key-btn bg-blue-50 border-2 border-blue-100 text-blue-600 rounded-lg text-2xl font-bold py-4 shadow-sm active:bg-blue-100" onclick="handleKey('-')">-</button>
+                        <button class="key-btn bg-white border-2 border-gray-200 rounded-lg text-2xl font-bold py-4 shadow-sm active:bg-gray-100" onclick="handleKey('1')">1</button>
+                        <button class="key-btn bg-white border-2 border-gray-200 rounded-lg text-2xl font-bold py-4 shadow-sm active:bg-gray-100" onclick="handleKey('2')">2</button>
+                        <button class="key-btn bg-white border-2 border-gray-200 rounded-lg text-2xl font-bold py-4 shadow-sm active:bg-gray-100" onclick="handleKey('3')">3</button>
+                        <button class="key-btn bg-blue-50 border-2 border-blue-100 text-blue-600 rounded-lg text-2xl font-bold py-4 shadow-sm active:bg-blue-100" onclick="handleKey('.')">.</button>
+                        <button class="key-btn col-span-2 bg-white border-2 border-gray-200 rounded-lg text-2xl font-bold py-4 shadow-sm active:bg-gray-100" onclick="handleKey('0')">0</button>
+                        <button id="enter-btn" class="key-btn col-span-2 bg-indigo-600 text-white rounded-lg text-xl font-bold py-4 shadow-lg active:scale-95 transition-transform" onclick="submitAndNext()">ENTER</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="report-area" class="hidden flex justify-center mt-4">
+            <div id="report-card" class="max-w-fit w-full bg-white border-4 border-blue-100 p-6 rounded-2xl shadow-2xl relative overflow-hidden">
+                <div class="text-center border-b border-gray-100 pb-2 mb-4">
+                    <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest">Skill Mastery</span>
+                    <h2 class="text-2xl font-extrabold text-gray-700 mt-2" id="report-level-title">Negative Sums</h2>
+                </div>
+                <h3 id="report-main-msg" class="text-3xl font-black text-center text-blue-800 mb-2">Mission Accomplished!</h3>
+                <p class="text-center text-gray-500 mb-6 border-b pb-4"><span id="report-datetime"></span> | Agent: <span id="report-student-name" class="font-bold text-blue-600"></span></p>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-green-50 p-4 rounded-xl border-2 border-green-100 text-center">
+                        <p class="text-xs text-green-600 uppercase font-bold tracking-wider">Accuracy</p>
+                        <p class="text-3xl font-black text-green-700"><span id="report-correct">0</span><span class="text-xl text-gray-400">/10</span></p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-xl border-2 border-purple-100 text-center">
+                        <p class="text-xs text-purple-600 uppercase font-bold tracking-wider">Total Time</p>
+                        <p class="text-3xl font-black text-purple-800" id="report-time-elapsed">0:00</p>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg mb-6 text-center">
+                    <p class="text-xs text-gray-500">Avg Speed per Sum</p>
+                    <p class="text-xl font-bold text-gray-700" id="report-avg-time">N/A</p>
+                </div>
+                <button onclick="downloadReport()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 mb-3 shadow-lg flex items-center justify-center gap-2">Save Badge (Download)</button>
+                <button id="see-wrong-button" onclick="showWrongAnswers()" class="w-full bg-red-100 text-red-700 font-bold py-3 rounded-lg hover:bg-red-200 mb-3" disabled>Review Mistakes</button>
+                <button onclick="window.location.reload()" class="w-full border-2 border-gray-300 text-gray-600 font-bold py-3 rounded-lg hover:bg-gray-50">🔄 Replay Mission</button>
+            </div>
+        </section>
+
+        <section id="wrong-answer-area" class="hidden w-full max-w-4xl mx-auto p-4">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Mission Debrief: Corrections</h3>
+            <div id="wrong-sums-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+            <button onclick="showReport()" class="mt-6 w-full bg-gray-600 text-white font-bold py-3 rounded-lg">&larr; Back to Scoreboard</button>
+        </section>
+    </main>
+
+    <footer class="bg-white text-center p-6 mt-auto border-t border-gray-200">
+    <p class="text-sm text-gray-500">Developed by: Practice Buddy Pvt Ltd</p>
+    </footer>
+
+    <script>
+        if (sessionStorage.getItem('isLoggedIn') !== 'true') { window.location.href = 'index.html'; }
+        
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwvkMXKRqBq7Szo1EWQvYhk5nFcDik-n4GDooEqd2Vxv1b_4V4SfxOnr9VauSZYUWy-6Q/exec";
+        
+        let TOTAL_SUMS = 10; 
+        let sumsData = [];
+        let startTime;
+        let currentSlideIndex = 0;
+        let timerInterval;
+        let countdownInterval;
+        let isSubmitting = false;
+        let selectedTimeLimit = null;
+        let isTimedOut = false;
+
+        function saveOrQueueResult(payload) {
+            if (navigator.onLine) {
+                if (window.lilChampUtils?.saveResult) {
+                    window.lilChampUtils.saveResult(payload);
+                }
+            } else {
+                payload.offlineTimestamp = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" });
+                
+                let queue = JSON.parse(localStorage.getItem('offlineResultsQueue') || '[]');
+                queue.push(payload);
+                localStorage.setItem('offlineResultsQueue', JSON.stringify(queue));
+                alert("📡 Connection lost! Don't worry, your mission report is saved locally. It will automatically upload to headquarters when you reconnect to the internet.");
+            }
+        }
+
+        function handleKey(key) {
+            const input = document.getElementById('answer-input');
+            if (key === 'backspace') {
+                input.value = input.value.slice(0, -1);
+            } else if (key === '.' || key === '-') {
+                input.value += key;
+            } else {
+                input.value += key;
+            }
+        }
+
+        function formatStudentName(identifier) {
+            if (!identifier || typeof identifier !== 'string') return 'Pilot';
+            const namePart = identifier.split('@')[0];
+            return namePart.split('.').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+        }
+
+        function downloadReport() {
+            const reportElement = document.getElementById('report-card');
+            const studentName = document.getElementById('report-student-name').textContent || "Student";
+            html2canvas(reportElement, { scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Mission_Report_NegSums_${studentName.replace(/\s+/g, '_')}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const nameInput = document.getElementById('student-identifier-input');
+            const startButton = document.getElementById('start-button');
+            const studentIdentifier = sessionStorage.getItem('studentIdentifier');
+            const displayStudentName = formatStudentName(studentIdentifier); 
+            if (studentIdentifier) {
+                nameInput.value = studentIdentifier;
+                document.getElementById('auto-student-name-display').textContent = displayStudentName;
+                // Button stays disabled until time is also selected
+            } else {
+                startButton.disabled = true;
+            }
+        });
+
+        function selectTimeLimit(seconds, btn) {
+            selectedTimeLimit = seconds;
+            document.querySelectorAll('.time-option-btn').forEach(b => {
+                b.classList.remove('border-green-500', 'bg-green-50', 'border-yellow-500', 'bg-yellow-50', 'border-red-500', 'bg-red-50', 'scale-105', 'shadow-md');
+                b.classList.add('border-gray-200', 'bg-white');
+            });
+            btn.classList.remove('border-gray-200', 'bg-white');
+            if (seconds === 720) {
+                btn.classList.add('border-green-500', 'bg-green-50', 'scale-105', 'shadow-md');
+            } else if (seconds === 600) {
+                btn.classList.add('border-yellow-500', 'bg-yellow-50', 'scale-105', 'shadow-md');
+            } else {
+                btn.classList.add('border-red-500', 'bg-red-50', 'scale-105', 'shadow-md');
+            }
+            const studentIdentifier = sessionStorage.getItem('studentIdentifier');
+            if (studentIdentifier) {
+                const launchBtn = document.getElementById('start-button');
+                launchBtn.disabled = false;
+                launchBtn.classList.add('animate-pulse');
+                setTimeout(() => launchBtn.classList.remove('animate-pulse'), 1200);
+            }
+        }
+
+        async function startTest() {
+            document.body.classList.add('focus-mode');
+            const startBtn = document.getElementById('start-button');
+            startBtn.textContent = "Starting..."; 
+            startBtn.disabled = true;
+
+            const typeSelect = document.getElementById('practice-type');
+            const LEVEL_CODE = typeSelect.value; // e.g., "neg-2d10r"
+            const levelText = typeSelect.options[typeSelect.selectedIndex].text;
+            document.getElementById('report-level-title').textContent = levelText;
+
+            try {
+                const questions = window.generateQuestions(LEVEL_CODE, 10);
+                
+                sumsData = questions.map(q => ({
+                    numbers: q.numbers,
+                    type: 'addition',
+                    studentAnswer: null
+                }));
+                
+                TOTAL_SUMS = sumsData.length;
+                renderCards();
+                document.getElementById('start-screen').classList.add('hidden');
+                document.getElementById('test-area').classList.remove('hidden');
+                
+                const input = document.getElementById('answer-input');
+                input.value = '';
+                input.readOnly = true;
+                input.disabled = false;
+                input.focus();
+                
+                const newNode = input.cloneNode(true);
+                input.parentNode.replaceChild(newNode, input);
+
+                document.onkeydown = function(event) {
+                    if (event.defaultPrevented) return;
+                    const key = event.key;
+                    const input = document.getElementById('answer-input');
+                    if (!input) return;
+
+                    if (/[0-9]/.test(key)) {
+                        event.preventDefault();
+                        handleKey(key);
+                        return;
+                    }
+                    if (key === '.' || key === '-') {
+                        event.preventDefault();
+                        handleKey(key);
+                        return;
+                    }
+                    if (key === 'Backspace') {
+                        event.preventDefault();
+                        handleKey('backspace');
+                        return;
+                    }
+                    if (key === 'Enter') {
+                        event.preventDefault();
+                        submitAndNext();
+                        return;
+                    }
+                };
+
+                startTime = Date.now();
+                startTimer();
+
+            } catch (err) {
+                console.error(err);
+                alert("Error launching mission. Please refresh.");
+                startBtn.textContent = "🚀 Launch Mission";
+                startBtn.disabled = false;
+            }
+        }
+        
+        function createSumTableHtml(numbers) {
+            // Determine borrow amount from max digit length in the list
+            var maxAbs = Math.max.apply(null, numbers.map(function(n) { return Math.abs(n); }));
+            var digits = maxAbs.toString().length;
+            var borrowAmount = Math.pow(10, digits);
+            var borrowDisplay = borrowAmount.toLocaleString('en-IN');
+
+            // Find the first row where running sum goes negative (the borrow row)
+            var runningSum = 0;
+            var borrowRowIndex = -1;
+            for (var i = 0; i < numbers.length; i++) {
+                runningSum += numbers[i];
+                if (runningSum < 0 && borrowRowIndex === -1) {
+                    borrowRowIndex = i;
+                }
+            }
+
+            let tableHtml = '<table class="sum-table">';
+            numbers.forEach((num, rIndex) => {
+                const isNeg = num < 0;
+                const displayNum = isNeg ? `-${Math.abs(num)}` : `${num}`;
+                const colorClass = isNeg ? 'negative-number' : '';
+                const isBorrowRow = rIndex === borrowRowIndex;
+                const borrowCell = isBorrowRow
+                    ? `<td class="borrow-cell"><span class="borrow-tag">Borrow ${borrowDisplay}</span></td>`
+                    : `<td class="borrow-cell"></td>`;
+                tableHtml += `<tr><td class="row-index">${rIndex + 1}</td><td class="number-cell ${colorClass}">${displayNum}</td>${borrowCell}</tr>`;
+            });
+            tableHtml += '</table>';
+
+            // Answer formula hint
+            tableHtml += `
+                <div class="answer-formula-wrap">
+                    <div class="formula-row">
+                        <span class="formula-label">Answer</span>
+                        <span class="formula-text">&nbsp;=&nbsp; &minus;(Remaining Beads + 1)</span>
+                    </div>
+                </div>`;
+
+            return tableHtml;
+        }
+
+        function renderCards() {
+            const carousel = document.getElementById('question-carousel');
+            carousel.innerHTML = '';
+            sumsData.forEach((data, index) => {
+                const slideDiv = document.createElement('div');
+                slideDiv.className = `slide-container ${index === 0 ? 'active' : ''}`;
+                slideDiv.id = `slide-${index}`;
+                
+                const tableHtml = createSumTableHtml(data.numbers);
+                slideDiv.innerHTML = `<div class="text-center mb-1 font-bold text-gray-400 text-xs uppercase">Q ${index + 1} / ${TOTAL_SUMS}</div>${tableHtml}`;
+                carousel.appendChild(slideDiv);
+            });
+        }
+
+        function submitAndNext() {
+            if (isSubmitting) return;
+            const input = document.getElementById('answer-input');
+            const valStr = input.value.trim();
+            
+            if (valStr === '') {
+                input.focus();
+                input.classList.add('border-red-500');
+                setTimeout(() => input.classList.remove('border-red-500'), 500);
+                return;
+            }
+
+            const val = parseInt(valStr); // Handle negative inputs correctly
+            sumsData[currentSlideIndex].studentAnswer = val;
+
+            if (currentSlideIndex < TOTAL_SUMS - 1) {
+                document.getElementById(`slide-${currentSlideIndex}`).classList.remove('active');
+                currentSlideIndex++;
+                document.getElementById(`slide-${currentSlideIndex}`).classList.add('active');
+                
+                input.value = '';
+                input.focus();
+                
+                const pct = ((currentSlideIndex) / TOTAL_SUMS) * 100;
+                const bead = document.getElementById('progress-bead');
+                if(bead) bead.style.left = `${pct}%`;
+                document.getElementById('progress-text').textContent = `${currentSlideIndex}/${TOTAL_SUMS}`;
+                
+            } else {
+                const bead = document.getElementById('progress-bead');
+                if(bead) bead.style.left = '100%';
+                document.getElementById('progress-text').textContent = `${TOTAL_SUMS}/${TOTAL_SUMS}`;
+                endTest();
+            }
+        }
+
+        function startTimer() {
+            let remaining = selectedTimeLimit;
+            function updateDisplay() {
+                const m = Math.floor(remaining / 60);
+                const s = remaining % 60;
+                const el = document.getElementById('countdown-text');
+                const wrapper = document.getElementById('countdown-display');
+                el.textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+                if (remaining <= 30) {
+                    wrapper.className = 'flex items-center gap-1 bg-red-100 border border-red-400 px-2 py-0.5 rounded-full animate-pulse';
+                    el.className = 'font-black text-red-600 text-base tabular-nums';
+                } else if (remaining <= 60) {
+                    wrapper.className = 'flex items-center gap-1 bg-orange-50 border border-orange-400 px-2 py-0.5 rounded-full';
+                    el.className = 'font-black text-orange-600 text-base tabular-nums';
+                }
+            }
+            updateDisplay();
+            countdownInterval = setInterval(() => {
+                remaining--;
+                updateDisplay();
+                if (remaining <= 0) {
+                    clearInterval(countdownInterval);
+                    isTimedOut = true;
+                    endTest();
+                }
+            }, 1000);
+            timerInterval = setInterval(() => {}, 1000);
+        }
+
+        async function endTest() {
+            if (isSubmitting) return;
+            isSubmitting = true;
+
+            const enterBtn = document.getElementById('enter-btn');
+            if (enterBtn) {
+                enterBtn.disabled = true;
+                enterBtn.innerHTML = isTimedOut ? '⏰ Time\'s Up!' : 'Submitting... 📡';
+                enterBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+            
+            clearInterval(timerInterval);
+            clearInterval(countdownInterval);
+            document.getElementById('countdown-text').textContent = '0:00';
+            document.getElementById('countdown-display').className = 'flex items-center gap-1 bg-gray-100 border border-gray-300 px-2 py-0.5 rounded-full';
+
+            const endTime = Date.now();
+            const timeElapsedSeconds = Math.floor((endTime - startTime) / 1000);
+            const minutes = Math.floor(timeElapsedSeconds / 60);
+            const seconds = timeElapsedSeconds % 60;
+            const timeFormatted = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+            let score = 0;
+            let mistakesArray = [];
+
+            sumsData.forEach((q, index) => {
+                let correctVal = q.numbers.reduce((a, b) => a + b, 0);
+                
+                if (q.studentAnswer === correctVal) {
+                    score++;
+                } else {
+                    if (q.studentAnswer !== null && q.studentAnswer !== "") {
+                        mistakesArray.push({
+                            question: "Neg Q" + (index + 1), 
+                            wrong: q.studentAnswer, 
+                            correct: correctVal
+                        });
+                    }
+                }
+            });
+
+            document.getElementById('report-correct').textContent = score;
+            activateWatchdog(score);
+            document.getElementById('report-time-elapsed').textContent = timeFormatted;
+            document.getElementById('report-avg-time').textContent = `${(timeElapsedSeconds / TOTAL_SUMS).toFixed(2)}s`;
+
+            document.getElementById('report-student-name').textContent = document.getElementById('auto-student-name-display').textContent;
+
+            const now = new Date();
+            document.getElementById('report-datetime').textContent = now.toLocaleString('en-IN', { 
+                day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+            });
+
+            sessionStorage.setItem('negSumsData', JSON.stringify(sumsData)); 
+
+            const wrongBtn = document.getElementById('see-wrong-button');
+            if (mistakesArray.length > 0) {
+                wrongBtn.textContent = `Review ${mistakesArray.length} Mistakes`;
+                wrongBtn.disabled = false;
+                wrongBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                wrongBtn.textContent = "Perfect Score!";
+                wrongBtn.disabled = true;
+                wrongBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+
+            const typeSelect = document.getElementById('practice-type');
+            const levelText = typeSelect.options[typeSelect.selectedIndex].text;
+
+            const payload = {
+                challenge: levelText + (isTimedOut ? " (T)" : ""),
+                score: score,
+                total: TOTAL_SUMS, 
+                time: timeFormatted,
+                accuracy: Math.round((score / TOTAL_SUMS) * 100) + "%",
+                mistakes: mistakesArray,
+                questions: sumsData,
+                answers: sumsData.map(s => s.studentAnswer)
+            };
+            
+            saveOrQueueResult(payload);
+
+            if (isTimedOut) {
+                const reportMsg = document.getElementById('report-main-msg');
+                reportMsg.textContent = "⏰ Time's Up!";
+                reportMsg.classList.replace('text-blue-800', 'text-orange-700');
+            }
+
+            document.body.classList.remove('focus-mode');
+            document.getElementById('test-area').classList.add('hidden');
+            document.getElementById('report-area').classList.remove('hidden');
+            
+            if (score === TOTAL_SUMS && !isTimedOut && window.lilChampUtils) {
+                window.lilChampUtils.celebrate();
+            }
+        }
+        
+        function showWrongAnswers() {
+            const storedSums = JSON.parse(sessionStorage.getItem('negSumsData'));
+            const listContainer = document.getElementById('wrong-sums-list');
+            listContainer.innerHTML = '';
+            
+            storedSums.forEach((sum) => {
+                const correctTotal = sum.numbers.reduce((a,b)=>a+b, 0);
+                
+                if (sum.studentAnswer !== correctTotal) {
+                    const tableHtml = createSumTableHtml(sum.numbers);
+                    
+                    const card = `
+                        <div class="review-card shadow-lg p-2 flex flex-col items-center">
+                            <div class="w-full border-b pb-2 mb-2 text-center text-gray-500 font-bold text-xs">Correction</div>
+                            ${tableHtml}
+                            <div class="w-full mt-2 pt-2 border-t flex justify-between px-4 bg-gray-50">
+                                <div class="text-center">
+                                    <div class="text-xs text-red-500 font-bold">You Said</div>
+                                    <div class="text-lg font-bold text-red-600 line-through">${sum.studentAnswer}</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-xs text-green-600 font-bold">Correct</div>
+                                    <div class="text-lg font-bold text-green-700">${correctTotal}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    listContainer.innerHTML += card;
+                }
+            });
+
+            document.getElementById('report-area').classList.add('hidden');
+            document.getElementById('wrong-answer-area').classList.remove('hidden');
+        }
+
+        function showReport() {
+            document.getElementById('wrong-answer-area').classList.add('hidden');
+            document.getElementById('report-area').classList.remove('hidden');
+        }
+
+        function activateWatchdog(correctScore) {
+            const scoreElement = document.getElementById('report-correct');
+
+            const enforceScore = () => {
+                const currentText = scoreElement.innerText.trim();
+                const correctText = String(correctScore);
+                
+                if (currentText !== correctText) {
+                    scoreElement.innerText = correctText; 
+                    scoreElement.style.color = "#dc2626"; 
+                    scoreElement.style.textDecoration = "line-through";
+                }
+            };
+
+            const observer = new MutationObserver(enforceScore);
+            observer.observe(scoreElement, { characterData: true, childList: true, subtree: true });
+
+            setInterval(enforceScore, 100);
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12' || 
+               (e.ctrlKey && e.shiftKey && ['I','C','J'].includes(e.key)) || 
+               (e.ctrlKey && e.key === 'u')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>

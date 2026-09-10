@@ -5,7 +5,7 @@
   if (!base) return;
 
   try {
-    const res = await fetch(base + '?v=7', { cache: 'no-store' });
+    const res = await fetch(base + '?v=8', { cache: 'no-store' });
     if (!res.ok) throw new Error('Base page could not be loaded.');
 
     let html = await res.text();
@@ -15,6 +15,8 @@
 
     if (page === 'formula-report' || page === 'formula-practice') {
       inject += `<script src="low-level-access.js?v=1" data-page="${page}"></script>`;
+    } else if (page === 'plus-minus' || page === 'decimal' || page === 'negative') {
+      inject += `<script src="plus-minus-access.js?v=1" data-page="${page}"></script>`;
     } else {
       inject += `<script src="level-access.js?v=3" data-page="${page}"></script>`;
       if (page === 'practice-options') {
