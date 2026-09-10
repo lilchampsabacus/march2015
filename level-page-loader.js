@@ -18,7 +18,7 @@
     } else if (page === 'plus-minus' || page === 'decimal' || page === 'negative') {
       inject += `<script src="plus-minus-access.js?v=1" data-page="${page}"></script>`;
     } else {
-      inject += `<script src="level-access.js?v=3" data-page="${page}"></script>`;
+      inject += `<script src="level-access.js?v=4" data-page="${page}"></script>`;
       if (page === 'practice-options') {
         inject += '\n<style id="formulaMasterHide">a[href="FormulaMaster.html"]{display:none!important}</style>' +
           '\n<style id="formulaReportDefaultHide">a[href="formula_report.html"]{display:none!important}</style>' +
