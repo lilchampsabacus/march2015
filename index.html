@@ -1,2207 +1,622 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Li'l Champs Abacus Academy - Ambernath</title>
-<style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: white;
-  }
-  
-  /* RESPONSIVE NAVIGATION BAR */
-  .navbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 0 40px;
-    height: auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    z-index: 1000;
-  }
-  
-  .navbar-logo {
-    color: white;
-    font-size: 16px;
-    font-weight: 800;
-    letter-spacing: 0.3px;
-    padding: 12px 20px;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  
-  .navbar-logo span {
-    font-size: 11px;
-    opacity: 0.85;
-    display: block;
-    font-weight: 500;
-  }
-  
-  .navbar-links {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    padding: 10px 15px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-  
-  .nav-link {
-    color: white;
-    text-decoration: none;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 8px 14px;
-    border-radius: 6px;
-    transition: all 0.3s;
-    background: rgba(255,255,255,0.15);
-    white-space: nowrap;
-  }
-  
-  .nav-link:hover {
-    background: rgba(255,255,255,0.25);
-  }
-  
-  /* Pulse animation for login button */
-  @keyframes pulse-glow {
-    0% {
-      box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
-      transform: scale(1);
-    }
-    50% {
-      box-shadow: 0 0 0 8px rgba(102, 126, 234, 0);
-      transform: scale(1.02);
-    }
-    100% {
-      box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
-      transform: scale(1);
-    }
-  }
-  
-  .login-btn-nav {
-    background: white;
-    color: #667eea;
-    padding: 9px 18px;
-    border-radius: 20px;
-    font-weight: 700;
-    font-size: 11px;
-    transition: all 0.3s;
-    flex-shrink: 0;
-    animation: pulse-glow 2s infinite;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-  }
-  
-  .login-btn-nav:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
-    animation: none;
-  }
-  }
-  
-  body {
-    padding-top: 60px;
-  }
-  
-  .poster {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 60px 40px 60px 40px;
-    min-height: auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    position: relative;
-  }
-  
-  /* HEADER */
-  .header {
-    text-align: center;
-    color: white;
-    margin-bottom: 40px;
-  }
-  
-  .academy-name {
-    font-size: 48px;
-    font-weight: 800;
-    letter-spacing: 1px;
-    margin-bottom: 10px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-  }
-  
-  .tagline {
-    font-size: 20px;
-    font-weight: 300;
-    opacity: 0.95;
-    margin-bottom: 5px;
-  }
-  
-  .subtext {
-    font-size: 14px;
-    opacity: 0.85;
-  }
-  
-  /* FREE PRACTICE BANNER */
-  .free-banner {
-    background: rgba(34, 197, 94, 0.15);
-    border: 2px solid rgba(34, 197, 94, 0.3);
-    border-radius: 12px;
-    padding: 16px 24px;
-    color: #d1fae5;
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-  }
-  
-  .free-banner strong {
-    color: #a7f3d0;
-    font-size: 16px;
-  }
-  
-  /* PRICING SECTION LABEL */
-  .pricing-label {
-    background: rgba(255,255,255,0.95);
-    color: #667eea;
-    padding: 14px 26px;
-    border-radius: 30px;
-    text-align: center;
-    margin-bottom: 26px;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    max-width: 500px;
-    margin-left: auto;
-    margin-right: auto;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  }
-  
-  /* PRICING CARDS */
-  .pricing-container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 26px;
-    margin-bottom: 40px;
-    position: relative;
-    padding-top: 20px;
-  }
-  
-  .card {
-    background: white;
-    border-radius: 20px;
-    padding: 42px 26px;
-    text-align: center;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    transition: transform 0.3s, box-shadow 0.3s;
-    position: relative;
-    overflow: visible;
-  }
-  
-  .card.featured {
-    margin-top: 35px;
-    padding-top: 52px;
-  }
-  
-  .card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 30px 80px rgba(0,0,0,0.4);
-  }
-  
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 8px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
-  }
-  
-  .featured-badge {
-    position: absolute;
-    top: -20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    color: white;
-    padding: 12px 32px;
-    border-radius: 30px;
-    font-size: 13px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5);
-    z-index: 10;
-    white-space: nowrap;
-  }
-  
-  .discount-badge {
-    position: absolute;
-    top: -20px;
-    right: 20px;
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 25px;
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
-    z-index: 10;
-    white-space: nowrap;
-  }
-  
-  .original-price {
-    font-size: 14px;
-    color: #999;
-    text-decoration: line-through;
-    margin-bottom: 5px;
-    font-weight: 600;
-  }
-  
-  .card-icon {
-    font-size: 52px;
-    margin-bottom: 16px;
-    margin-top: 10px;
-  }
-  
-  .card-title {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin-bottom: 10px;
-    line-height: 1.4;
-  }
-  
-  .card-price {
-    font-size: 45px;
-    font-weight: 800;
-    color: #667eea;
-    margin-bottom: 10px;
-    line-height: 1.3;
-  }
-  
-  .card-duration {
-    font-size: 14px;
-    color: #999;
-    margin-bottom: 16px;
-    line-height: 1.5;
-  }
-  
-  .card-frequency {
-    background: #f0f0f0;
-    padding: 14px 22px;
-    border-radius: 30px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 26px;
-    display: inline-block;
-    line-height: 1.5;
-  }
-  
-  .card-benefits {
-    text-align: center;
-    margin-bottom: 26px;
-  }
-  
-  .benefit-item {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 13px;
-    padding-left: 0;
-    position: relative;
-    line-height: 1.6;
-    display: inline-block;
-    margin-left: 25px;
-  }
-  
-  .benefit-item:before {
-    content: '✓';
-    position: absolute;
-    left: -20px;
-    color: #22c55e;
-    font-weight: 700;
-    font-size: 16px;
-  }
-  
-  .benefit-highlight {
-    background: #f0fdf4;
-    border-left: 3px solid #22c55e;
-    padding: 16px;
-    margin: 26px 0;
-    border-radius: 6px;
-    font-weight: 600;
-    color: #16a34a;
-    font-size: 13px;
-    line-height: 1.5;
-  }
-  
-  /* PRICING CLARIFICATION BOX */
-  .pricing-clarification {
-    background: white;
-    border-radius: 15px;
-    padding: 25px;
-    margin-bottom: 30px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    border-left: 5px solid #667eea;
-  }
-  
-  .pricing-clarification h3 {
-    color: #667eea;
-    font-size: 16px;
-    margin-bottom: 12px;
-    font-weight: 700;
-  }
-  
-  .pricing-clarification p {
-    color: #555;
-    font-size: 13px;
-    line-height: 1.7;
-    margin-bottom: 8px;
-  }
-  
-  .pricing-clarification strong {
-    color: #1a1a1a;
-  }
-  
-  /* CALLOUT */
-  .callout {
-    background: white;
-    color: #667eea;
-    border-radius: 15px;
-    padding: 25px;
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 14px;
-    font-weight: 600;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  }
-  
-  .callout strong {
-    font-size: 16px;
-    display: block;
-    margin-bottom: 8px;
-  }
-  
-  /* FOOTER */
-  .footer {
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(10px);
-    border-radius: 15px;
-    padding: 30px;
-    color: white;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 30px;
-    border: 1px solid rgba(255,255,255,0.2);
-  }
-  
-  .footer-section h3 {
-    font-size: 14px;
-    font-weight: 700;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-  
-  .footer-content {
-    font-size: 13px;
-    opacity: 0.95;
-    line-height: 1.8;
-  }
-  
-  .phone-number {
-    font-size: 20px;
-    font-weight: 700;
-    margin-top: 5px;
-  }
-  
-  .location-list {
-    font-size: 12px;
-    line-height: 1.7;
-  }
-  
-  .location-list p {
-    margin-bottom: 5px;
-  }
-  
-  /* ===== RESPONSIVE DESIGN ===== */
-  
-  /* HALF-SCREEN / TABLET LANDSCAPE (769px - 1024px) */
-  @media (max-width: 1024px) and (min-width: 769px) {
-    body {
-      padding-top: 55px;
-    }
-    
-    .navbar {
-      padding: 0 20px;
-    }
-    
-    .navbar-logo {
-      font-size: 14px;
-      padding: 10px 15px;
-    }
-    
-    .navbar-logo span {
-      font-size: 10px;
-    }
-    
-    .navbar-links {
-      gap: 6px;
-      padding: 8px 12px;
-    }
-    
-    .nav-link {
-      font-size: 11px;
-      padding: 7px 12px;
-      background: rgba(255,255,255,0.15);
-    }
-    
-    .login-btn-nav {
-      padding: 8px 14px;
-      font-size: 10px;
-      background: white;
-      color: #667eea;
-      border: none;
-      animation: pulse-glow 2s infinite;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-    
-    .poster {
-      padding: 40px 20px 40px 20px;
-    }
-    
-    .academy-name {
-      font-size: 38px;
-      line-height: 1.2;
-      letter-spacing: 0.5px;
-    }
-    
-    .tagline {
-      font-size: 17px;
-    }
-    
-    .subtext {
-      font-size: 12px;
-    }
-    
-    .pricing-container {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-    
-    .card {
-      padding: 36px 22px;
-    }
-    
-    .card-icon {
-      font-size: 45px;
-      margin-bottom: 14px;
-    }
-    
-    .card-title {
-      font-size: 26px;
-      margin-bottom: 10px;
-    }
-    
-    .card-price {
-      font-size: 38px;
-      margin-bottom: 10px;
-    }
-    
-    .card-duration {
-      margin-bottom: 14px;
-    }
-    
-    .card-frequency {
-      margin-bottom: 20px;
-      padding: 12px 18px;
-    }
-    
-    .card-benefits {
-      margin-bottom: 20px;
-    }
-    
-    .benefit-item {
-      font-size: 13px;
-      margin-bottom: 11px;
-    }
-    
-    .benefit-highlight {
-      margin: 20px 0;
-      padding: 14px;
-    }
-  }
-  
-  /* MOBILE (481px - 768px) */
-  @media (max-width: 768px) and (min-width: 481px) {
-    body {
-      padding-top: 120px;
-    }
-    
-    .navbar {
-      flex-wrap: wrap;
-      height: auto;
-      padding: 0 12px;
-    }
-    
-    .navbar-logo {
-      font-size: 13px;
-      padding: 12px 12px;
-      width: 100%;
-      text-align: center;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    
-    .navbar-logo span {
-      font-size: 10px;
-      margin-top: 2px;
-    }
-    
-    .navbar-links {
-      width: 100%;
-      gap: 6px;
-      padding: 10px 8px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    
-    .nav-link {
-      font-size: 11px;
-      padding: 7px 11px;
-      background: rgba(255,255,255,0.15);
-      border-radius: 5px;
-    }
-    
-    .login-btn-nav {
-      padding: 10px 18px;
-      font-size: 12px;
-      background: white;
-      color: #667eea;
-      border: none;
-      font-weight: 600;
-      animation: pulse-glow 2s infinite;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-    
-    .pricing-container {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-    
-    .card {
-      padding: 32px 20px;
-      border-radius: 15px;
-    }
-    
-    .card.featured {
-      margin-top: 0;
-      padding-top: 38px;
-    }
-    
-    .featured-badge {
-      top: -12px;
-      padding: 8px 18px;
-      font-size: 10px;
-    }
-    
-    .card-icon {
-      font-size: 40px;
-      margin-bottom: 14px;
-    }
-    
-    .card-title {
-      font-size: 22px;
-      margin-bottom: 11px;
-      line-height: 1.4;
-    }
-    
-    .card-price {
-      font-size: 36px;
-      margin-bottom: 10px;
-      line-height: 1.3;
-    }
-    
-    .card-duration {
-      font-size: 13px;
-      margin-bottom: 14px;
-      line-height: 1.5;
-    }
-    
-    .card-frequency {
-      padding: 12px 18px;
-      font-size: 13px;
-      margin-bottom: 20px;
-      line-height: 1.5;
-    }
-    
-    .card-benefits {
-      margin-bottom: 20px;
-    }
-    
-    .benefit-item {
-      font-size: 13px;
-      margin-bottom: 12px;
-      line-height: 1.6;
-    }
-    
-    .benefit-highlight {
-      padding: 14px;
-      margin: 20px 0;
-      font-size: 12px;
-      line-height: 1.5;
-    }
-    
-    .card-btn {
-      padding: 10px 20px;
-      font-size: 13px;
-      margin-top: 10px;
-    }
-    
-    .footer {
-      grid-template-columns: 1fr;
-      padding: 20px;
-      gap: 20px;
-    }
-    
-    .academy-name {
-      font-size: 28px;
-    }
-    
-    .tagline {
-      font-size: 16px;
-    }
-    
-    .subtext {
-      font-size: 12px;
-    }
-    
-    .free-banner {
-      font-size: 13px;
-      padding: 12px 15px;
-    }
-    
-    .free-banner strong {
-      font-size: 14px;
-    }
-    
-    .poster {
-      padding: 20px 15px;
-    }
-  }
-  
-  /* SMALL MOBILE (< 480px) */
-  @media (max-width: 480px) {
-    body {
-      padding-top: 140px;
-    }
-    
-    .navbar {
-      flex-wrap: wrap;
-      padding: 0 10px;
-    }
-    
-    .navbar-logo {
-      font-size: 12px;
-      padding: 10px 10px;
-      width: 100%;
-      text-align: center;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    
-    .navbar-logo span {
-      font-size: 9px;
-    }
-    
-    .navbar-links {
-      width: 100%;
-      gap: 5px;
-      padding: 8px 6px;
-      justify-content: center;
-    }
-    
-    .nav-link {
-      font-size: 10px;
-      padding: 6px 10px;
-      background: rgba(255,255,255,0.15);
-      border-radius: 4px;
-    }
-    
-    .login-btn-nav {
-      padding: 9px 16px;
-      font-size: 11px;
-      background: white;
-      color: #667eea;
-      border: none;
-      font-weight: 600;
-      animation: pulse-glow 2s infinite;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-    
-    .poster {
-      padding: 15px 12px;
-    }
-    
-    .academy-name {
-      font-size: 22px;
-      margin-bottom: 8px;
-    }
-    
-    .tagline {
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-    
-    .subtext {
-      font-size: 11px;
-    }
-    
-    .header {
-      margin-bottom: 20px;
-    }
-    
-    .free-banner {
-      font-size: 12px;
-      padding: 10px 12px;
-      margin-bottom: 20px;
-    }
-    
-    .pricing-label {
-      font-size: 12px;
-      padding: 10px 16px;
-      margin-bottom: 20px;
-    }
-    
-    .pricing-container {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-    
-    .card {
-      padding: 28px 18px;
-      border-radius: 15px;
-      overflow: visible;
-    }
-    
-    .card.featured {
-      margin-top: 0;
-      padding-top: 34px;
-    }
-    
-    .card-icon {
-      font-size: 36px;
-      margin-bottom: 12px;
-    }
-    
-    .card-title {
-      font-size: 19px;
-      margin-bottom: 10px;
-      line-height: 1.4;
-    }
-    
-    .card-price {
-      font-size: 30px;
-      margin-bottom: 10px;
-      line-height: 1.3;
-    }
-    
-    .card-duration {
-      font-size: 12px;
-      margin-bottom: 13px;
-      line-height: 1.5;
-    }
-    
-    .card-frequency {
-      padding: 11px 16px;
-      font-size: 12px;
-      margin-bottom: 16px;
-      line-height: 1.5;
-    }
-    
-    .card-benefits {
-      margin-bottom: 16px;
-    }
-    
-    .benefit-item {
-      font-size: 12px;
-      margin-bottom: 11px;
-      line-height: 1.6;
-    }
-    
-    .benefit-highlight {
-      padding: 12px;
-      margin: 16px 0;
-      font-size: 11px;
-      line-height: 1.5;
-    }
-    
-    .card-btn {
-      padding: 9px 16px;
-      font-size: 12px;
-      margin-top: 8px;
-    }
-    
-    .featured-badge {
-      top: -10px;
-      padding: 6px 14px;
-      font-size: 9px;
-    }
-    
-    .card-title {
-      font-size: 20px;
-      margin-bottom: 10px;
-    }
-    
-    .card-price {
-      font-size: 32px;
-      margin-bottom: 8px;
-    }
-    
-    .card-duration {
-      font-size: 11px;
-      margin-bottom: 15px;
-    }
-    
-    .benefit-item {
-      font-size: 12px;
-      margin-bottom: 8px;
-    }
-    
-    .footer {
-      grid-template-columns: 1fr;
-      padding: 15px;
-      gap: 15px;
-    }
-    
-    .footer-section h3 {
-      font-size: 12px;
-    }
-    
-    .footer-content {
-      font-size: 12px;
-    }
-    
-    .phone-number {
-      font-size: 16px;
-    }
-  }
-
-  /* TESTIMONIALS SECTION */
-  .testimonials-section {
-    background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
-    padding: 80px 20px;
-    margin: 60px 0;
-  }
-
-  .testimonials-title {
-    font-size: 36px;
-    font-weight: 800;
-    color: #667eea;
-    text-align: center;
-    margin-bottom: 12px;
-  }
-
-  .testimonials-subtitle {
-    font-size: 14px;
-    color: #666;
-    text-align: center;
-    margin-bottom: 40px;
-  }
-
-  .testimonials-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 26px;
-    margin-bottom: 60px;
-  }
-
-  .testimonial-card {
-    background: white;
-    padding: 26px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
-    border-left: 4px solid #667eea;
-  }
-
-  .testimonial-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-  }
-
-  .stars {
-    font-size: 16px;
-    margin-bottom: 12px;
-    letter-spacing: 2px;
-  }
-
-  .testimonial-text {
-    font-size: 14px;
-    color: #555;
-    line-height: 1.8;
-    margin-bottom: 14px;
-    font-style: italic;
-  }
-
-  .testimonial-author {
-    font-weight: 600;
-    color: #667eea;
-    font-size: 13px;
-    margin-bottom: 8px;
-  }
-
-  .testimonial-badge {
-    display: inline-block;
-    background: #f0fdf4;
-    color: #16a34a;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-  }
-
-  .testimonials-cta {
-    text-align: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 40px;
-    border-radius: 12px;
-  }
-
-  .testimonials-cta h3 {
-    font-size: 26px;
-    margin-bottom: 10px;
-  }
-
-  .testimonials-cta p {
-    font-size: 14px;
-    margin-bottom: 20px;
-    opacity: 0.95;
-  }
-
-  .cta-button {
-    background: white;
-    color: #667eea;
-    padding: 14px 32px;
-    border: none;
-    border-radius: 25px;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  }
-
-  .cta-button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-  }
-
-  /* FREE TRIAL BANNER */
-  .free-trial-banner {
-    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-    padding: 40px 20px;
-    margin: 40px 0;
-    border-radius: 12px;
-    text-align: center;
-    color: white;
-  }
-
-  .free-trial-content h2 {
-    font-size: 28px;
-    font-weight: 800;
-    margin-bottom: 10px;
-  }
-
-  .free-trial-content p {
-    font-size: 14px;
-    margin-bottom: 6px;
-    opacity: 0.95;
-  }
-
-  .free-trial-btn {
-    background: white;
-    color: #16a34a;
-    padding: 12px 28px;
-    border: none;
-    border-radius: 25px;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  }
-
-  .free-trial-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-  }
-
-  /* HOW TO ENROLL SECTION */
-  .how-to-enroll {
-    background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
-    padding: 80px 20px;
-    margin: 60px 0;
-    text-align: center;
-  }
-
-  .enroll-title {
-    font-size: 36px;
-    font-weight: 800;
-    color: #667eea;
-    margin-bottom: 12px;
-  }
-
-  .enroll-subtitle {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 50px;
-  }
-
-  .enroll-steps {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 26px;
-    margin-bottom: 40px;
-  }
-
-  .enroll-step {
-    background: white;
-    padding: 26px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
-    position: relative;
-    border-top: 4px solid #667eea;
-  }
-
-  .enroll-step:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-  }
-
-  .step-number {
-    position: absolute;
-    top: -14px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #667eea;
-    color: white;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 14px;
-  }
-
-  .step-icon {
-    font-size: 32px;
-    margin-bottom: 12px;
-    margin-top: 10px;
-  }
-
-  .enroll-step h3 {
-    font-size: 16px;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin-bottom: 10px;
-  }
-
-  .enroll-step p {
-    font-size: 13px;
-    color: #666;
-    line-height: 1.7;
-  }
-
-  .enroll-cta {
-    text-align: center;
-    margin-top: 40px;
-  }
-
-  .enroll-cta-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 16px 40px;
-    border: none;
-    border-radius: 25px;
-    font-weight: 700;
-    font-size: 15px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-  }
-
-  .enroll-cta-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-  }
-
-  /* TESTIMONIALS MOBILE RESPONSIVE */
-  @media (max-width: 768px) {
-    .testimonials-section {
-      padding: 40px 15px;
-    }
-
-    .testimonials-title {
-      font-size: 24px;
-    }
-
-    .testimonials-grid {
-      grid-template-columns: 1fr;
-      gap: 16px;
-    }
-
-    .testimonial-card {
-      padding: 20px;
-      border-left-width: 3px;
-    }
-
-    .testimonials-stats {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      padding: 24px;
-    }
-
-    .stat-number {
-      font-size: 28px;
-    }
-
-    .testimonials-cta {
-      padding: 26px;
-    }
-
-    .testimonials-cta h3 {
-      font-size: 20px;
-    }
-
-    .cta-button {
-      padding: 11px 24px;
-      font-size: 12px;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .testimonials-title {
-      font-size: 20px;
-      margin-bottom: 10px;
-    }
-
-    .testimonials-subtitle {
-      font-size: 13px;
-      margin-bottom: 20px;
-    }
-
-    .testimonials-grid {
-      gap: 12px;
-    }
-
-    .testimonial-card {
-      padding: 16px;
-    }
-
-    .testimonial-text {
-      font-size: 13px;
-    }
-
-    .testimonials-stats {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      padding: 16px;
-    }
-
-    .stat-number {
-      font-size: 24px;
-    }
-
-    .stat-label {
-      font-size: 10px;
-    }
-  }
-
-  /* FREE TRIAL BANNER RESPONSIVE */
-  @media (max-width: 768px) {
-    .free-trial-banner {
-      padding: 30px 15px;
-      margin: 30px 0;
-    }
-
-    .free-trial-content h2 {
-      font-size: 22px;
-    }
-
-    .free-trial-content p {
-      font-size: 13px;
-    }
-
-    .free-trial-btn {
-      padding: 11px 24px;
-      font-size: 13px;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .free-trial-banner {
-      padding: 24px 12px;
-      margin: 20px 0;
-    }
-
-    .free-trial-content h2 {
-      font-size: 20px;
-    }
-
-    .free-trial-content p {
-      font-size: 12px;
-    }
-
-    .free-trial-btn {
-      padding: 10px 20px;
-      font-size: 12px;
-    }
-  }
-
-  /* WHY ABACUS MATTERS SECTION */
-  .why-abacus-section {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    padding: 80px 20px;
-    margin: 60px 0;
-  }
-
-  .why-title {
-    font-size: 36px;
-    font-weight: 800;
-    color: #b45309;
-    text-align: center;
-    margin-bottom: 12px;
-  }
-
-  .why-subtitle {
-    font-size: 14px;
-    color: #92400e;
-    text-align: center;
-    margin-bottom: 50px;
-  }
-
-  .why-benefits-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 26px;
-    margin-bottom: 40px;
-  }
-
-  .why-benefit-card {
-    background: white;
-    padding: 26px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
-    border-top: 4px solid #f59e0b;
-  }
-
-  .why-benefit-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-  }
-
-  .benefit-icon {
-    font-size: 32px;
-    margin-bottom: 12px;
-  }
-
-  .why-benefit-card h3 {
-    font-size: 16px;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin-bottom: 14px;
-  }
-
-  .why-benefit-card ul {
-    list-style: none;
-    padding: 0;
-  }
-
-  .why-benefit-card li {
-    font-size: 13px;
-    color: #666;
-    margin-bottom: 8px;
-    padding-left: 20px;
-    position: relative;
-    line-height: 1.6;
-  }
-
-  .why-benefit-card li:before {
-    content: "✓";
-    position: absolute;
-    left: 0;
-    color: #22c55e;
-    font-weight: 700;
-  }
-
-  .why-bottom-text {
-    background: white;
-    padding: 26px;
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    border-left: 4px solid #f59e0b;
-  }
-
-  .why-bottom-text p {
-    font-size: 14px;
-    color: #555;
-    line-height: 1.8;
-  }
-
-  /* FAQ SECTION */
-  .faq-section {
-    background: linear-gradient(135deg, #e0e7ff 0%, #dbeafe 100%);
-    padding: 80px 20px;
-    margin: 60px 0;
-  }
-
-  .faq-title {
-    font-size: 36px;
-    font-weight: 800;
-    color: #4f46e5;
-    text-align: center;
-    margin-bottom: 12px;
-  }
-
-  .faq-subtitle {
-    font-size: 14px;
-    color: #4c51bf;
-    text-align: center;
-    margin-bottom: 40px;
-  }
-
-  .faq-container {
-    max-width: 900px;
-    margin: 0 auto;
-  }
-
-  .faq-item {
-    background: white;
-    margin-bottom: 16px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
-    transition: all 0.3s ease;
-  }
-
-  .faq-item:hover {
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-  }
-
-  .faq-question {
-    padding: 20px 26px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
-    border-left: 4px solid #4f46e5;
-    transition: all 0.3s ease;
-  }
-
-  .faq-question:hover {
-    background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
-  }
-
-  .faq-icon {
-    font-size: 18px;
-    margin-right: 14px;
-  }
-
-  .faq-question h3 {
-    font-size: 15px;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin: 0;
-    flex: 1;
-  }
-
-  .faq-toggle {
-    font-size: 24px;
-    color: #4f46e5;
-    font-weight: 700;
-    min-width: 30px;
-    text-align: center;
-    transition: transform 0.3s ease;
-  }
-
-  .faq-item.active .faq-toggle {
-    transform: rotate(45deg);
-  }
-
-  .faq-answer {
-    max-height: 0;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    padding: 0 26px;
-    background: white;
-  }
-
-  .faq-item.active .faq-answer {
-    max-height: 500px;
-    padding: 20px 26px;
-    border-top: 1px solid #e5e7eb;
-  }
-
-  .faq-answer p {
-    font-size: 13px;
-    color: #555;
-    line-height: 1.8;
-    margin: 0;
-  }
-
-  /* WHY ABACUS RESPONSIVE */
-  @media (max-width: 768px) {
-    .why-abacus-section {
-      padding: 50px 15px;
-      margin: 40px 0;
-    }
-
-    .why-title {
-      font-size: 24px;
-    }
-
-    .why-subtitle {
-      font-size: 13px;
-      margin-bottom: 35px;
-    }
-
-    .why-benefits-grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-    }
-
-    .why-benefit-card {
-      padding: 20px;
-    }
-
-    .benefit-icon {
-      font-size: 28px;
-    }
-
-    .why-benefit-card h3 {
-      font-size: 15px;
-    }
-
-    .why-benefit-card li {
-      font-size: 12px;
-    }
-
-    .why-bottom-text {
-      padding: 20px;
-    }
-
-    .why-bottom-text p {
-      font-size: 13px;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .why-abacus-section {
-      padding: 40px 12px;
-      margin: 30px 0;
-    }
-
-    .why-title {
-      font-size: 20px;
-    }
-
-    .why-subtitle {
-      font-size: 12px;
-    }
-
-    .why-benefits-grid {
-      grid-template-columns: 1fr;
-      gap: 14px;
-    }
-
-    .why-benefit-card {
-      padding: 18px;
-    }
-
-    .benefit-icon {
-      font-size: 26px;
-    }
-
-    .why-benefit-card h3 {
-      font-size: 14px;
-    }
-  }
-
-  /* FAQ RESPONSIVE */
-  @media (max-width: 768px) {
-    .faq-section {
-      padding: 50px 15px;
-      margin: 40px 0;
-    }
-
-    .faq-title {
-      font-size: 24px;
-    }
-
-    .faq-subtitle {
-      font-size: 13px;
-      margin-bottom: 30px;
-    }
-
-    .faq-question {
-      padding: 16px 20px;
-    }
-
-    .faq-icon {
-      font-size: 16px;
-      margin-right: 10px;
-    }
-
-    .faq-question h3 {
-      font-size: 14px;
-    }
-
-    .faq-answer {
-      padding: 0 20px;
-    }
-
-    .faq-item.active .faq-answer {
-      padding: 16px 20px;
-    }
-
-    .faq-answer p {
-      font-size: 12px;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .faq-section {
-      padding: 40px 12px;
-      margin: 30px 0;
-    }
-
-    .faq-title {
-      font-size: 20px;
-    }
-
-    .faq-subtitle {
-      font-size: 12px;
-      margin-bottom: 20px;
-    }
-
-    .faq-question {
-      padding: 14px 16px;
-    }
-
-    .faq-icon {
-      font-size: 15px;
-      margin-right: 8px;
-    }
-
-    .faq-question h3 {
-      font-size: 13px;
-    }
-
-    .faq-toggle {
-      font-size: 20px;
-    }
-
-    .faq-answer {
-      padding: 0 16px;
-    }
-
-    .faq-item.active .faq-answer {
-      padding: 14px 16px;
-    }
-
-    .faq-answer p {
-      font-size: 11px;
-    }
-  }
-
-  /* HOW TO ENROLL RESPONSIVE */
-  @media (max-width: 768px) {
-    .how-to-enroll {
-      padding: 50px 15px;
-      margin: 40px 0;
-    }
-
-    .enroll-title {
-      font-size: 24px;
-    }
-
-    .enroll-subtitle {
-      font-size: 13px;
-      margin-bottom: 35px;
-    }
-
-    .enroll-steps {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-    }
-
-    .enroll-step {
-      padding: 20px;
-    }
-
-    .enroll-step h3 {
-      font-size: 15px;
-    }
-
-    .enroll-step p {
-      font-size: 12px;
-    }
-
-    .enroll-cta-btn {
-      padding: 12px 28px;
-      font-size: 13px;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .how-to-enroll {
-      padding: 40px 12px;
-      margin: 30px 0;
-    }
-
-    .enroll-title {
-      font-size: 20px;
-      margin-bottom: 10px;
-    }
-
-    .enroll-subtitle {
-      font-size: 12px;
-      margin-bottom: 25px;
-    }
-
-    .enroll-steps {
-      grid-template-columns: 1fr;
-      gap: 14px;
-    }
-
-    .enroll-step {
-      padding: 18px;
-    }
-
-    .step-number {
-      width: 26px;
-      height: 26px;
-      font-size: 13px;
-    }
-
-    .step-icon {
-      font-size: 28px;
-      margin-bottom: 10px;
-    }
-
-    .enroll-step h3 {
-      font-size: 14px;
-      margin-bottom: 8px;
-    }
-
-    .enroll-step p {
-      font-size: 11px;
-      line-height: 1.6;
-    }
-
-    .enroll-cta-btn {
-      padding: 10px 24px;
-      font-size: 12px;
-    }
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Li'l Champs Abacus Academy Ambernath | Abacus Classes & Daily Practice</title>
+  <meta name="description" content="Li'l Champs Abacus Academy, Ambernath — structured abacus training with weekly classes, daily website practice, progress tracking and competition preparation.">
+  <meta name="theme-color" content="#0b5cad">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brand:#0b5cad;
+      --brand-2:#1848a0;
+      --indigo:#4f46e5;
+      --navy:#0f172a;
+      --text:#334155;
+      --muted:#64748b;
+      --line:#e2e8f0;
+      --soft:#f8fafc;
+      --blue-soft:#eff6ff;
+      --green:#16a34a;
+      --green-soft:#ecfdf5;
+      --orange:#f59e0b;
+      --orange-soft:#fffbeb;
+      --white:#fff;
+      --shadow:0 18px 55px rgba(15,23,42,.09);
+      --shadow-sm:0 8px 28px rgba(15,23,42,.07);
+      --radius:24px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth;scroll-padding-top:86px}
+    body{margin:0;font-family:'Manrope',system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text);background:#fff;line-height:1.65}
+    a{color:inherit}
+    img{max-width:100%;display:block}
+    button,a{-webkit-tap-highlight-color:transparent}
+    .container{width:min(1160px,calc(100% - 40px));margin:auto}
+    .section{padding:88px 0}
+    .section.alt{background:var(--soft)}
+    .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:var(--blue-soft);color:var(--brand);font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+    .section-head{max-width:720px;margin:0 auto 44px;text-align:center}
+    .section-head h2{margin:12px 0 12px;color:var(--navy);font-size:clamp(30px,4vw,46px);line-height:1.12;letter-spacing:-.035em}
+    .section-head p{margin:0;color:var(--muted);font-size:17px}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;text-decoration:none;border:0;border-radius:14px;padding:13px 19px;font-weight:800;font-size:14px;transition:.2s ease;cursor:pointer}
+    .btn:hover{transform:translateY(-2px)}
+    .btn.primary{color:white;background:linear-gradient(135deg,var(--brand),var(--indigo));box-shadow:0 12px 30px rgba(79,70,229,.22)}
+    .btn.secondary{background:white;color:var(--brand);border:1px solid #cbd5e1}
+    .btn.green{color:white;background:var(--green);box-shadow:0 12px 28px rgba(22,163,74,.18)}
+    .btn.dark{color:white;background:var(--navy)}
+    .icon{width:46px;height:46px;display:grid;place-items:center;border-radius:14px;font-size:22px;background:var(--blue-soft)}
+
+    /* Header */
+    .site-header{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);border-bottom:1px solid rgba(226,232,240,.86)}
+    .nav{height:76px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+    .brand{display:flex;align-items:center;gap:11px;text-decoration:none;min-width:245px}
+    .brand-logo{width:48px;height:48px;border-radius:50%;object-fit:cover;box-shadow:0 5px 18px rgba(11,92,173,.14);border:2px solid white}
+    .brand strong{display:block;color:var(--navy);font-size:15px;line-height:1.15}
+    .brand span{display:block;color:var(--brand);font-size:11px;font-weight:800;margin-top:3px}
+    .nav-links{display:flex;align-items:center;gap:4px}
+    .nav-links>a:not(.btn){text-decoration:none;color:#475569;font-size:13px;font-weight:700;padding:9px 10px;border-radius:10px}
+    .nav-links>a:not(.btn):hover{background:#f1f5f9;color:var(--navy)}
+    .nav-actions{display:flex;gap:8px;align-items:center}
+    .menu-btn{display:none;width:44px;height:44px;border:1px solid var(--line);background:white;border-radius:12px;font-size:20px;color:var(--navy)}
+
+    /* Hero */
+    .hero{position:relative;overflow:hidden;background:
+      radial-gradient(circle at 82% 20%,rgba(79,70,229,.14),transparent 31%),
+      radial-gradient(circle at 15% 70%,rgba(14,165,233,.12),transparent 30%),
+      linear-gradient(180deg,#fff 0%,#f8fbff 100%);padding:72px 0 48px}
+    .hero:after{content:'';position:absolute;width:480px;height:480px;border-radius:50%;border:1px solid rgba(79,70,229,.10);right:-150px;top:-180px}
+    .hero-grid{display:grid;grid-template-columns:1.12fr .88fr;align-items:center;gap:64px;position:relative;z-index:1}
+    .hero h1{margin:18px 0 18px;color:var(--navy);font-size:clamp(44px,5.7vw,72px);line-height:1.02;letter-spacing:-.055em}
+    .hero h1 span{background:linear-gradient(135deg,var(--brand),var(--indigo));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .hero-copy{font-size:18px;color:var(--muted);max-width:670px;margin:0 0 26px}
+    .hero-actions{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px}
+    .hero-note{display:flex;flex-wrap:wrap;gap:14px;color:#475569;font-size:13px;font-weight:700}
+    .hero-note span{display:flex;align-items:center;gap:6px}
+    .check{width:20px;height:20px;border-radius:50%;background:var(--green-soft);color:var(--green);display:grid;place-items:center;font-size:12px}
+    .visual-wrap{position:relative;min-height:515px;display:grid;place-items:center}
+    .visual-card{position:relative;width:min(430px,100%);background:white;border:1px solid #e7edf6;border-radius:34px;padding:30px;box-shadow:0 30px 80px rgba(30,64,175,.16);overflow:hidden}
+    .visual-card:before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(11,92,173,.03),rgba(79,70,229,.07));pointer-events:none}
+    .visual-logo{width:270px;height:270px;margin:0 auto 24px;border-radius:50%;object-fit:cover;border:8px solid white;box-shadow:0 14px 40px rgba(11,92,173,.16)}
+    .visual-title{text-align:center;font-weight:800;color:var(--navy);font-size:20px}
+    .visual-sub{text-align:center;color:var(--muted);font-size:13px;margin-top:5px}
+    .skill-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:20px}
+    .skill{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:11px 8px;text-align:center;font-size:11px;font-weight:800;color:#475569}
+    .float-card{position:absolute;background:white;border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow-sm);font-size:12px;font-weight:800;color:var(--navy)}
+    .float-card b{display:block;color:var(--brand);font-size:18px}
+    .float-a{left:-14px;top:74px} .float-b{right:-8px;bottom:56px}
+
+    /* Trust strip */
+    .trust{padding:18px 0;background:white;border-top:1px solid #eef2f7;border-bottom:1px solid #eef2f7}
+    .trust-grid{display:grid;grid-template-columns:repeat(5,1fr)}
+    .trust-item{padding:17px 14px;text-align:center;border-right:1px solid var(--line)}
+    .trust-item:last-child{border-right:0}
+    .trust-item strong{display:block;color:var(--navy);font-size:18px}
+    .trust-item span{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+
+    /* Benefit cards */
+    .cards-6{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .feature-card{background:white;border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:0 6px 24px rgba(15,23,42,.035);transition:.2s}
+    .feature-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-sm);border-color:#cbd5e1}
+    .feature-card h3{margin:16px 0 8px;color:var(--navy);font-size:18px}
+    .feature-card p{margin:0;color:var(--muted);font-size:14px}
+
+    /* Practice showcase */
+    .practice-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:54px;align-items:center}
+    .practice-copy h2{color:var(--navy);font-size:clamp(32px,4.2vw,50px);line-height:1.08;letter-spacing:-.045em;margin:14px 0}
+    .practice-copy>p{color:var(--muted);font-size:17px}
+    .practice-list{display:grid;gap:11px;margin:25px 0}
+    .practice-list div{display:flex;gap:12px;align-items:flex-start}
+    .practice-list b{color:var(--navy);font-size:14px}
+    .practice-list span{color:var(--muted);font-size:13px;display:block}
+    .mockup{background:#0f172a;border-radius:28px;padding:13px;box-shadow:0 28px 65px rgba(15,23,42,.22);transform:rotate(1deg)}
+    .mockup-inner{background:#f8fafc;border-radius:20px;padding:18px}
+    .mock-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    .mock-brand{font-size:12px;font-weight:800;color:var(--navy)}
+    .mock-user{padding:6px 9px;border-radius:999px;background:#eef2ff;color:var(--indigo);font-size:10px;font-weight:800}
+    .mock-hero{background:linear-gradient(135deg,#1d4ed8,#4f46e5);border-radius:18px;padding:18px;color:white;margin-bottom:12px}
+    .mock-hero small{opacity:.75;font-weight:700} .mock-hero h3{margin:5px 0 0;font-size:22px}
+    .mock-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .mock-card{background:white;border:1px solid var(--line);border-radius:14px;padding:13px}
+    .mock-card strong{display:block;color:var(--navy);font-size:12px}
+    .mock-card span{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+    .mock-bar{height:5px;background:#e2e8f0;border-radius:99px;margin-top:10px;overflow:hidden}
+    .mock-bar i{display:block;height:100%;background:linear-gradient(90deg,#22c55e,#4f46e5);border-radius:99px}
+
+    /* Steps */
+    .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;counter-reset:steps}
+    .step{position:relative;background:white;border:1px solid var(--line);border-radius:20px;padding:25px;counter-increment:steps}
+    .step:before{content:counter(steps);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--navy);color:white;font-size:13px;font-weight:800;margin-bottom:18px}
+    .step h3{margin:0 0 7px;color:var(--navy);font-size:16px}
+    .step p{margin:0;color:var(--muted);font-size:13px}
+    .quote{max-width:800px;margin:32px auto 0;padding:18px 24px;border-radius:16px;background:#eef2ff;color:#3730a3;text-align:center;font-size:17px;font-weight:800}
+
+    /* Program */
+    .program-wrap{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:stretch}
+    .program-main{background:linear-gradient(145deg,#0b5cad,#4f46e5);color:white;border-radius:30px;padding:36px;position:relative;overflow:hidden}
+    .program-main:after{content:'10';position:absolute;right:-10px;bottom:-55px;font-size:220px;font-weight:800;opacity:.055;line-height:1}
+    .program-main h2{font-size:40px;line-height:1.05;margin:12px 0 16px;letter-spacing:-.04em}
+    .program-main p{opacity:.86;font-size:15px;max-width:540px}
+    .program-main .btn{margin-top:14px}
+    .program-stages{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .stage{background:white;border:1px solid var(--line);border-radius:20px;padding:22px}
+    .stage h3{color:var(--navy);margin:10px 0 7px;font-size:15px}
+    .stage p{color:var(--muted);margin:0;font-size:12px}
+
+    /* Competition */
+    .competition{background:linear-gradient(180deg,#fff7ed,#fff);}
+    .competition-grid{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center}
+    .trophy-panel{background:#111827;border-radius:30px;padding:34px;color:white;position:relative;overflow:hidden}
+    .trophy-panel:before{content:'🏆';position:absolute;right:-25px;top:-32px;font-size:180px;opacity:.1;transform:rotate(12deg)}
+    .trophy-panel h3{font-size:32px;line-height:1.1;margin:0 0 12px}
+    .trophy-panel p{color:#cbd5e1;margin:0}
+    .comp-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:23px}
+    .comp-chips span{padding:8px 11px;border:1px solid rgba(255,255,255,.13);border-radius:999px;font-size:11px;font-weight:800;background:rgba(255,255,255,.06)}
+    .comp-list{display:grid;gap:14px}
+    .comp-item{display:flex;gap:13px;padding:16px;border:1px solid #fed7aa;background:white;border-radius:16px}
+    .comp-item b{display:block;color:var(--navy);font-size:14px} .comp-item span{color:var(--muted);font-size:12px}
+
+    /* Testimonials */
+    .testimonials{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .testimonial{background:white;border:1px solid var(--line);border-radius:22px;padding:24px}
+    .stars{color:var(--orange);font-size:13px;letter-spacing:1px}
+    .testimonial blockquote{margin:14px 0 16px;color:#475569;font-size:13px;line-height:1.75}
+    .testimonial strong{color:var(--navy);font-size:13px}
+    .testimonial span{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+    .reviews-link{text-align:center;margin-top:25px}
+
+    /* Parent section */
+    .parents{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center}
+    .parent-card{background:linear-gradient(135deg,#ecfdf5,#f0fdf4);border:1px solid #bbf7d0;border-radius:28px;padding:34px}
+    .parent-card h2{color:var(--navy);font-size:34px;line-height:1.1;margin:12px 0}
+    .parent-card p{color:#475569}
+    .equation{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+    .eq-box{min-width:120px;text-align:center;border:1px solid var(--line);background:white;border-radius:18px;padding:18px;font-weight:800;color:var(--navy);box-shadow:var(--shadow-sm)}
+    .plus{font-size:28px;color:#94a3b8;font-weight:800}
+
+    /* Pricing */
+    .pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:stretch}
+    .price-card{position:relative;background:white;border:1px solid var(--line);border-radius:26px;padding:28px;box-shadow:var(--shadow-sm)}
+    .price-card.featured{border:2px solid #6366f1;box-shadow:0 22px 60px rgba(79,70,229,.14)}
+    .price-badge{position:absolute;top:-13px;left:24px;background:var(--indigo);color:white;padding:7px 10px;border-radius:999px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+    .price-name{font-size:14px;font-weight:800;color:var(--navy)}
+    .price{font-size:44px;line-height:1;color:var(--navy);font-weight:800;letter-spacing:-.04em;margin:16px 0 6px}
+    .price small{font-size:13px;color:var(--muted);font-weight:700;letter-spacing:0}
+    .strike{font-size:13px;color:#94a3b8;text-decoration:line-through;margin-right:6px}
+    .price-list{display:grid;gap:10px;margin:22px 0 25px}
+    .price-list span{display:flex;gap:9px;font-size:12px;color:#475569}
+    .kit-note{margin-top:24px;padding:13px;border-radius:13px;background:#fff7ed;color:#9a3412;font-size:11px;font-weight:700}
+    .pricing-foot{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:28px}
+
+    /* Centres */
+    .centre-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .centre{border:1px solid var(--line);border-radius:22px;background:white;padding:24px}
+    .centre small{font-size:11px;font-weight:800;color:var(--brand);text-transform:uppercase;letter-spacing:.08em}
+    .centre h3{color:var(--navy);margin:9px 0 8px;font-size:19px}
+    .centre p{color:var(--muted);font-size:13px;margin:0}
+    .centre .btn{margin-top:18px;padding:10px 13px;font-size:12px}
+
+    /* FAQ */
+    .faq{max-width:850px;margin:auto;display:grid;gap:10px}
+    details{background:white;border:1px solid var(--line);border-radius:16px;padding:0 18px}
+    summary{cursor:pointer;list-style:none;padding:18px 0;color:var(--navy);font-weight:800;font-size:14px;display:flex;justify-content:space-between;gap:16px}
+    summary::-webkit-details-marker{display:none}
+    summary:after{content:'+';color:var(--brand);font-size:20px}
+    details[open] summary:after{content:'−'}
+    details p{margin:0 0 18px;color:var(--muted);font-size:13px}
+
+    /* CTA & footer */
+    .final-cta{background:linear-gradient(135deg,#0b5cad,#4338ca);border-radius:32px;padding:52px;color:white;display:flex;justify-content:space-between;align-items:center;gap:30px;position:relative;overflow:hidden}
+    .final-cta:after{content:'';width:220px;height:220px;border:40px solid rgba(255,255,255,.06);border-radius:50%;position:absolute;right:-60px;bottom:-90px}
+    .final-cta h2{font-size:clamp(30px,4vw,46px);line-height:1.06;margin:0 0 9px;letter-spacing:-.045em}
+    .final-cta p{margin:0;color:#dbeafe;max-width:650px}
+    .final-actions{display:flex;gap:10px;flex-wrap:wrap;position:relative;z-index:1}
+    footer{background:#081226;color:#cbd5e1;padding:54px 0 28px;margin-top:88px}
+    .footer-grid{display:grid;grid-template-columns:1.2fr .7fr .9fr .9fr;gap:32px}
+    .foot-brand{display:flex;gap:12px;align-items:center;margin-bottom:15px}
+    .foot-brand img{width:58px;height:58px;border-radius:50%;object-fit:cover;background:white}
+    .foot-brand strong{color:white;display:block}
+    .foot-brand span{font-size:11px;color:#93c5fd}
+    footer h4{color:white;margin:5px 0 14px;font-size:13px}
+    footer a{display:block;text-decoration:none;color:#cbd5e1;font-size:12px;margin:7px 0}
+    footer a:hover{color:white}
+    footer p{font-size:12px;margin:6px 0;color:#94a3b8}
+    .copyright{border-top:1px solid #1e293b;margin-top:34px;padding-top:20px;font-size:11px;color:#64748b;display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}
+    .wa-float{position:fixed;right:18px;bottom:18px;z-index:90;background:#22c55e;color:white;text-decoration:none;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-size:24px;box-shadow:0 12px 32px rgba(22,163,74,.3)}
+
+    .reveal{opacity:0;transform:translateY(16px);transition:.55s ease}
+    .reveal.visible{opacity:1;transform:none}
+
+    @media (max-width:1000px){
+      .nav-links{display:none;position:absolute;top:76px;left:20px;right:20px;background:white;border:1px solid var(--line);border-radius:18px;padding:13px;box-shadow:var(--shadow);flex-direction:column;align-items:stretch}
+      .nav-links.open{display:flex}
+      .nav-links>a:not(.btn){padding:11px 12px}
+      .nav-actions .btn.secondary{display:none}
+      .menu-btn{display:block}
+      .hero-grid,.practice-grid,.competition-grid,.parents{grid-template-columns:1fr}
+      .hero-grid{gap:26px} .visual-wrap{min-height:auto}
+      .cards-6{grid-template-columns:repeat(2,1fr)}
+      .steps{grid-template-columns:repeat(2,1fr)}
+      .program-wrap{grid-template-columns:1fr}
+      .pricing-grid{grid-template-columns:1fr}
+      .centre-grid{grid-template-columns:1fr}
+      .testimonials{grid-template-columns:1fr}
+      .footer-grid{grid-template-columns:1fr 1fr}
+    }
+    @media (max-width:700px){
+      .container{width:min(100% - 28px,1160px)}
+      .section{padding:68px 0}
+      .nav{height:68px}
+      .brand{min-width:0} .brand-logo{width:42px;height:42px}
+      .brand strong{font-size:13px} .brand span{font-size:10px}
+      .nav-actions>.btn.primary{display:none}
+      .nav-links{top:68px}
+      .hero{padding:46px 0 34px}
+      .hero h1{font-size:42px}
+      .hero-copy{font-size:16px}
+      .hero-actions .btn{width:100%}
+      .float-card{display:none}
+      .visual-card{padding:22px;border-radius:26px}
+      .visual-logo{width:220px;height:220px}
+      .trust-grid{grid-template-columns:repeat(2,1fr)}
+      .trust-item{border-right:0;border-bottom:1px solid var(--line)}
+      .trust-item:last-child{grid-column:1/-1;border-bottom:0}
+      .cards-6,.steps{grid-template-columns:1fr}
+      .program-stages{grid-template-columns:1fr}
+      .program-main{padding:28px} .program-main h2{font-size:32px}
+      .mockup{transform:none}
+      .parent-card{padding:26px}
+      .eq-box{min-width:95px;padding:14px;font-size:13px}
+      .final-cta{padding:34px 24px;display:block}
+      .final-actions{margin-top:23px} .final-actions .btn{width:100%}
+      .footer-grid{grid-template-columns:1fr}
+      .skill-row{grid-template-columns:1fr 1fr 1fr}
+      .section-head{margin-bottom:32px}
+      .pricing-foot .btn{width:100%}
+    }
+    @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}}
+  </style>
 </head>
 <body>
 
-<!-- RESPONSIVE NAVIGATION BAR -->
-<div class="navbar">
-  <div class="navbar-logo">
-    🎓 Li'l Champs Abacus Academy
-    <span>Ambernath</span>
-  </div>
-  <div class="navbar-links">
-    <a href="#pricing" class="nav-link">Course Pricing</a>
-    <a href="payment-calculator.html" class="nav-link">Payment Calculator</a>
-    <a href="login.html" class="nav-link login-btn-nav">🔐 Existing Student Login</a>
-  </div>
-</div>
-
-<div class="poster">
-  <!-- HEADER -->
-  <div class="header">
-    <div class="academy-name">Li'l Champs Abacus Academy Ambernath</div>
-    <div class="tagline">4-Year Complete Abacus Training Program</div>
-    <div class="subtext">Master 10 Levels of Abacus Excellence</div>
-  </div>
-
-  <!-- FREE PRACTICE BANNER -->
-  <div class="free-banner">
-    ✨ <strong>UNLIMITED WEBSITE PRACTICE - COMPLETELY FREE!</strong> Practice anywhere, anytime with our online platform at no cost
-  </div>
-
-  <!-- FREE TRIAL BANNER -->
-  <div class="free-trial-banner">
-    <div class="free-trial-content">
-      <h2>Try 1 Class FREE</h2>
-      <p>No Obligation. No Hidden Costs. Just Amazing Learning.</p>
-      <p style="font-size: 13px; opacity: 0.95; margin-top: 8px;">Experience our teaching style and see the difference for yourself</p>
-      <a href="https://wa.me/919730482620?text=Hi%20Nikhil%20Sir,%20I%20want%20to%20book%20a%20FREE%20trial%20class.%0A%0APlease%20help%20me:%0AChild%27s%20Name:%0AStandard/Grade:%0ASchool%20Name:%0APreferred%20Center:%20Ambernath%20East%20or%20West" target="_blank" style="display: inline-block; margin-top: 14px; text-decoration: none;">
-        <button class="free-trial-btn">Book Free Trial Now</button>
-      </a>
-    </div>
-  </div>
-
-  <!-- PRICING SECTION LABEL -->
-  <div class="pricing-label">Abacus Course Fee Plans</div>
-
-  <!-- PRICING CARDS -->
-  <div id="pricing" class="pricing-container">
-    <!-- QUARTERLY -->
-    <div class="card">
-      <div class="card-icon">📊</div>
-      <div class="card-title">Quarterly</div>
-      <div class="card-price">₹3,999</div>
-      <div class="card-duration">Per 3 Months</div>
-      <div class="card-frequency">4 Payments/Year</div>
-      <div class="card-benefits">
-        <div class="benefit-item">Flexible payment schedule</div>
-        <div class="benefit-item">Low commitment required</div>
-        <div class="benefit-item">Pay every 3 months</div>
-        <div class="benefit-highlight">🌐 Unlimited Free Practice Online</div>
-        <div class="benefit-item">Best for budget-conscious</div>
-        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #dc2626; font-weight: 600;">
-          + ₹1,700 Kit Fee (One-Time)
-        </div>
-      </div>
-    </div>
-
-    <!-- HALF-YEARLY (FEATURED) -->
-    <div class="card featured">
-      <div class="featured-badge">✓ RECOMMENDED</div>
-      <div class="card-icon">📅</div>
-      <div class="card-title">Half-Yearly</div>
-      <div class="card-price">₹7,999</div>
-      <div class="card-duration">Per 6 Months</div>
-      <div class="card-frequency">2 Payments/Year</div>
-      <div class="card-benefits">
-        <div class="benefit-item">Aligns with 6-month levels</div>
-        <div class="benefit-item">Balanced payment cycle</div>
-        <div class="benefit-item">Natural level progression</div>
-        <div class="benefit-highlight">🌐 Unlimited Free Practice Online</div>
-        <div class="benefit-item">Most popular choice</div>
-        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #dc2626; font-weight: 600;">
-          + ₹1,700 Kit Fee (One-Time)
-        </div>
-      </div>
-    </div>
-
-    <!-- YEARLY -->
-    <div class="card">
-      <div class="discount-badge">₹1,000 OFF</div>
-      <div class="card-icon">💰</div>
-      <div class="card-title">Yearly</div>
-      <div class="original-price">₹15,999</div>
-      <div class="card-price">₹14,999</div>
-      <div class="card-duration">Full 12 Months</div>
-      <div class="card-frequency">1 Payment/Year</div>
-      <div class="card-benefits">
-        <div class="benefit-item">Maximum upfront savings</div>
-        <div class="benefit-item">Highest commitment reward</div>
-        <div class="benefit-item">Simple annual billing</div>
-        <div class="benefit-highlight">🌐 Unlimited Free Practice Online</div>
-        <div class="benefit-item">Best for committed families</div>
-        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #dc2626; font-weight: 600;">
-          + ₹1,700 Kit Fee (One-Time)
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TESTIMONIALS SECTION -->
-  <div class="testimonials-section">
-    <h2 class="testimonials-title">What Parents Say About Li'l Champs</h2>
-    <p class="testimonials-subtitle">Real stories from real parents and students</p>
-    
-    <div class="testimonials-grid">
-      <div class="testimonial-card">
-        <div class="stars">⭐⭐⭐⭐⭐</div>
-        <p class="testimonial-text">"My 5-year-old joined with Nikhil sir and in only 2 months I got amazing results. My son stood 1st runner up at zonal level in state competition. All credit goes to Nikhil sir and his team for putting all efforts behind each and every student."</p>
-        <p class="testimonial-author">— Shweta Laddha (Parent)</p>
-        <p class="testimonial-badge">🏆 State Competition Winner</p>
-      </div>
-
-      <div class="testimonial-card">
-        <div class="stars">⭐⭐⭐⭐⭐</div>
-        <p class="testimonial-text">"Thank you sir for giving a perfect path for the growth and development of our child. Your innovative methods and techniques really help kids reach heights. All credit goes to your teaching and motivation."</p>
-        <p class="testimonial-author">— Pragya Pragya (Parent)</p>
-        <p class="testimonial-badge">📈 Excellent Progress</p>
-      </div>
-
-      <div class="testimonial-card">
-        <div class="stars">⭐⭐⭐⭐⭐</div>
-        <p class="testimonial-text">"Learning abacus helps improve photographic memory and intellectual calculation ability. My daughter is learning under guidance of Poonam teacher and Nikhil sir. They make sure concepts are clear and provide personal attention."</p>
-        <p class="testimonial-author">— Manoj Jaiswar (Parent)</p>
-        <p class="testimonial-badge">✨ Concept Clarity</p>
-      </div>
-
-      <div class="testimonial-card">
-        <div class="stars">⭐⭐⭐⭐⭐</div>
-        <p class="testimonial-text">"Clear communication of learning objectives improves student understanding and participation. This is evident in your teaching method and is highly appreciated. Thank you Nikhil Sir."</p>
-        <p class="testimonial-author">— Ankita Verma (Parent)</p>
-        <p class="testimonial-badge">🎯 Clear Teaching</p>
-      </div>
-
-      <div class="testimonial-card">
-        <div class="stars">⭐⭐⭐⭐⭐</div>
-        <p class="testimonial-text">"It has been a good learning experience for our daughter. Sir and ma'am have been kind about clearing all doubts timely and guiding parents. Really helpful and supportive."</p>
-        <p class="testimonial-author">— Preity Ram (Parent)</p>
-        <p class="testimonial-badge">👨‍👩‍👧 Family Support</p>
-      </div>
-
-      <div class="testimonial-card">
-        <div class="stars">⭐⭐⭐⭐⭐</div>
-        <p class="testimonial-text">"Best abacus academy! I personally recommend every child should enroll. The competitions help kids build confidence. My child is doing well under Nikhil sir's guidance. Highly recommend!"</p>
-        <p class="testimonial-author">— Anita Muddliar (Parent)</p>
-        <p class="testimonial-badge">💪 Confidence Builder</p>
-      </div>
-    </div>
-
-    <div class="testimonials-cta">
-      <h3>Join Our Community of Winners</h3>
-      <p>Give your child the gift of mental math mastery</p>
-      <a href="/testimonials" style="display: inline-block; text-decoration: none;">
-        <button class="cta-button" style="margin-bottom: 12px;">See All Reviews</button>
-      </a>
-    </div>
-  </div>
-
-  <!-- HOW TO ENROLL SECTION -->
-  <div class="how-to-enroll">
-    <h2 class="enroll-title">How to Get Started in 4 Simple Steps</h2>
-    <p class="enroll-subtitle">Join our community of happy students today</p>
-    
-    <div class="enroll-steps">
-      <div class="enroll-step">
-        <div class="step-number">1</div>
-        <div class="step-icon">🎓</div>
-        <h3>Book Free Trial Class</h3>
-        <p>Experience one complete class absolutely free. No obligation. See our teaching style firsthand.</p>
-      </div>
-
-      <div class="enroll-step">
-        <div class="step-number">2</div>
-        <div class="step-icon">📍</div>
-        <h3>Pick Your Center</h3>
-        <p>Choose from 3 convenient Ambernath locations: East (Near Station), East (Near Nisarg Greens), or West (Near Father Agnel)</p>
-      </div>
-
-      <div class="enroll-step">
-        <div class="step-number">3</div>
-        <div class="step-icon">📋</div>
-        <h3>Choose Your Plan</h3>
-        <p>Select Quarterly, Half-Yearly, or Yearly based on your preference and commitment level after experiencing the class</p>
-      </div>
-
-      <div class="enroll-step">
-        <div class="step-number">4</div>
-        <div class="step-icon">✨</div>
-        <h3>Enroll & Start Your Journey</h3>
-        <p>Ready? Complete enrollment and begin your child's path to mental math mastery and competition success!</p>
-      </div>
-    </div>
-
-    <div class="enroll-cta">
-      <a href="https://wa.me/919730482620?text=Hi%20Nikhil%20Sir,%20I%20want%20to%20book%20a%20FREE%20trial%20class.%0A%0APlease%20help%20me:%0AChild%27s%20Name:%0AStandard/Grade:%0ASchool%20Name:%0APreferred%20Center:%20Ambernath%20East%20or%20West" target="_blank" style="display: inline-block; text-decoration: none;">
-        <button class="enroll-cta-btn">Start Your Free Trial Today</button>
-      </a>
-    </div>
-  </div>
-
-  <!-- WHY ABACUS MATTERS SECTION -->
-  <div class="why-abacus-section">
-    <h2 class="why-title">Why Abacus Education Matters</h2>
-    <p class="why-subtitle">Discover how abacus training transforms your child's mind</p>
-    
-    <div class="why-benefits-grid">
-      <div class="why-benefit-card">
-        <div class="benefit-icon">🧠</div>
-        <h3>Brain Development</h3>
-        <ul>
-          <li>Activates both brain hemispheres</li>
-          <li>Strengthens photographic memory</li>
-          <li>Enhances visualization skills</li>
-          <li>Develops cognitive thinking</li>
-        </ul>
-      </div>
-
-      <div class="why-benefit-card">
-        <div class="benefit-icon">⚡</div>
-        <h3>Speed & Accuracy</h3>
-        <ul>
-          <li>Mental calculations in seconds</li>
-          <li>Reduced dependency on calculators</li>
-          <li>Error-free mathematical thinking</li>
-          <li>Lightning-fast problem solving</li>
-        </ul>
-      </div>
-
-      <div class="why-benefit-card">
-        <div class="benefit-icon">📚</div>
-        <h3>Academic Excellence</h3>
-        <ul>
-          <li>Improved school math performance</li>
-          <li>Better understanding of concepts</li>
-          <li>Increased exam scores</li>
-          <li>Stronger foundation for higher math</li>
-        </ul>
-      </div>
-
-      <div class="why-benefit-card">
-        <div class="benefit-icon">🏆</div>
-        <h3>Competition Ready</h3>
-        <ul>
-          <li>Prepares for national & zonal competitions</li>
-          <li>Builds confidence in public speaking</li>
-          <li>Develops competitive mindset</li>
-          <li>Creates champions in mathematics</li>
-        </ul>
-      </div>
-
-      <div class="why-benefit-card">
-        <div class="benefit-icon">🎯</div>
-        <h3>Concentration Building</h3>
-        <ul>
-          <li>Focus for extended periods (2+ hours)</li>
-          <li>Improved attention to detail</li>
-          <li>Better information retention</li>
-          <li>Mental discipline development</li>
-        </ul>
-      </div>
-
-      <div class="why-benefit-card">
-        <div class="benefit-icon">💪</div>
-        <h3>Confidence Boost</h3>
-        <ul>
-          <li>Mastery builds self-confidence</li>
-          <li>Better participation in class</li>
-          <li>Leadership qualities emerge</li>
-          <li>Positive attitude toward learning</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="why-bottom-text">
-      <p><strong>The Abacus Advantage:</strong> It's not just about math. Abacus training develops holistic intelligence that benefits your child across all subjects and life skills.</p>
-    </div>
-  </div>
-
-  <!-- FAQ SECTION -->
-  <div class="faq-section">
-    <h2 class="faq-title">Frequently Asked Questions</h2>
-    <p class="faq-subtitle">Get answers to common parent questions</p>
-    
-    <div class="faq-container">
-      <div class="faq-item">
-        <div class="faq-question">
-          <span class="faq-icon">❓</span>
-          <h3>What age can my child start abacus?</h3>
-          <span class="faq-toggle">+</span>
-        </div>
-        <div class="faq-answer">
-          <p>Children aged 6 years can start abacus training. At this age, they have the fine motor skills and cognitive ability to understand the concept. Early start gives them an advantage across all mathematics.</p>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-question">
-          <span class="faq-icon">⏱️</span>
-          <h3>How long is the complete program?</h3>
-          <span class="faq-toggle">+</span>
-        </div>
-        <div class="faq-answer">
-          <p>The program spans 52 months (approximately 4.4 years) across 10 levels. Each level builds on the previous, creating a comprehensive progression from basic arithmetic to advanced mental mathematics and competition-level problem solving.</p>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-question">
-          <span class="faq-icon">📅</span>
-          <h3>What if my child misses a class?</h3>
-          <span class="faq-toggle">+</span>
-        </div>
-        <div class="faq-answer">
-          <p>We understand life happens! We offer flexible make-up sessions at alternative times. Your child won't fall behind because we ensure they cover all concepts. Just let us know in advance, and we'll schedule a convenient time.</p>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-question">
-          <span class="faq-icon">✅</span>
-          <h3>How is progress assessed?</h3>
-          <span class="faq-toggle">+</span>
-        </div>
-        <div class="faq-answer">
-          <p>We conduct regular assessments at each level to ensure mastery. Progress includes: timed calculation challenges, accuracy tests, formula understanding checks, and competition readiness evaluations.</p>
-        </div>
-      </div>
-
-     <div class="faq-item">
-        <div class="faq-question">
-          <span class="faq-icon">🏅</span>
-          <h3>Will my child get International certificate?</h3>
-          <span class="faq-toggle">+</span>
-        </div>
-        <div class="faq-answer">
-          <p>Yes! Every year we have International grading exam at Ambernath conducted by Malaysia Head office. This exam is compulsory for all stduents. SO in 4 years span your child will get minimum 4 International certificates.</p>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-question">
-          <span class="faq-icon">🎓</span>
-          <h3>What happens after Level 10?</h3>
-          <span class="faq-toggle">+</span>
-        </div>
-        <div class="faq-answer">
-          <p>After completing Level 10, students have mastered abacus and mental mathematics to competition standard. Child gets Post Graduation Certificate.</p>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-question">
-          <span class="faq-icon">💰</span>
-          <h3>Is there a refund policy?</h3>
-          <span class="faq-toggle">+</span>
-        </div>
-        <div class="faq-answer">
-          <p>Our fee structure reflects the comprehensive training provided. If you're not satisfied after the free trial class, we can discuss alternatives. However, once enrolled, fees are non-refundable as they cover instructor time, materials, and resources.</p>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-question">
-          <span class="faq-icon">🏅</span>
-          <h3>Will my child get competition training?</h3>
-          <span class="faq-toggle">+</span>
-        </div>
-        <div class="faq-answer">
-          <p>Yes! As part of our regular curriculum, we prepare students for competitions. We have International, National and State level competition once in a year. We have more than 200 winners in competititon.</p>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-question">
-          <span class="faq-icon">📱</span>
-          <h3>Is online practice really unlimited?</h3>
-          <span class="faq-toggle">+</span>
-        </div>
-        <div class="faq-answer">
-          <p>Yes! Absolutely unlimited. With your enrollment, you get access to our entire online practice platform at no additional cost. Practice anytime, anywhere - on laptop, tablet, or phone. No hidden charges ever.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- PRICING CLARIFICATION -->
-  <div class="pricing-clarification">
-    <h3>✨ What Do These Fees Cover?</h3>
-    <p><strong>Course Fees:</strong> In-class training (1x/week, 2 hours) • Expert instruction • Progress assessments • Learning materials • Level certificates</p>
-    <p style="margin-top: 12px;"><strong style="color: #22c55e;">Free Forever:</strong> Unlimited online practice tools • Practice problems • Timed challenges • Progress tracking • Assessments (No additional charges)</p>
-  </div>
-
-  <!-- PAYMENT CALCULATOR -->
-  <div id="calculator" style="text-align: center; margin: 30px 0; padding: 25px; background: rgba(255,255,255,0.1); border-radius: 15px;">
-    <p style="color: white; margin-bottom: 15px; font-size: 15px; font-weight: 600;">Ready to enroll? Calculate your exact payment schedule:</p>
-    <a href="payment-calculator.html" style="background: white; color: #667eea; padding: 14px 40px; border-radius: 35px; text-decoration: none; font-weight: 700; font-size: 14px; display: inline-block; box-shadow: 0 10px 30px rgba(0,0,0,0.15); transition: all 0.3s; letter-spacing: 0.5px;">
-      📅 Payment Schedule Calculator
+<header class="site-header">
+  <div class="container nav">
+    <a class="brand" href="#top" aria-label="Li'l Champs home">
+      <img class="brand-logo" src="lil-champs-logo.svg" alt="Li'l Champs Abacus Academy logo">
+      <div><strong>Li'l Champs Abacus Academy</strong><span>AMBERNATH</span></div>
     </a>
-  </div>
 
-  <!-- CALLOUT -->
-  <div class="callout">
-    <strong>✓ Complete Package Included</strong>
-    In-class Training (1x/week, 2hrs) • Assessments • Materials • Progress Tracking • Unlimited Free Online Practice
-    <div style="margin-top: 12px; border-top: 1px solid #ddd; padding-top: 12px; font-size: 12px; color: #dc2626;">
-      <strong>+ ₹1,700 One-Time Kit Fee (Level 1)</strong> — Includes Practice Abacus Kit & Learning Materials
+    <nav class="nav-links" id="navLinks">
+      <a href="#why">Why Li'l Champs</a>
+      <a href="#practice">Online Practice</a>
+      <a href="#program">Program</a>
+      <a href="#pricing">Fees</a>
+      <a href="#centres">Centres</a>
+      <a href="payment-calculator.html">Fee Calculator</a>
+    </nav>
+
+    <div class="nav-actions">
+      <a class="btn secondary" href="login.html">Student Login</a>
+      <a class="btn primary" href="https://wa.me/919730482620?text=Hi%20Nikhil%20Sir,%20I%20want%20to%20book%20a%20FREE%20trial%20class.%0A%0AChild%27s%20Name:%0AStandard/Grade:%0ASchool%20Name:%0APreferred%20Center:%20Near%20Station%20/%20Nisarg%20Greens%20/%20Father%20Agnel" target="_blank" rel="noopener">Book Free Trial</a>
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false">☰</button>
     </div>
   </div>
+</header>
 
-  <!-- FOOTER -->
-  <div class="footer">
-    <div class="footer-section">
-      <h3>📞 Contact Us</h3>
-      <div class="footer-content">
-        <a href="https://wa.me/919730482620?text=Hi%20Nikhil%20Sir,%20I%20want%20to%20book%20a%20free%20trial%20class%20for%20my%20child." target="_blank" style="text-decoration: none; color: inherit;">
-          <div class="phone-number" style="cursor: pointer; opacity: 0.8; transition: opacity 0.3s;">9730482620</div>
-        </a>
-        <div style="font-size: 12px; margin-top: 10px; opacity: 0.9;">📱 WhatsApp or call for admission details</div>
+<main id="top">
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <span class="eyebrow">Abacus learning that continues beyond class</span>
+        <h1>Build <span>speed, accuracy & confidence</span> with abacus.</h1>
+        <p class="hero-copy">Structured abacus training for children with weekly classroom learning, daily website practice, progress tracking and competition preparation.</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="https://wa.me/919730482620?text=Hi%20Nikhil%20Sir,%20I%20want%20to%20book%20a%20FREE%20trial%20class.%0A%0AChild%27s%20Name:%0AStandard/Grade:%0ASchool%20Name:%0APreferred%20Center:%20Near%20Station%20/%20Nisarg%20Greens%20/%20Father%20Agnel" target="_blank" rel="noopener">Book a FREE Trial Class →</a>
+          <a class="btn secondary" href="login.html">Existing Student Login</a>
+        </div>
+        <div class="hero-note">
+          <span><i class="check">✓</i> 12+ years teaching experience</span>
+          <span><i class="check">✓</i> 3 Ambernath centres</span>
+          <span><i class="check">✓</i> Website practice included</span>
+        </div>
+      </div>
+
+      <div class="visual-wrap">
+        <div class="float-card float-a"><b>Daily</b>Practice habit</div>
+        <div class="visual-card">
+          <img class="visual-logo" src="lil-champs-logo.svg" alt="Li'l Champs Abacus Academy">
+          <div class="visual-title">Learn in class. Practise every day.</div>
+          <div class="visual-sub">A complete learning loop for consistent improvement.</div>
+          <div class="skill-row">
+            <div class="skill">⚡ Speed</div>
+            <div class="skill">🎯 Accuracy</div>
+            <div class="skill">🧠 Focus</div>
+          </div>
+        </div>
+        <div class="float-card float-b"><b>Track</b>Score • Time • Errors</div>
       </div>
     </div>
+  </section>
 
-    <div class="footer-section">
-      <h3>📍 Our Centers</h3>
-      <div class="location-list">
-        <p>✓ Ambernath East (Near Station)</p>
-        <p>✓ Ambernath East (Near Nisarg Greens)</p>
-        <p>✓ Ambernath West (Near Father Agnel)</p>
-        <p style="font-size: 11px; margin-top: 8px; opacity: 0.8;">Serving Ambernath East & West</p>
+  <section class="trust" aria-label="Academy highlights">
+    <div class="container trust-grid">
+      <div class="trust-item"><strong>12+ Years</strong><span>Teaching Experience</span></div>
+      <div class="trust-item"><strong>3 Centres</strong><span>Across Ambernath</span></div>
+      <div class="trust-item"><strong>Weekly Class</strong><span>2 Hours</span></div>
+      <div class="trust-item"><strong>Daily Practice</strong><span>Website Based</span></div>
+      <div class="trust-item"><strong>Competitions</strong><span>Speed + Accuracy</span></div>
+    </div>
+  </section>
+
+  <section class="section" id="why">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">Why parents choose Li'l Champs</span>
+        <h2>More than just faster calculation.</h2>
+        <p>Our system combines correct technique, regular practice and measurable progress so children can improve with purpose.</p>
+      </div>
+      <div class="cards-6">
+        <article class="feature-card reveal"><div class="icon">⚡</div><h3>Faster Calculation</h3><p>Structured practice builds calculation fluency step by step instead of depending only on weekly classwork.</p></article>
+        <article class="feature-card reveal"><div class="icon">🎯</div><h3>Speed with Accuracy</h3><p>Students are trained to increase speed while still respecting correct answers and technique.</p></article>
+        <article class="feature-card reveal"><div class="icon">🧠</div><h3>Better Concentration</h3><p>Abacus work demands attention, visualisation and controlled movement — useful habits for focused learning.</p></article>
+        <article class="feature-card reveal"><div class="icon">📈</div><h3>Progress Tracking</h3><p>Practice records help students, parents and teachers see scores, time and recurring weak areas.</p></article>
+        <article class="feature-card reveal"><div class="icon">🔁</div><h3>Daily Practice Habit</h3><p>Students get level-based website practice so learning continues throughout the week.</p></article>
+        <article class="feature-card reveal"><div class="icon">🏆</div><h3>Competition Readiness</h3><p>Timed exercises and accuracy correction prepare students to perform calmly under pressure.</p></article>
       </div>
     </div>
+  </section>
 
-    <div class="footer-section">
-      <h3>⏰ Class Schedule</h3>
-      <div class="footer-content">
-        <div>1 Class/Week</div>
-        <div>2 Hours Duration</div>
-        <div style="margin-top: 10px; font-size: 12px; opacity: 0.9;">May is Annual Break</div>
+  <section class="section alt" id="practice">
+    <div class="container practice-grid">
+      <div class="practice-copy reveal">
+        <span class="eyebrow">The Li'l Champs difference</span>
+        <h2>Practice doesn’t stop when class ends.</h2>
+        <p>A two-hour weekly class teaches technique. Consistent practice builds the skill. Our website gives enrolled students a structured place to practise from mobile, tablet or laptop.</p>
+        <div class="practice-list">
+          <div><i class="check">✓</i><p><b>Daily Practice</b><span>Level-based addition/subtraction, multiplication and division.</span></p></div>
+          <div><i class="check">✓</i><p><b>Formula Practice</b><span>Targeted Small Friend, Big Friend and combination training.</span></p></div>
+          <div><i class="check">✓</i><p><b>Error Correction</b><span>Wrong sums can be reviewed and practised again.</span></p></div>
+          <div><i class="check">✓</i><p><b>Teacher Monitoring</b><span>Practice information helps identify students who need attention.</span></p></div>
+        </div>
+        <a class="btn dark" href="login.html">Open Student Practice →</a>
+      </div>
+
+      <div class="mockup reveal" aria-label="Website practice preview">
+        <div class="mockup-inner">
+          <div class="mock-top"><div class="mock-brand">Li'l Champs Practice</div><div class="mock-user">LEVEL BASED</div></div>
+          <div class="mock-hero"><small>TODAY'S PRACTICE</small><h3>Keep your streak going 🔥</h3></div>
+          <div class="mock-cards">
+            <div class="mock-card"><strong>Daily Practice</strong><span>30 targeted sums</span><div class="mock-bar"><i style="width:78%"></i></div></div>
+            <div class="mock-card"><strong>Formula Practice</strong><span>3 focused rounds</span><div class="mock-bar"><i style="width:62%"></i></div></div>
+            <div class="mock-card"><strong>Speed Training</strong><span>Timed challenges</span><div class="mock-bar"><i style="width:86%"></i></div></div>
+            <div class="mock-card"><strong>Progress Report</strong><span>Score • time • mistakes</span><div class="mock-bar"><i style="width:72%"></i></div></div>
+          </div>
+        </div>
       </div>
     </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">How improvement happens</span>
+        <h2>A simple system for continuous progress.</h2>
+      </div>
+      <div class="steps">
+        <article class="step reveal"><h3>Attend Weekly Class</h3><p>Learn new abacus techniques correctly with the teacher.</p></article>
+        <article class="step reveal"><h3>Practise at Home</h3><p>Reinforce the technique through regular abacus and website practice.</p></article>
+        <article class="step reveal"><h3>Improve Speed & Accuracy</h3><p>Timed work gradually increases calculation speed while protecting accuracy.</p></article>
+        <article class="step reveal"><h3>Track & Correct</h3><p>Review performance, identify recurring mistakes and work on weaker areas.</p></article>
+      </div>
+      <div class="quote reveal">Class teaches the technique. Daily practice builds the skill.</div>
+    </div>
+  </section>
+
+  <section class="section alt" id="program">
+    <div class="container program-wrap">
+      <div class="program-main reveal">
+        <span class="eyebrow" style="background:rgba(255,255,255,.12);color:white">Structured learning journey</span>
+        <h2>From physical abacus to confident mental calculation.</h2>
+        <p>Students progress through a systematic level-based program. Each stage builds on earlier skills with increasing number ranges, formulas, multiplication, division and mental visualisation.</p>
+        <a class="btn secondary" href="https://wa.me/919730482620?text=Hi%20Nikhil%20Sir,%20I%20want%20to%20book%20a%20FREE%20trial%20class.%0A%0AChild%27s%20Name:%0AStandard/Grade:%0ASchool%20Name:%0APreferred%20Center:%20Near%20Station%20/%20Nisarg%20Greens%20/%20Father%20Agnel" target="_blank" rel="noopener">Experience a Trial Class</a>
+      </div>
+      <div class="program-stages">
+        <article class="stage reveal"><div class="icon">🌱</div><h3>Foundation</h3><p>Number recognition, correct bead movement and direct calculation.</p></article>
+        <article class="stage reveal"><div class="icon">🤝</div><h3>Friend Formulas</h3><p>Small Friend, Big Friend and combination techniques introduced systematically.</p></article>
+        <article class="stage reveal"><div class="icon">✖️</div><h3>Advanced Operations</h3><p>Higher-digit addition/subtraction, multiplication and division.</p></article>
+        <article class="stage reveal"><div class="icon">👁️</div><h3>Mental Abacus</h3><p>Gradual transition from physical movement toward visualised calculation.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section competition" id="achievements">
+    <div class="container competition-grid">
+      <div class="trophy-panel reveal">
+        <h3>Train to challenge your own best.</h3>
+        <p>Competitions are used as a practical test of speed, accuracy, concentration and confidence under time pressure.</p>
+        <div class="comp-chips"><span>Timed Practice</span><span>Accuracy Correction</span><span>National-Level Exposure</span><span>Consistency</span></div>
+      </div>
+      <div class="comp-list">
+        <div class="comp-item reveal"><div class="icon" style="background:var(--orange-soft)">⏱️</div><div><b>Speed Practice</b><span>Students learn to work efficiently within fixed time limits.</span></div></div>
+        <div class="comp-item reveal"><div class="icon" style="background:var(--orange-soft)">✅</div><div><b>Accuracy Training</b><span>Fast work is useful only when correct answers are maintained.</span></div></div>
+        <div class="comp-item reveal"><div class="icon" style="background:var(--orange-soft)">🏅</div><div><b>Competition Preparation</b><span>Structured practice helps children become comfortable with pressure and performance goals.</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt" id="reviews">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">Parent feedback</span>
+        <h2>What families say about the learning experience.</h2>
+      </div>
+      <div class="testimonials">
+        <article class="testimonial reveal"><div class="stars">★★★★★</div><blockquote>“My 5-year-old showed amazing improvement, and the team put strong effort behind every student.”</blockquote><strong>Shweta Laddha</strong><span>Parent</span></article>
+        <article class="testimonial reveal"><div class="stars">★★★★★</div><blockquote>“The teachers are supportive, clear doubts on time and guide parents whenever help is needed.”</blockquote><strong>Preity Ram</strong><span>Parent</span></article>
+        <article class="testimonial reveal"><div class="stars">★★★★★</div><blockquote>“The competitions help children build confidence and the guidance has been very useful for my child.”</blockquote><strong>Anita Muddliar</strong><span>Parent</span></article>
+      </div>
+      <div class="reviews-link reveal"><a class="btn secondary" href="testimonials.html">See More Parent Reviews</a></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container parents">
+      <div class="parent-card reveal">
+        <span class="eyebrow" style="background:white;color:var(--green)">Parent partnership</span>
+        <h2>Parents + Teacher + Student = stronger consistency.</h2>
+        <p>Parents do not need to teach the abacus technique. Their role is to make sure practice happens regularly, check whether repeated mistakes are appearing and contact the teacher when support is needed.</p>
+        <p style="font-weight:800;color:#166534;margin-bottom:0">You don’t have to teach the child. You only need to make sure practice happens.</p>
+      </div>
+      <div class="equation reveal">
+        <div class="eq-box">👩‍🏫<br>Teacher</div><div class="plus">+</div>
+        <div class="eq-box">👨‍👩‍👧<br>Parent</div><div class="plus">+</div>
+        <div class="eq-box">🧒<br>Student</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt" id="pricing">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">Transparent course fees</span>
+        <h2>Choose the payment cycle that suits your family.</h2>
+        <p>Weekly in-class training, progress support and unlimited website practice are included. Level 1 kit is charged separately once.</p>
+      </div>
+      <div class="pricing-grid">
+        <article class="price-card reveal">
+          <div class="price-name">Quarterly</div>
+          <div class="price">₹3,999 <small>/ 3 months</small></div>
+          <div class="price-list">
+            <span><i class="check">✓</i> 4 payments per year</span>
+            <span><i class="check">✓</i> Flexible payment schedule</span>
+            <span><i class="check">✓</i> Weekly classroom training</span>
+            <span><i class="check">✓</i> Unlimited online practice included</span>
+          </div>
+          <a class="btn secondary" href="payment-calculator.html">Calculate Schedule</a>
+          <div class="kit-note">+ ₹1,700 one-time Level 1 kit fee</div>
+        </article>
+        <article class="price-card featured reveal">
+          <div class="price-badge">Recommended</div>
+          <div class="price-name">Half-Yearly</div>
+          <div class="price">₹7,999 <small>/ 6 months</small></div>
+          <div class="price-list">
+            <span><i class="check">✓</i> 2 payments per year</span>
+            <span><i class="check">✓</i> Balanced payment cycle</span>
+            <span><i class="check">✓</i> Weekly classroom training</span>
+            <span><i class="check">✓</i> Unlimited online practice included</span>
+          </div>
+          <a class="btn primary" href="payment-calculator.html">Calculate Schedule</a>
+          <div class="kit-note">+ ₹1,700 one-time Level 1 kit fee</div>
+        </article>
+        <article class="price-card reveal">
+          <div class="price-name">Yearly</div>
+          <div style="margin-top:14px"><span class="strike">₹15,999</span><span style="font-size:11px;font-weight:800;color:#dc2626">SAVE ₹1,000</span></div>
+          <div class="price">₹14,999 <small>/ 12 months</small></div>
+          <div class="price-list">
+            <span><i class="check">✓</i> 1 payment per year</span>
+            <span><i class="check">✓</i> Maximum upfront saving</span>
+            <span><i class="check">✓</i> Weekly classroom training</span>
+            <span><i class="check">✓</i> Unlimited online practice included</span>
+          </div>
+          <a class="btn secondary" href="payment-calculator.html">Calculate Schedule</a>
+          <div class="kit-note">+ ₹1,700 one-time Level 1 kit fee</div>
+        </article>
+      </div>
+      <div class="pricing-foot reveal">
+        <a class="btn primary" href="https://wa.me/919730482620?text=Hi%20Nikhil%20Sir,%20I%20want%20to%20book%20a%20FREE%20trial%20class.%0A%0AChild%27s%20Name:%0AStandard/Grade:%0ASchool%20Name:%0APreferred%20Center:%20Near%20Station%20/%20Nisarg%20Greens%20/%20Father%20Agnel" target="_blank" rel="noopener">Try One Class FREE First</a>
+        <a class="btn secondary" href="payment-calculator.html">Open Payment Calculator</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="centres">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">3 convenient locations</span>
+        <h2>Find a Li'l Champs centre near you.</h2>
+        <p>Choose the Ambernath location that works best for your family.</p>
+      </div>
+      <div class="centre-grid">
+        <article class="centre reveal"><small>Ambernath East</small><h3>Near Station</h3><p>Convenient for families looking for a central Ambernath East location.</p><a class="btn secondary" href="https://wa.me/919730482620?text=Hi%20Nikhil%20Sir,%20I%20want%20to%20book%20a%20FREE%20trial%20class.%0A%0AChild%27s%20Name:%0AStandard/Grade:%0ASchool%20Name:%0APreferred%20Center:%20Near%20Station%20/%20Nisarg%20Greens%20/%20Father%20Agnel" target="_blank" rel="noopener">Ask for Batch Timing</a></article>
+        <article class="centre reveal"><small>Ambernath East</small><h3>Near Nisarg Greens</h3><p>A second East-side option for nearby residential areas and families.</p><a class="btn secondary" href="https://wa.me/919730482620?text=Hi%20Nikhil%20Sir,%20I%20want%20to%20book%20a%20FREE%20trial%20class.%0A%0AChild%27s%20Name:%0AStandard/Grade:%0ASchool%20Name:%0APreferred%20Center:%20Near%20Station%20/%20Nisarg%20Greens%20/%20Father%20Agnel" target="_blank" rel="noopener">Ask for Batch Timing</a></article>
+        <article class="centre reveal"><small>Ambernath West</small><h3>Near Father Agnel</h3><p>Our Ambernath West centre for families on the western side of the city.</p><a class="btn secondary" href="https://wa.me/919730482620?text=Hi%20Nikhil%20Sir,%20I%20want%20to%20book%20a%20FREE%20trial%20class.%0A%0AChild%27s%20Name:%0AStandard/Grade:%0ASchool%20Name:%0APreferred%20Center:%20Near%20Station%20/%20Nisarg%20Greens%20/%20Father%20Agnel" target="_blank" rel="noopener">Ask for Batch Timing</a></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt" id="faq">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">Common questions</span>
+        <h2>Everything a parent needs to know before starting.</h2>
+      </div>
+      <div class="faq">
+        <details class="reveal"><summary>Do you offer a free trial class?</summary><p>Yes. Parents can book one trial class to understand the teaching approach before enrolling.</p></details>
+        <details class="reveal"><summary>How often are regular classes?</summary><p>Regular classes are held once a week for approximately two hours.</p></details>
+        <details class="reveal"><summary>Is website practice included?</summary><p>Yes. Enrolled students receive access to level-based website practice without an additional practice charge.</p></details>
+        <details class="reveal"><summary>Can students practise on mobile?</summary><p>Yes. The practice website is designed for mobile, tablet and computer use.</p></details>
+        <details class="reveal"><summary>Do students receive competition preparation?</summary><p>Yes. Timed practice, speed work and accuracy correction are part of competition preparation.</p></details>
+        <details class="reveal"><summary>Which Ambernath locations are available?</summary><p>Ambernath East near Station, Ambernath East near Nisarg Greens and Ambernath West near Father Agnel.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="final-cta reveal">
+        <div>
+          <h2>Give your child a stronger calculation foundation.</h2>
+          <p>Start with one trial class and see how structured teaching plus regular practice fits your child.</p>
+        </div>
+        <div class="final-actions">
+          <a class="btn green" href="https://wa.me/919730482620?text=Hi%20Nikhil%20Sir,%20I%20want%20to%20book%20a%20FREE%20trial%20class.%0A%0AChild%27s%20Name:%0AStandard/Grade:%0ASchool%20Name:%0APreferred%20Center:%20Near%20Station%20/%20Nisarg%20Greens%20/%20Father%20Agnel" target="_blank" rel="noopener">Book Free Trial</a>
+          <a class="btn secondary" href="https://wa.me/919730482620?text=Hi%20Nikhil%20Sir,%20I%20want%20details%20about%20Li%27l%20Champs%20Abacus%20classes." target="_blank" rel="noopener">WhatsApp 9730482620</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="foot-brand"><img src="lil-champs-logo.svg" alt="Li'l Champs logo"><div><strong>Li'l Champs Abacus Academy</strong><span>AMBERNATH</span></div></div>
+        <p>Structured abacus training with weekly classes, daily practice, progress tracking and competition preparation.</p>
+      </div>
+      <div><h4>Quick Links</h4><a href="#why">Why Li'l Champs</a><a href="#practice">Online Practice</a><a href="#pricing">Fee Plans</a><a href="payment-calculator.html">Fee Calculator</a></div>
+      <div><h4>Student Access</h4><a href="login.html">Student Login</a><a href="testimonials.html">Parent Reviews</a><a href="https://wa.me/919730482620?text=Hi%20Nikhil%20Sir,%20I%20want%20to%20book%20a%20FREE%20trial%20class.%0A%0AChild%27s%20Name:%0AStandard/Grade:%0ASchool%20Name:%0APreferred%20Center:%20Near%20Station%20/%20Nisarg%20Greens%20/%20Father%20Agnel" target="_blank" rel="noopener">Book Free Trial</a></div>
+      <div><h4>Contact & Centres</h4><a href="https://wa.me/919730482620?text=Hi%20Nikhil%20Sir,%20I%20want%20details%20about%20Li%27l%20Champs%20Abacus%20classes." target="_blank" rel="noopener">9730482620</a><p>East — Near Station</p><p>East — Near Nisarg Greens</p><p>West — Near Father Agnel</p></div>
+    </div>
+    <div class="copyright"><span>© 2026 Li'l Champs Abacus Academy, Ambernath. All Rights Reserved.</span><span>Practice • Progress • Confidence</span></div>
   </div>
-</div>
+</footer>
+
+<a class="wa-float" href="https://wa.me/919730482620?text=Hi%20Nikhil%20Sir,%20I%20want%20details%20about%20Li%27l%20Champs%20Abacus%20classes." target="_blank" rel="noopener" aria-label="WhatsApp Li'l Champs">✆</a>
 
 <script>
-  // FAQ Accordion Functionality
-  document.querySelectorAll('.faq-question').forEach(question => {
-    question.addEventListener('click', function() {
-      const faqItem = this.closest('.faq-item');
-      const isActive = faqItem.classList.contains('active');
-      
-      // Close all open FAQ items
-      document.querySelectorAll('.faq-item').forEach(item => {
-        item.classList.remove('active');
-      });
-      
-      // Open this FAQ item if it wasn't active
-      if (!isActive) {
-        faqItem.classList.add('active');
-      }
-    });
+  const menuBtn=document.getElementById('menuBtn');
+  const navLinks=document.getElementById('navLinks');
+  menuBtn.addEventListener('click',()=>{
+    const open=navLinks.classList.toggle('open');
+    menuBtn.setAttribute('aria-expanded',String(open));
+    menuBtn.textContent=open?'✕':'☰';
   });
+  navLinks.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{
+    navLinks.classList.remove('open');menuBtn.setAttribute('aria-expanded','false');menuBtn.textContent='☰';
+  }));
+  document.addEventListener('click',e=>{
+    if(window.innerWidth<=1000&&!navLinks.contains(e.target)&&!menuBtn.contains(e.target)){
+      navLinks.classList.remove('open');menuBtn.setAttribute('aria-expanded','false');menuBtn.textContent='☰';
+    }
+  });
+  const io=new IntersectionObserver(entries=>entries.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}
+  }),{threshold:.08});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 </script>
-
 </body>
 </html>
