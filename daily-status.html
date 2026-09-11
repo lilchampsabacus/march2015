@@ -12,244 +12,113 @@
   <style>
     body{font-family:'Nunito',sans-serif;background:#f0f9ff;color:#1f2937}
     .status-pill{display:inline-flex;align-items:center;border-radius:999px;padding:.25rem .65rem;font-size:.75rem;font-weight:800;white-space:nowrap}
-    .table-wrap{overflow-x:auto}
-    tr[data-row]{cursor:pointer}
+    .table-wrap{overflow-x:auto}.table-wrap table{min-width:1180px}tr[data-row]{cursor:pointer}
   </style>
 </head>
 <body class="min-h-screen p-3 md:p-8">
-  <main class="max-w-7xl mx-auto">
-    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-      <div>
-        <h1 class="text-2xl md:text-3xl font-black text-gray-800">Official Daily Practice Status</h1>
-        <p class="text-gray-500 mt-1">Only the official Daily Practice assignment counts here. Level 1 is excluded.</p>
-      </div>
-      <div class="flex flex-wrap gap-2">
-        <button id="todayBtn" class="bg-indigo-100 text-indigo-700 font-black px-4 py-2 rounded-xl">Today</button>
-        <button id="pdfBtn" class="bg-indigo-600 text-white font-black px-4 py-2 rounded-xl">Download PDF</button>
-        <a href="teacher-dashboard.html" class="bg-white border border-gray-200 text-gray-700 font-black px-4 py-2 rounded-xl no-underline">← Dashboard</a>
-      </div>
+<main class="max-w-7xl mx-auto">
+  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-black text-gray-800">Official Daily Practice Status</h1>
+      <p class="text-gray-500 mt-1">Check Daily Practice batch-wise. Level 1 is excluded.</p>
     </div>
-
-    <section id="loading" class="bg-white rounded-2xl shadow p-8 text-center font-bold text-indigo-600">Loading official Daily Practice status...</section>
-
-    <section id="app" class="hidden">
-      <div class="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 md:grid-cols-4 gap-3">
-        <label class="block"><span class="text-xs font-black text-gray-500 uppercase">Date</span><input id="dateFilter" type="date" class="mt-1 w-full border rounded-xl px-3 py-2 font-bold"></label>
-        <label class="block"><span class="text-xs font-black text-gray-500 uppercase">Level</span><select id="levelFilter" class="mt-1 w-full border rounded-xl px-3 py-2 font-bold"><option value="all">All Levels 2–8</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label>
-        <label class="block"><span class="text-xs font-black text-gray-500 uppercase">Status</span><select id="statusFilter" class="mt-1 w-full border rounded-xl px-3 py-2 font-bold"><option value="all">All Status</option><option value="completed">Completed</option><option value="in_progress">In Progress</option><option value="not_started">Not Started</option></select></label>
-        <label class="block"><span class="text-xs font-black text-gray-500 uppercase">Student</span><input id="searchFilter" type="search" placeholder="Search name" class="mt-1 w-full border rounded-xl px-3 py-2 font-bold"></label>
-      </div>
-
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <div class="bg-white rounded-2xl shadow p-4 border-l-4 border-gray-500"><div class="text-xs font-black uppercase text-gray-500">Eligible Students</div><div id="totalCount" class="text-3xl font-black mt-1">0</div></div>
-        <div class="bg-white rounded-2xl shadow p-4 border-l-4 border-green-500"><div class="text-xs font-black uppercase text-green-600">Completed</div><div id="completeCount" class="text-3xl font-black text-green-700 mt-1">0</div></div>
-        <div class="bg-white rounded-2xl shadow p-4 border-l-4 border-amber-500"><div class="text-xs font-black uppercase text-amber-600">In Progress</div><div id="progressCount" class="text-3xl font-black text-amber-700 mt-1">0</div></div>
-        <div class="bg-white rounded-2xl shadow p-4 border-l-4 border-red-500"><div class="text-xs font-black uppercase text-red-600">Not Started</div><div id="notStartedCount" class="text-3xl font-black text-red-700 mt-1">0</div></div>
-      </div>
-
-      <div class="bg-white rounded-2xl shadow overflow-hidden">
-        <div class="px-4 py-3 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div><h2 class="font-black text-lg">Student Status</h2><p id="dateLabel" class="text-sm text-gray-500"></p></div>
-          <p class="text-xs text-gray-400">Click a student row for section-wise details.</p>
-        </div>
-        <div class="table-wrap">
-          <table class="min-w-full">
-            <thead class="bg-gray-50 text-xs uppercase text-gray-500">
-              <tr>
-                <th class="px-4 py-3 text-left">Student</th>
-                <th class="px-4 py-3 text-center">Level</th>
-                <th class="px-4 py-3 text-left">Status</th>
-                <th class="px-4 py-3 text-center">Sections</th>
-                <th class="px-4 py-3 text-center">First Attempt</th>
-                <th class="px-4 py-3 text-center">Wrong</th>
-                <th class="px-4 py-3 text-center">Skipped</th>
-                <th class="px-4 py-3 text-center">Time</th>
-                <th class="px-4 py-3 text-center">Corrections</th>
-                <th class="px-4 py-3 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody id="statusBody" class="divide-y"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <section id="denied" class="hidden bg-white rounded-2xl shadow p-8 text-center"><div class="text-5xl">🔒</div><h2 class="text-2xl font-black mt-2">Staff Access Only</h2><p class="text-gray-500 mt-2">This page is available only to active teacher and admin accounts.</p><a href="teacher-dashboard.html" class="inline-block mt-5 bg-indigo-600 text-white font-black px-5 py-3 rounded-xl no-underline">Back to Dashboard</a></section>
-    <section id="errorBox" class="hidden bg-white rounded-2xl shadow p-8 text-center"><div class="text-5xl">⚠️</div><h2 class="text-xl font-black mt-2">Unable to load status</h2><p id="errorText" class="text-gray-500 mt-2"></p><button onclick="location.reload()" class="mt-4 bg-indigo-600 text-white font-black px-5 py-3 rounded-xl">Try Again</button></section>
-  </main>
-
-  <div id="detailModal" class="hidden fixed inset-0 bg-black/50 z-50 p-3 flex items-center justify-center">
-    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl max-h-[92vh] overflow-y-auto">
-      <div class="p-5 border-b flex justify-between gap-3"><div><h3 id="modalName" class="text-2xl font-black"></h3><p id="modalMeta" class="text-sm text-gray-500"></p></div><button id="closeModal" class="text-2xl font-black text-gray-400">×</button></div>
-      <div class="p-5"><div id="modalSections" class="space-y-3"></div><div id="modalRetries" class="mt-5"></div></div>
+    <div class="flex flex-wrap gap-2">
+      <button id="todayBtn" class="bg-indigo-100 text-indigo-700 font-black px-4 py-2 rounded-xl">Today</button>
+      <button id="pdfBtn" class="bg-indigo-600 text-white font-black px-4 py-2 rounded-xl">Download PDF</button>
+      <a href="teacher-dashboard.html" class="bg-white border border-gray-200 text-gray-700 font-black px-4 py-2 rounded-xl no-underline">← Dashboard</a>
     </div>
   </div>
 
-  <script>
-    const SUPABASE_URL='https://portal-bridge.ucmas-ambernath-pg.workers.dev';
-    const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
-    const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-    let allRows=[];
-    let filteredRows=[];
-    const $=id=>document.getElementById(id);
+  <section id="loading" class="bg-white rounded-2xl shadow p-8 text-center font-bold text-indigo-600">Loading official Daily Practice status...</section>
 
-    function indiaDateISO(){
-      const p={};
-      new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).forEach(x=>p[x.type]=x.value);
-      return `${p.year}-${p.month}-${p.day}`;
-    }
-    function formatDate(iso){
-      const [y,m,d]=iso.split('-').map(Number);
-      return new Intl.DateTimeFormat('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date(y,m-1,d));
-    }
-    function sectionsFor(level){return Number(level)>=5?['plusminus','multiplication','division']:['plusminus','multiplication'];}
-    function sectionName(s){return s==='plusminus'?'Plus & Minus':s==='multiplication'?'Multiplication':'Division';}
-    function fmtTime(sec){sec=Math.max(0,Number(sec)||0);return `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(Math.floor(sec%60)).padStart(2,'0')}`;}
-    function sectionStats(row,s){
-      const arr=Array.isArray(row.responses?.[s])?row.responses[s]:[];
-      return {
-        correct:arr.filter(x=>x?.correct===true).length,
-        wrong:arr.filter(x=>x&&x.correct!==true&&!x.skipped).length,
-        skipped:arr.filter(x=>x?.skipped===true).length,
-        answered:arr.length,
-        time:Number(row.section_seconds?.[s]||0),
-        complete:Array.isArray(row.completed_sections)&&row.completed_sections.includes(s)
-      };
-    }
-    function overall(row){
-      const secs=sectionsFor(row.level);
-      const stats=secs.map(s=>sectionStats(row,s));
-      return {
-        correct:stats.reduce((a,b)=>a+b.correct,0),
-        wrong:stats.reduce((a,b)=>a+b.wrong,0),
-        skipped:stats.reduce((a,b)=>a+b.skipped,0),
-        answered:stats.reduce((a,b)=>a+b.answered,0),
-        time:stats.reduce((a,b)=>a+b.time,0),
-        total:secs.length*10,
-        done:stats.filter(x=>x.complete).length,
-        required:secs.length
-      };
-    }
-    function normalizedStatus(row){
-      if(!row.practice_id)return 'not_started';
-      if(row.practice_status==='completed')return 'completed';
-      const o=overall(row);
-      return (o.answered>0||o.done>0||row.practice_status==='in_progress')?'in_progress':'not_started';
-    }
-    function statusPill(status){
-      if(status==='completed')return '<span class="status-pill bg-green-100 text-green-700">✅ Completed</span>';
-      if(status==='in_progress')return '<span class="status-pill bg-amber-100 text-amber-700">🟡 In Progress</span>';
-      return '<span class="status-pill bg-red-100 text-red-700">🔴 Not Started</span>';
-    }
-    function retryInfo(row){
-      const retries=Array.isArray(row.retry_summary)?row.retry_summary:[];
-      const completed=retries.filter(r=>r?.completed).length;
-      const targeted=retries.filter(r=>r?.completed&&(r.retry_type==='wrong'||r.retry_type==='skipped')).length;
-      return {completed,targeted};
-    }
-    function escapeHtml(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+  <section id="app" class="hidden">
+    <div class="bg-white rounded-2xl shadow p-4 mb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <label class="block"><span class="text-xs font-black text-gray-500 uppercase">Date</span><input id="dateFilter" type="date" class="mt-1 w-full border rounded-xl px-3 py-2 font-bold"></label>
+      <label class="block"><span class="text-xs font-black text-gray-500 uppercase">Batch</span><select id="batchFilter" class="mt-1 w-full border rounded-xl px-3 py-2 font-bold"><option value="all">All Batches</option><option value="unassigned">Batch Not Assigned</option></select></label>
+      <label class="block"><span class="text-xs font-black text-gray-500 uppercase">Level</span><select id="levelFilter" class="mt-1 w-full border rounded-xl px-3 py-2 font-bold"><option value="all">All Levels 2–8</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label>
+      <label class="block"><span class="text-xs font-black text-gray-500 uppercase">Status</span><select id="statusFilter" class="mt-1 w-full border rounded-xl px-3 py-2 font-bold"><option value="all">All Status</option><option value="completed">Completed</option><option value="incomplete">Incomplete</option><option value="in_progress">In Progress</option><option value="not_started">Not Started</option></select></label>
+      <label class="block"><span class="text-xs font-black text-gray-500 uppercase">Student</span><input id="searchFilter" type="search" placeholder="Search name" class="mt-1 w-full border rounded-xl px-3 py-2 font-bold"></label>
+    </div>
 
-    async function verifyStaff(){
-      const {data:{session}}=await client.auth.getSession();
-      if(!session){location.replace('login.html');return false;}
-      const {data,error}=await client.from('profiles').select('role,is_active').eq('id',session.user.id).single();
-      if(error||!data||data.is_active===false||!['admin','teacher'].includes(data.role)){
-        $('loading').classList.add('hidden');$('denied').classList.remove('hidden');return false;
-      }
-      return true;
-    }
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+      <div class="bg-white rounded-2xl shadow p-4 border-l-4 border-gray-500"><div class="text-xs font-black uppercase text-gray-500">Students in View</div><div id="totalCount" class="text-3xl font-black mt-1">0</div></div>
+      <div class="bg-white rounded-2xl shadow p-4 border-l-4 border-green-500"><div class="text-xs font-black uppercase text-green-600">Completed</div><div id="completeCount" class="text-3xl font-black text-green-700 mt-1">0</div></div>
+      <div class="bg-white rounded-2xl shadow p-4 border-l-4 border-amber-500"><div class="text-xs font-black uppercase text-amber-600">In Progress</div><div id="progressCount" class="text-3xl font-black text-amber-700 mt-1">0</div></div>
+      <div class="bg-white rounded-2xl shadow p-4 border-l-4 border-red-500"><div class="text-xs font-black uppercase text-red-600">Not Started</div><div id="notStartedCount" class="text-3xl font-black text-red-700 mt-1">0</div></div>
+    </div>
 
-    async function loadData(){
-      $('loading').classList.remove('hidden');$('app').classList.add('hidden');$('errorBox').classList.add('hidden');
-      const date=$('dateFilter').value;
-      const {data,error}=await client.rpc('staff_official_daily_practice_status',{p_date:date});
-      if(error){
-        $('loading').classList.add('hidden');$('errorBox').classList.remove('hidden');$('errorText').textContent=error.message||'Could not load official Daily Practice records.';return;
-      }
-      allRows=(data||[]).map(r=>({...r,_status:normalizedStatus(r)}));
-      $('dateLabel').textContent=formatDate(date);
-      $('loading').classList.add('hidden');$('app').classList.remove('hidden');
-      applyFilters();
-    }
+    <div class="bg-white rounded-2xl shadow overflow-hidden">
+      <div class="px-4 py-3 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div><h2 class="font-black text-lg">Student Status</h2><p id="dateLabel" class="text-sm text-gray-500"></p></div>
+        <p class="text-xs text-gray-400">Click View for section-wise details.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="min-w-full">
+          <thead class="bg-gray-50 text-xs uppercase text-gray-500"><tr>
+            <th class="px-4 py-3 text-left">Student</th><th class="px-4 py-3 text-left">Batch</th><th class="px-4 py-3 text-center">Level</th><th class="px-4 py-3 text-left">Status</th><th class="px-4 py-3 text-center">Sections</th><th class="px-4 py-3 text-center">First Attempt</th><th class="px-4 py-3 text-center">Wrong</th><th class="px-4 py-3 text-center">Skipped</th><th class="px-4 py-3 text-center">Time</th><th class="px-4 py-3 text-center">Corrections</th><th class="px-4 py-3 text-center">Action</th>
+          </tr></thead>
+          <tbody id="statusBody" class="divide-y"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 
-    function applyFilters(){
-      const level=$('levelFilter').value;
-      const status=$('statusFilter').value;
-      const search=$('searchFilter').value.trim().toLowerCase();
-      filteredRows=allRows.filter(r=>(level==='all'||String(r.level)===level)&&(status==='all'||r._status===status)&&(!search||String(r.student_name).toLowerCase().includes(search)));
-      renderCounts();renderTable();
-    }
-    function renderCounts(){
-      $('totalCount').textContent=allRows.length;
-      $('completeCount').textContent=allRows.filter(r=>r._status==='completed').length;
-      $('progressCount').textContent=allRows.filter(r=>r._status==='in_progress').length;
-      $('notStartedCount').textContent=allRows.filter(r=>r._status==='not_started').length;
-    }
-    function renderTable(){
-      const body=$('statusBody');
-      if(!filteredRows.length){body.innerHTML='<tr><td colspan="10" class="px-4 py-10 text-center text-gray-400 font-bold">No students match the selected filters.</td></tr>';return;}
-      body.innerHTML=filteredRows.map((r,i)=>{
-        const o=overall(r),ret=retryInfo(r),score=r._status==='completed'?`${o.correct}/${o.total}`:'—',time=r.practice_id?fmtTime(o.time):'—';
-        const correction=ret.completed?`${ret.completed} ${ret.targeted?'✅':''}`:'—';
-        return `<tr data-row="${i}" class="hover:bg-indigo-50">
-          <td class="px-4 py-3 font-black text-gray-800">${escapeHtml(r.student_name)}</td>
-          <td class="px-4 py-3 text-center font-bold">${r.level}</td>
-          <td class="px-4 py-3">${statusPill(r._status)}</td>
-          <td class="px-4 py-3 text-center font-bold">${o.done}/${o.required}</td>
-          <td class="px-4 py-3 text-center font-black text-indigo-700">${score}</td>
-          <td class="px-4 py-3 text-center font-bold text-red-600">${r.practice_id?o.wrong:'—'}</td>
-          <td class="px-4 py-3 text-center font-bold text-amber-600">${r.practice_id?o.skipped:'—'}</td>
-          <td class="px-4 py-3 text-center font-bold">${time}</td>
-          <td class="px-4 py-3 text-center font-bold">${correction}</td>
-          <td class="px-4 py-3 text-center"><button class="view-btn bg-indigo-100 text-indigo-700 font-black text-xs px-3 py-2 rounded-lg" data-view="${i}">View</button>${r._status==='not_started'?`<button class="remind-btn ml-1 bg-green-100 text-green-700 font-black text-xs px-3 py-2 rounded-lg" data-remind="${i}">Remind</button>`:''}</td>
-        </tr>`;
-      }).join('');
-    }
+  <section id="denied" class="hidden bg-white rounded-2xl shadow p-8 text-center"><div class="text-5xl">🔒</div><h2 class="text-2xl font-black mt-2">Staff Access Only</h2><p class="text-gray-500 mt-2">This page is available only to active teacher and admin accounts.</p><a href="teacher-dashboard.html" class="inline-block mt-5 bg-indigo-600 text-white font-black px-5 py-3 rounded-xl no-underline">Back to Dashboard</a></section>
+  <section id="errorBox" class="hidden bg-white rounded-2xl shadow p-8 text-center"><div class="text-5xl">⚠️</div><h2 class="text-xl font-black mt-2">Unable to load status</h2><p id="errorText" class="text-gray-500 mt-2"></p><button onclick="location.reload()" class="mt-4 bg-indigo-600 text-white font-black px-5 py-3 rounded-xl">Try Again</button></section>
+</main>
 
-    function openDetails(row){
-      const o=overall(row),ret=retryInfo(row);
-      $('modalName').textContent=row.student_name;
-      $('modalMeta').textContent=`Level ${row.level} · ${formatDate($('dateFilter').value)} · ${row._status.replace('_',' ')}`;
-      $('modalSections').innerHTML=sectionsFor(row.level).map(s=>{
-        const st=sectionStats(row,s);
-        return `<div class="rounded-xl border p-4"><div class="flex justify-between gap-3"><div class="font-black text-lg">${sectionName(s)}</div><div class="font-black ${st.complete?'text-green-600':'text-gray-400'}">${st.complete?'Completed':'Pending'}</div></div><div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3 text-sm"><div><span class="text-gray-400">Correct</span><br><b>${st.correct}</b></div><div><span class="text-gray-400">Wrong</span><br><b class="text-red-600">${st.wrong}</b></div><div><span class="text-gray-400">Skipped</span><br><b class="text-amber-600">${st.skipped}</b></div><div><span class="text-gray-400">Answered</span><br><b>${st.answered}/10</b></div><div><span class="text-gray-400">Time</span><br><b>${fmtTime(st.time)}</b></div></div></div>`;
-      }).join('');
-      const retries=Array.isArray(row.retry_summary)?row.retry_summary.filter(x=>x?.completed):[];
-      $('modalRetries').innerHTML=retries.length?`<div class="font-black mb-2">Correction / Retry Practice</div>${retries.map(x=>`<div class="text-sm bg-blue-50 border border-blue-100 rounded-lg p-3 mb-2"><b>${sectionName(x.section)}</b> · ${escapeHtml(x.retry_type)} · ${x.correct_count||0} correct · ${x.wrong_count||0} wrong · Time ${fmtTime(x.duration_seconds||0)}</div>`).join('')}`:'<div class="text-sm text-gray-400">No correction or retry practice recorded yet.</div>';
-      $('detailModal').classList.remove('hidden');
-    }
-    async function remind(row){
-      const text=`Hello! A gentle reminder that ${row.student_name} has not started today's official Daily Practice. Please ensure the practice is completed today. – Li'l Champs Abacus Academy, Ambernath`;
-      try{await navigator.clipboard.writeText(text);alert('Reminder copied to clipboard.');}catch{alert(text);}
-    }
+<div id="detailModal" class="hidden fixed inset-0 bg-black/50 z-50 p-3 flex items-center justify-center">
+  <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl max-h-[92vh] overflow-y-auto">
+    <div class="p-5 border-b flex justify-between gap-3"><div><h3 id="modalName" class="text-2xl font-black"></h3><p id="modalMeta" class="text-sm text-gray-500"></p></div><button id="closeModal" class="text-2xl font-black text-gray-400">×</button></div>
+    <div class="p-5"><div id="modalSections" class="space-y-3"></div><div id="modalRetries" class="mt-5"></div></div>
+  </div>
+</div>
 
-    function generatePDF(){
-      const {jsPDF}=window.jspdf;
-      const doc=new jsPDF('l','mm','a4');
-      doc.setFontSize(18);doc.text("Li'l Champs Abacus Academy – Official Daily Practice",148,14,{align:'center'});
-      doc.setFontSize(10);doc.text(formatDate($('dateFilter').value),148,20,{align:'center'});
-      const rows=filteredRows.map(r=>{const o=overall(r),ret=retryInfo(r);return [r.student_name,`L${r.level}`,r._status.replace('_',' '),`${o.done}/${o.required}`,r._status==='completed'?`${o.correct}/${o.total}`:'—',r.practice_id?o.wrong:'—',r.practice_id?o.skipped:'—',r.practice_id?fmtTime(o.time):'—',ret.completed||'—'];});
-      doc.autoTable({startY:25,head:[['Student','Level','Status','Sections','First Attempt','Wrong','Skipped','Time','Retries']],body:rows,styles:{fontSize:8},headStyles:{fillColor:[79,70,229]}});
-      doc.save(`Official_Daily_Practice_${$('dateFilter').value}.pdf`);
-    }
+<script>
+const SUPABASE_URL='https://portal-bridge.ucmas-ambernath-pg.workers.dev';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
+const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+let allRows=[],filteredRows=[],summaryRows=[];
+const $=id=>document.getElementById(id);
+const escapeHtml=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const batchName=r=>String(r.batch_name??'').trim();
 
-    document.addEventListener('DOMContentLoaded',async()=>{
-      $('dateFilter').value=indiaDateISO();
-      if(!await verifyStaff())return;
-      await loadData();
-      $('dateFilter').addEventListener('change',loadData);
-      $('levelFilter').addEventListener('change',applyFilters);
-      $('statusFilter').addEventListener('change',applyFilters);
-      $('searchFilter').addEventListener('input',applyFilters);
-      $('todayBtn').addEventListener('click',()=>{$('dateFilter').value=indiaDateISO();loadData();});
-      $('pdfBtn').addEventListener('click',generatePDF);
-      $('statusBody').addEventListener('click',e=>{
-        const v=e.target.closest('[data-view]');if(v){openDetails(filteredRows[Number(v.dataset.view)]);return;}
-        const r=e.target.closest('[data-remind]');if(r){remind(filteredRows[Number(r.dataset.remind)]);}
-      });
-      $('closeModal').addEventListener('click',()=>$('detailModal').classList.add('hidden'));
-      $('detailModal').addEventListener('click',e=>{if(e.target===$('detailModal'))$('detailModal').classList.add('hidden');});
-    });
-  </script>
+function indiaDateISO(){const p={};new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).forEach(x=>p[x.type]=x.value);return `${p.year}-${p.month}-${p.day}`;}
+function formatDate(iso){const [y,m,d]=iso.split('-').map(Number);return new Intl.DateTimeFormat('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date(y,m-1,d));}
+function sectionsFor(level){return Number(level)>=5?['plusminus','multiplication','division']:['plusminus','multiplication'];}
+function sectionName(s){return s==='plusminus'?'Plus & Minus':s==='multiplication'?'Multiplication':'Division';}
+function sectionIcon(s){return s==='plusminus'?'🧮':s==='multiplication'?'✖️':'➗';}
+function fmtTime(sec){sec=Math.max(0,Number(sec)||0);return `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(Math.floor(sec%60)).padStart(2,'0')}`;}
+function sectionStats(row,s){const arr=Array.isArray(row.responses?.[s])?row.responses[s]:[];return{correct:arr.filter(x=>x?.correct===true).length,wrong:arr.filter(x=>x&&x.correct!==true&&!x.skipped).length,skipped:arr.filter(x=>x?.skipped===true).length,answered:arr.length,time:Number(row.section_seconds?.[s]||0),complete:Array.isArray(row.completed_sections)&&row.completed_sections.includes(s)};}
+function overall(row){const secs=sectionsFor(row.level),stats=secs.map(s=>sectionStats(row,s));return{correct:stats.reduce((a,b)=>a+b.correct,0),wrong:stats.reduce((a,b)=>a+b.wrong,0),skipped:stats.reduce((a,b)=>a+b.skipped,0),answered:stats.reduce((a,b)=>a+b.answered,0),time:stats.reduce((a,b)=>a+b.time,0),total:secs.length*10,done:stats.filter(x=>x.complete).length,required:secs.length};}
+function normalizedStatus(row){if(!row.practice_id)return'not_started';if(row.practice_status==='completed')return'completed';const o=overall(row);return(o.answered>0||o.done>0||row.practice_status==='in_progress')?'in_progress':'not_started';}
+function statusPill(status){if(status==='completed')return'<span class="status-pill bg-green-100 text-green-700">✅ Completed</span>';if(status==='in_progress')return'<span class="status-pill bg-amber-100 text-amber-700">🟡 In Progress</span>';return'<span class="status-pill bg-red-100 text-red-700">🔴 Not Started</span>';}
+function retryInfo(row){const retries=Array.isArray(row.retry_summary)?row.retry_summary:[];const completed=retries.filter(r=>r?.completed).length;const targeted=retries.filter(r=>r?.completed&&(r.retry_type==='wrong'||r.retry_type==='skipped')).length;return{completed,targeted};}
+
+async function verifyStaff(){const {data:{session}}=await client.auth.getSession();if(!session){location.replace('login.html');return false;}const {data,error}=await client.from('profiles').select('role,is_active').eq('id',session.user.id).single();if(error||!data||data.is_active===false||!['admin','teacher'].includes(data.role)){$('loading').classList.add('hidden');$('denied').classList.remove('hidden');return false;}return true;}
+
+function populateBatchFilter(){const sel=$('batchFilter'),keep=sel.value||'all';const names=[...new Set(allRows.map(batchName).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'}));sel.innerHTML='<option value="all">All Batches</option><option value="unassigned">Batch Not Assigned</option>'+names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');if([...sel.options].some(o=>o.value===keep))sel.value=keep;}
+async function loadData(){
+  $('loading').classList.remove('hidden');$('app').classList.add('hidden');$('errorBox').classList.add('hidden');
+  const date=$('dateFilter').value;const {data,error}=await client.rpc('staff_official_daily_practice_status',{p_date:date});
+  if(error){$('loading').classList.add('hidden');$('errorBox').classList.remove('hidden');$('errorText').textContent=error.message||'Could not load official Daily Practice records.';return;}
+  allRows=(data||[]).map(r=>({...r,_status:normalizedStatus(r)}));populateBatchFilter();$('loading').classList.add('hidden');$('app').classList.remove('hidden');applyFilters();
+}
+function matchesBase(r){const level=$('levelFilter').value,batch=$('batchFilter').value,search=$('searchFilter').value.trim().toLowerCase(),bn=batchName(r);return(level==='all'||String(r.level)===level)&&(batch==='all'||(batch==='unassigned'?!bn:bn===batch))&&(!search||`${r.student_name} ${bn}`.toLowerCase().includes(search));}
+function applyFilters(){const status=$('statusFilter').value;summaryRows=allRows.filter(matchesBase);filteredRows=summaryRows.filter(r=>status==='all'||(status==='incomplete'?r._status!=='completed':r._status===status));renderCounts();renderTable();const batch=$('batchFilter').value;const batchText=batch==='all'?'All Batches':batch==='unassigned'?'Batch Not Assigned':batch;$('dateLabel').textContent=`${formatDate($('dateFilter').value)} · ${batchText}`;}
+function renderCounts(){$('totalCount').textContent=summaryRows.length;$('completeCount').textContent=summaryRows.filter(r=>r._status==='completed').length;$('progressCount').textContent=summaryRows.filter(r=>r._status==='in_progress').length;$('notStartedCount').textContent=summaryRows.filter(r=>r._status==='not_started').length;}
+function renderTable(){
+  const body=$('statusBody');if(!filteredRows.length){body.innerHTML='<tr><td colspan="11" class="px-4 py-10 text-center text-gray-400 font-bold">No students match the selected filters.</td></tr>';return;}
+  body.innerHTML=filteredRows.map((r,i)=>{const o=overall(r),ret=retryInfo(r),score=r._status==='completed'?`${o.correct}/${o.total}`:'—',time=r.practice_id?fmtTime(o.time):'—',correction=ret.completed?`${ret.completed}${ret.targeted?' ✅':''}`:'—',batch=batchName(r)||'<span class="text-amber-600">Not assigned</span>';
+    return `<tr data-row="${i}" class="hover:bg-indigo-50"><td class="px-4 py-3 font-black text-gray-800">${escapeHtml(r.student_name)}</td><td class="px-4 py-3 font-bold text-blue-700">${batchName(r)?escapeHtml(batchName(r)):batch}</td><td class="px-4 py-3 text-center font-bold">${r.level}</td><td class="px-4 py-3">${statusPill(r._status)}</td><td class="px-4 py-3 text-center font-bold">${o.done}/${o.required}</td><td class="px-4 py-3 text-center font-bold text-indigo-700">${score}</td><td class="px-4 py-3 text-center text-red-600 font-bold">${r.practice_id?o.wrong:'—'}</td><td class="px-4 py-3 text-center text-amber-600 font-bold">${r.practice_id?o.skipped:'—'}</td><td class="px-4 py-3 text-center font-bold">${time}</td><td class="px-4 py-3 text-center">${correction}</td><td class="px-4 py-3 text-center whitespace-nowrap"><button class="viewBtn bg-indigo-100 text-indigo-700 font-black px-3 py-2 rounded-lg" data-index="${i}">View</button>${r._status!=='completed'?` <button class="remindBtn bg-green-100 text-green-700 font-black px-3 py-2 rounded-lg" data-index="${i}">Remind</button>`:''}</td></tr>`;}).join('');
+  document.querySelectorAll('.viewBtn').forEach(b=>b.onclick=()=>openDetail(filteredRows[Number(b.dataset.index)]));document.querySelectorAll('.remindBtn').forEach(b=>b.onclick=()=>copyReminder(filteredRows[Number(b.dataset.index)]));
+}
+function openDetail(row){const o=overall(row);$('modalName').textContent=row.student_name;$('modalMeta').textContent=`${batchName(row)||'Batch not assigned'} · Level ${row.level} · ${row._status==='completed'?'Completed':row._status==='in_progress'?'In Progress':'Not Started'} · ${$('dateFilter').value}`;$('modalSections').innerHTML=sectionsFor(row.level).map(s=>{const st=sectionStats(row,s);return `<div class="border rounded-xl p-4"><div class="flex justify-between gap-3"><div class="font-black text-lg">${sectionIcon(s)} ${sectionName(s)}</div><div class="font-black ${st.complete?'text-green-700':'text-gray-400'}">${st.complete?'Completed':'Pending'}</div></div><div class="grid grid-cols-4 gap-2 mt-3 text-center"><div><div class="text-xs text-gray-500">Correct</div><div class="font-black text-green-700">${st.correct}</div></div><div><div class="text-xs text-gray-500">Wrong</div><div class="font-black text-red-600">${st.wrong}</div></div><div><div class="text-xs text-gray-500">Skipped</div><div class="font-black text-amber-600">${st.skipped}</div></div><div><div class="text-xs text-gray-500">Time</div><div class="font-black text-indigo-700">${fmtTime(st.time)}</div></div></div></div>`;}).join('');const retries=Array.isArray(row.retry_summary)?row.retry_summary:[];$('modalRetries').innerHTML=retries.length?`<h4 class="font-black mb-2">Correction / Retry Activity</h4>${retries.map(x=>`<div class="text-sm border-t py-2"><b>${sectionName(x.section)}</b> · ${x.retry_type==='wrong'?'Wrong Sums':x.retry_type==='skipped'?'Skipped Sums':'Full Section'} · ${x.completed?'Completed':'Incomplete'} · ${x.correct_count||0} correct · ${fmtTime(x.duration_seconds||0)}</div>`).join('')}`:'<div class="text-sm text-gray-400">No correction/retry activity yet.</div>';$('detailModal').classList.remove('hidden');}
+async function copyReminder(row){const batch=batchName(row)?` (${batchName(row)})`:'';const msg=`Dear Parent, ${row.student_name}${batch} has not completed today’s Daily Practice on the Li’l Champs website yet. Please ask your child to complete it today. Thank you.`;try{await navigator.clipboard.writeText(msg);alert('Reminder message copied. You can paste it in WhatsApp.');}catch{prompt('Copy this WhatsApp reminder:',msg);}}
+function downloadPdf(){const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'landscape'});const batch=$('batchFilter').value;const batchText=batch==='all'?'All Batches':batch==='unassigned'?'Batch Not Assigned':batch;doc.setFontSize(16);doc.text("Li'l Champs Abacus Academy - Daily Practice Status",14,14);doc.setFontSize(10);doc.text(`${formatDate($('dateFilter').value)} | ${batchText}`,14,21);const rows=filteredRows.map(r=>{const o=overall(r),ret=retryInfo(r);return[r.student_name,batchName(r)||'Not assigned',`L${r.level}`,r._status==='completed'?'Completed':r._status==='in_progress'?'In Progress':'Not Started',`${o.done}/${o.required}`,r._status==='completed'?`${o.correct}/${o.total}`:'-',r.practice_id?o.wrong:'-',r.practice_id?o.skipped:'-',r.practice_id?fmtTime(o.time):'-',ret.completed||'-'];});doc.autoTable({startY:27,head:[['Student','Batch','Level','Status','Sections','Score','Wrong','Skipped','Time','Corrections']],body:rows,styles:{fontSize:8},headStyles:{fillColor:[79,70,229]}});doc.save(`daily-practice-${$('dateFilter').value}-${String(batchText).replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.pdf`);}
+
+$('closeModal').onclick=()=>$('detailModal').classList.add('hidden');$('detailModal').onclick=e=>{if(e.target===$('detailModal'))$('detailModal').classList.add('hidden');};$('dateFilter').onchange=loadData;$('batchFilter').onchange=applyFilters;$('levelFilter').onchange=applyFilters;$('statusFilter').onchange=applyFilters;$('searchFilter').oninput=applyFilters;$('todayBtn').onclick=()=>{$('dateFilter').value=indiaDateISO();loadData();};$('pdfBtn').onclick=downloadPdf;
+(async()=>{$('dateFilter').value=indiaDateISO();if(await verifyStaff())await loadData();})();
+</script>
 </body>
 </html>
