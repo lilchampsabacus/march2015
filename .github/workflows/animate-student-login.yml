@@ -22,29 +22,26 @@ jobs:
           from pathlib import Path
           p = Path('index.html')
           s = p.read_text()
-
-          css_marker = "    .btn.dark{color:white;background:var(--navy)}\n"
-          css = """    .btn.dark{color:white;background:var(--navy)}
-    .btn.student-login-attention{position:relative;background:linear-gradient(180deg,#fff,#f8fbff);color:var(--brand);border:2px solid rgba(11,92,173,.38);box-shadow:0 8px 24px rgba(11,92,173,.12);animation:studentLoginAttention 3.2s ease-in-out infinite}
-    .btn.student-login-attention:after{content:'→';display:inline-block;margin-left:2px;font-size:17px;line-height:1;animation:studentLoginArrow 1.15s ease-in-out infinite}
-    .btn.student-login-attention:hover{border-color:var(--brand);box-shadow:0 12px 30px rgba(11,92,173,.20)}
-    @keyframes studentLoginAttention{0%,52%,100%{transform:translateY(0) scale(1);box-shadow:0 8px 24px rgba(11,92,173,.12)}64%{transform:translateY(-2px) scale(1.025);box-shadow:0 0 0 7px rgba(11,92,173,.09),0 14px 30px rgba(11,92,173,.20)}76%{transform:translateY(0) scale(1)}}
-    @keyframes studentLoginArrow{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
-"""
+          marker = "    .btn.dark{color:white;background:var(--navy)}\n"
+          css = (
+              "    .btn.dark{color:white;background:var(--navy)}\n"
+              "    .btn.student-login-attention{position:relative;background:linear-gradient(180deg,#fff,#f8fbff);color:var(--brand);border:2px solid rgba(11,92,173,.38);box-shadow:0 8px 24px rgba(11,92,173,.12);animation:studentLoginAttention 3.2s ease-in-out infinite}\n"
+              "    .btn.student-login-attention:after{content:'→';display:inline-block;margin-left:2px;font-size:17px;line-height:1;animation:studentLoginArrow 1.15s ease-in-out infinite}\n"
+              "    .btn.student-login-attention:hover{border-color:var(--brand);box-shadow:0 12px 30px rgba(11,92,173,.20)}\n"
+              "    @keyframes studentLoginAttention{0%,52%,100%{transform:translateY(0) scale(1);box-shadow:0 8px 24px rgba(11,92,173,.12)}64%{transform:translateY(-2px) scale(1.025);box-shadow:0 0 0 7px rgba(11,92,173,.09),0 14px 30px rgba(11,92,173,.20)}76%{transform:translateY(0) scale(1)}}\n"
+              "    @keyframes studentLoginArrow{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}\n"
+          )
           if 'student-login-attention' not in s:
-              s = s.replace(css_marker, css, 1)
-
+              s = s.replace(marker, css, 1)
           s = s.replace(
               '<a class="btn secondary" href="login.html">Existing Student Login</a>',
               '<a class="btn student-login-attention" href="login.html" aria-label="Student Login">Student Login</a>',
               1
           )
-
-          reduced = '@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}}'
-          reduced_new = '@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}.student-login-attention,.student-login-attention:after{animation:none!important}}'
-          if reduced in s:
-              s = s.replace(reduced, reduced_new, 1)
-
+          old = '@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}}'
+          new = '@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}.student-login-attention,.student-login-attention:after{animation:none!important}}'
+          if old in s:
+              s = s.replace(old, new, 1)
           p.write_text(s)
           PY
 
