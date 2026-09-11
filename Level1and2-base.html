@@ -11,399 +11,99 @@
     @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     html,body{width:100%;height:100%;margin:0;font-family:'Nunito',sans-serif;background:#f0f9ff;color:#1f2937}
-    body{overflow:hidden}
-    button{touch-action:manipulation}
-    .screen{position:fixed;inset:0}
-    .hidden{display:none!important}
+    body{overflow:hidden} button{touch-action:manipulation}.screen{position:fixed;inset:0}.hidden{display:none!important}
     .category-card,.formula-card{transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease}
     .category-card:active,.formula-card:active,.key:active{transform:scale(.97)}
     .selected-card{border-color:#4f46e5!important;background:#eef2ff!important;box-shadow:0 0 0 3px rgba(79,70,229,.12)}
     .sum-table{width:100%;max-width:210px;border-collapse:collapse;margin:0 auto;font-family:'Courier New',monospace}
     .number-cell{text-align:center;font-size:2.35rem;font-weight:800;line-height:1.08;padding:2px 0;border-bottom:1px solid #e5e7eb;color:#374151}
-    .sum-table tr:last-child .number-cell{border-bottom:4px solid #1f2937}
-    .row-index{font-size:.68rem;color:#9ca3af;text-align:right;padding-right:8px;width:30px;vertical-align:middle}
-    .negative-number{color:#dc2626}
+    .sum-table tr:last-child .number-cell{border-bottom:4px solid #1f2937}.row-index{font-size:.68rem;color:#9ca3af;text-align:right;padding-right:8px;width:30px;vertical-align:middle}.negative-number{color:#dc2626}
     .key{min-height:52px;border-radius:14px;font-size:1.4rem;font-weight:900;background:white;border:1px solid #cbd5e1;box-shadow:0 2px 5px rgba(15,23,42,.08)}
     .review-card{background:white;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;box-shadow:0 4px 10px rgba(15,23,42,.08)}
     @media(max-height:700px){.number-cell{font-size:1.75rem}.sum-table{max-width:160px}.key{min-height:42px;font-size:1.2rem}}
-    @media(min-width:760px) and (orientation:landscape){
-      #play-body{display:grid;grid-template-columns:1fr 420px;min-height:0}
-      #question-panel{border-right:1px solid #dbeafe}
-      #keypad-panel{border-top:0!important;display:flex;align-items:center}
-      #keypad-wrap{width:100%}
-      .number-cell{font-size:2.55rem}
-    }
+    @media(min-width:760px) and (orientation:landscape){#play-body{display:grid;grid-template-columns:1fr 420px;min-height:0}#question-panel{border-right:1px solid #dbeafe}#keypad-panel{border-top:0!important;display:flex;align-items:center}#keypad-wrap{width:100%}.number-cell{font-size:2.55rem}}
   </style>
 </head>
 <body>
-
   <main id="selection-screen" class="screen overflow-y-auto bg-gradient-to-b from-indigo-50 to-sky-50">
-    <header class="sticky top-0 z-10 bg-indigo-600 text-white shadow-md">
-      <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-        <div>
-          <div class="font-black text-lg sm:text-xl">Li'l Champs Abacus Academy</div>
-          <div class="text-xs text-indigo-100">Formula Practice · Level 1 & 2</div>
-        </div>
-        <a href="practice_options.html" class="bg-white/15 hover:bg-white/25 px-3 py-2 rounded-lg text-sm font-bold">← Back</a>
-      </div>
-    </header>
-
+    <header class="sticky top-0 z-10 bg-indigo-600 text-white shadow-md"><div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3"><div><div class="font-black text-lg sm:text-xl">Li'l Champs Abacus Academy</div><div class="text-xs text-indigo-100">Formula Practice · Level 1 & 2</div></div><a href="practice_options.html" class="bg-white/15 hover:bg-white/25 px-3 py-2 rounded-lg text-sm font-bold">← Back</a></div></header>
     <div class="max-w-4xl mx-auto px-4 py-5 pb-12">
-      <div class="bg-white rounded-2xl shadow-lg border border-indigo-100 p-5 mb-5">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <div class="text-xs uppercase tracking-wider text-gray-400 font-black">Student</div>
-            <div id="student-name" class="text-xl font-black text-indigo-700">Loading...</div>
-          </div>
-          <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl px-4 py-2 text-sm font-bold">30 sums · 3 rounds · same formula</div>
-        </div>
-      </div>
-
-      <section class="bg-white rounded-2xl shadow-lg border border-sky-100 p-5 mb-5">
-        <h1 class="text-2xl font-black text-slate-800 mb-1">Choose a Formula Category</h1>
-        <p class="text-sm text-gray-500 mb-4">Tap one category. Then choose the exact formula you want to practise.</p>
-        <div id="category-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
-      </section>
-
-      <section id="formula-section" class="hidden bg-white rounded-2xl shadow-lg border border-orange-100 p-5">
-        <div class="flex items-center justify-between gap-3 mb-4">
-          <div>
-            <h2 class="text-xl font-black text-slate-800">Choose Formula</h2>
-            <p id="selected-category-label" class="text-sm text-gray-500"></p>
-          </div>
-          <button onclick="clearCategory()" class="text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-2 rounded-lg">Change</button>
-        </div>
-        <div id="formula-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
-      </section>
+      <div class="bg-white rounded-2xl shadow-lg border border-indigo-100 p-5 mb-5"><div class="flex flex-wrap items-center justify-between gap-3"><div><div class="text-xs uppercase tracking-wider text-gray-400 font-black">Student</div><div id="student-name" class="text-xl font-black text-indigo-700">Loading...</div></div><div class="bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl px-4 py-2 text-sm font-bold">30 sums · 3 rounds · same formula</div></div></div>
+      <section class="bg-white rounded-2xl shadow-lg border border-sky-100 p-5 mb-5"><h1 class="text-2xl font-black text-slate-800 mb-1">Choose a Formula Category</h1><p class="text-sm text-gray-500 mb-4">Tap one category. Then choose the exact formula you want to practise.</p><div id="category-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div></section>
+      <section id="formula-section" class="hidden bg-white rounded-2xl shadow-lg border border-orange-100 p-5"><div class="flex items-center justify-between gap-3 mb-4"><div><h2 class="text-xl font-black text-slate-800">Choose Formula</h2><p id="selected-category-label" class="text-sm text-gray-500"></p></div><button onclick="clearCategory()" class="text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-2 rounded-lg">Change</button></div><div id="formula-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div></section>
     </div>
   </main>
 
   <section id="game-screen" class="screen hidden bg-white z-30 flex flex-col">
-    <div class="flex-none bg-indigo-600 text-white px-4 py-2 shadow-sm">
-      <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
-        <div class="min-w-0">
-          <div id="game-formula" class="font-black truncate">Formula</div>
-          <div class="text-xs text-indigo-100"><span id="round-label">Round 1/3</span> · <span id="sum-label">Sum 1/10</span></div>
-        </div>
-        <button onclick="confirmExit()" class="bg-white/15 px-3 py-2 rounded-lg text-sm font-bold">Exit</button>
-      </div>
-    </div>
-
-    <div id="play-body" class="flex-1 min-h-0">
-      <div id="question-panel" class="h-full min-h-0 flex items-center justify-center bg-white p-2 overflow-hidden">
-        <div id="question-container" class="w-full flex justify-center"></div>
-      </div>
-
-      <div id="keypad-panel" class="flex-none bg-sky-50 border-t border-sky-200 p-3">
-        <div id="keypad-wrap" class="max-w-md mx-auto">
-          <div id="answer-display" class="h-14 bg-white border-2 border-indigo-200 rounded-xl mb-3 flex items-center justify-center text-3xl font-black text-slate-800 shadow-inner">?</div>
-          <div class="grid grid-cols-3 gap-2">
-            <button class="key" onclick="pressDigit('1')">1</button><button class="key" onclick="pressDigit('2')">2</button><button class="key" onclick="pressDigit('3')">3</button>
-            <button class="key" onclick="pressDigit('4')">4</button><button class="key" onclick="pressDigit('5')">5</button><button class="key" onclick="pressDigit('6')">6</button>
-            <button class="key" onclick="pressDigit('7')">7</button><button class="key" onclick="pressDigit('8')">8</button><button class="key" onclick="pressDigit('9')">9</button>
-            <button class="key text-red-600" onclick="clearAnswer()">C</button><button class="key" onclick="pressDigit('0')">0</button><button class="key text-slate-600" onclick="backspaceAnswer()">⌫</button>
-          </div>
-          <button onclick="submitAnswer()" class="w-full mt-2 bg-indigo-600 active:bg-indigo-800 text-white font-black text-xl py-3 rounded-xl shadow-md">Submit Answer</button>
-        </div>
-      </div>
-    </div>
+    <div class="flex-none bg-indigo-600 text-white px-4 py-2 shadow-sm"><div class="max-w-6xl mx-auto flex items-center justify-between gap-3"><div class="min-w-0"><div id="game-formula" class="font-black truncate">Formula</div><div class="text-xs text-indigo-100"><span id="round-label">Round 1/3</span> · <span id="sum-label">Sum 1/10</span></div></div><button onclick="confirmExit()" class="bg-white/15 px-3 py-2 rounded-lg text-sm font-bold">Exit</button></div></div>
+    <div id="play-body" class="flex-1 min-h-0"><div id="question-panel" class="h-full min-h-0 flex items-center justify-center bg-white p-2 overflow-hidden"><div id="question-container" class="w-full flex justify-center"></div></div><div id="keypad-panel" class="flex-none bg-sky-50 border-t border-sky-200 p-3"><div id="keypad-wrap" class="max-w-md mx-auto"><div id="answer-display" class="h-14 bg-white border-2 border-indigo-200 rounded-xl mb-3 flex items-center justify-center text-3xl font-black text-slate-800 shadow-inner">?</div><div class="grid grid-cols-3 gap-2"><button class="key" onclick="pressDigit('1')">1</button><button class="key" onclick="pressDigit('2')">2</button><button class="key" onclick="pressDigit('3')">3</button><button class="key" onclick="pressDigit('4')">4</button><button class="key" onclick="pressDigit('5')">5</button><button class="key" onclick="pressDigit('6')">6</button><button class="key" onclick="pressDigit('7')">7</button><button class="key" onclick="pressDigit('8')">8</button><button class="key" onclick="pressDigit('9')">9</button><button class="key text-red-600" onclick="clearAnswer()">C</button><button class="key" onclick="pressDigit('0')">0</button><button class="key text-slate-600" onclick="backspaceAnswer()">⌫</button></div><button onclick="submitAnswer()" class="w-full mt-2 bg-indigo-600 active:bg-indigo-800 text-white font-black text-xl py-3 rounded-xl shadow-md">Submit Answer</button></div></div></div>
   </section>
 
-  <div id="round-overlay" class="screen hidden z-40 bg-indigo-700/95 text-white flex items-center justify-center p-6 text-center">
-    <div>
-      <div class="text-5xl mb-3">✅</div>
-      <div id="round-overlay-title" class="text-3xl font-black">Round Complete</div>
-      <div id="round-overlay-text" class="mt-2 text-indigo-100 font-bold"></div>
-      <div class="mt-5 text-sm text-indigo-200">Next round starts automatically...</div>
-    </div>
-  </div>
+  <div id="round-overlay" class="screen hidden z-40 bg-indigo-700/95 text-white flex items-center justify-center p-6 text-center"><div><div class="text-5xl mb-3">✅</div><div id="round-overlay-title" class="text-3xl font-black">Round Complete</div><div id="round-overlay-text" class="mt-2 text-indigo-100 font-bold"></div><div class="mt-5 text-sm text-indigo-200">Next round starts automatically...</div></div></div>
 
   <section id="report-screen" class="screen hidden z-50 bg-slate-50 overflow-y-auto p-4">
-    <div id="report-card" class="max-w-md mx-auto bg-white border-4 border-indigo-100 rounded-2xl shadow-2xl p-6 mt-5 mb-4 text-center">
-      <div class="text-xs uppercase tracking-widest text-indigo-500 font-black">Formula Practice Complete</div>
-      <h2 id="report-formula" class="text-xl font-black text-slate-800 mt-1"></h2>
-      <div id="report-student" class="text-sm text-gray-500 mt-1"></div>
-
-      <div class="grid grid-cols-2 gap-3 mt-5">
-        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-          <div class="text-xs uppercase text-emerald-600 font-black">Score</div>
-          <div class="text-4xl font-black text-emerald-700"><span id="final-score">0</span>/30</div>
-        </div>
-        <div class="bg-purple-50 border border-purple-200 rounded-xl p-4">
-          <div class="text-xs uppercase text-purple-600 font-black">Total Time</div>
-          <div id="final-time" class="text-4xl font-black text-purple-700">0:00</div>
-        </div>
-      </div>
-
-      <div class="mt-4 grid grid-cols-3 gap-2" id="round-summary"></div>
-      <div id="correction-message" class="hidden mt-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 font-bold p-3"></div>
-
-      <button id="practice-wrong-btn" onclick="startWrongPractice()" class="hidden w-full mt-5 bg-red-600 text-white font-black py-3 rounded-xl shadow-md">Practise Wrong Sums</button>
-      <button id="review-wrong-btn" onclick="showMistakes()" class="hidden w-full mt-2 bg-red-50 text-red-700 border border-red-200 font-bold py-3 rounded-xl">Review Wrong Sums</button>
-      <button onclick="repeatSameFormula()" class="w-full mt-2 bg-indigo-600 text-white font-black py-3 rounded-xl shadow-md">Repeat Same Formula</button>
-      <button onclick="chooseAnotherFormula()" class="w-full mt-2 bg-white border-2 border-slate-200 text-slate-700 font-black py-3 rounded-xl">Choose Another Formula</button>
-      <button onclick="downloadReport()" class="w-full mt-2 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl">Download Result</button>
-    </div>
-
-    <div id="wrong-answer-area" class="hidden max-w-md mx-auto pb-10">
-      <h3 class="text-xl font-black text-slate-800 mb-3 text-center">Wrong Sums</h3>
-      <div id="wrong-sums-list" class="flex flex-col gap-3"></div>
-      <button onclick="hideMistakes()" class="mt-4 w-full bg-slate-700 text-white font-bold py-3 rounded-xl">← Back to Result</button>
-    </div>
+    <div id="report-card" class="max-w-md mx-auto bg-white border-4 border-indigo-100 rounded-2xl shadow-2xl p-6 mt-5 mb-4 text-center"><div class="text-xs uppercase tracking-widest text-indigo-500 font-black">Formula Practice Complete</div><h2 id="report-formula" class="text-xl font-black text-slate-800 mt-1"></h2><div id="report-student" class="text-sm text-gray-500 mt-1"></div><div class="grid grid-cols-2 gap-3 mt-5"><div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4"><div class="text-xs uppercase text-emerald-600 font-black">Score</div><div class="text-4xl font-black text-emerald-700"><span id="final-score">0</span>/30</div></div><div class="bg-purple-50 border border-purple-200 rounded-xl p-4"><div class="text-xs uppercase text-purple-600 font-black">Practice Time</div><div id="final-time" class="text-4xl font-black text-purple-700">0:00</div></div></div><div class="mt-4 grid grid-cols-3 gap-2" id="round-summary"></div><div id="correction-message" class="hidden mt-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 font-bold p-3"></div><button id="practice-wrong-btn" onclick="startWrongPractice()" class="hidden w-full mt-5 bg-red-600 text-white font-black py-3 rounded-xl shadow-md">Practise Wrong Sums</button><button id="review-wrong-btn" onclick="showMistakes()" class="hidden w-full mt-2 bg-red-50 text-red-700 border border-red-200 font-bold py-3 rounded-xl">Review Wrong Sums</button><button onclick="repeatSameFormula()" class="w-full mt-2 bg-indigo-600 text-white font-black py-3 rounded-xl shadow-md">Repeat Same Formula</button><button onclick="chooseAnotherFormula()" class="w-full mt-2 bg-white border-2 border-slate-200 text-slate-700 font-black py-3 rounded-xl">Choose Another Formula</button><button onclick="downloadReport()" class="w-full mt-2 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl">Download Result</button></div>
+    <div id="wrong-answer-area" class="hidden max-w-md mx-auto pb-10"><h3 class="text-xl font-black text-slate-800 mb-3 text-center">Wrong Sums</h3><div id="wrong-sums-list" class="flex flex-col gap-3"></div><button onclick="hideMistakes()" class="mt-4 w-full bg-slate-700 text-white font-bold py-3 rounded-xl">← Back to Result</button></div>
   </section>
 
 <script>
   const SUPABASE_URL="https://portal-bridge.ucmas-ambernath-pg.workers.dev";
   const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk";
   const db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-
   if(sessionStorage.getItem('isLoggedIn')!=='true') location.href='index.html';
 
   const CATEGORY_META={
-    '1_sf_add':{title:'Small Friend +',sub:'+4, +3, +2, +1',icon:'🌟'},
-    '2_sf_sub':{title:'Small Friend −',sub:'−4, −3, −2, −1',icon:'🌟'},
-    '3_bf_add':{title:'Big Friend +',sub:'+9 to +1',icon:'💪'},
-    '4_bf_sub':{title:'Big Friend −',sub:'−9 to −1',icon:'💪'},
-    '5_mix_add':{title:'Mix +',sub:'+6, +7, +8, +9',icon:'🔀'},
-    '6_mix_sub':{title:'Mix −',sub:'−6, −7, −8, −9',icon:'🔀'}
+    '1_sf_add':{title:'Small Friend +',sub:'+4, +3, +2, +1',icon:'🌟'},'2_sf_sub':{title:'Small Friend −',sub:'−4, −3, −2, −1',icon:'🌟'},'3_bf_add':{title:'Big Friend +',sub:'+9 to +1',icon:'💪'},'4_bf_sub':{title:'Big Friend −',sub:'−9 to −1',icon:'💪'},'5_mix_add':{title:'Mix +',sub:'+6, +7, +8, +9',icon:'🔀'},'6_mix_sub':{title:'Mix −',sub:'−6, −7, −8, −9',icon:'🔀'}
   };
-
   const FORMULA_DATA={
-    '1_sf_add':[
-      {id:'sf_p4',name:'+4 Formula (+5-1)',trigger:4,setup:[1,2,3,4]},
-      {id:'sf_p3',name:'+3 Formula (+5-2)',trigger:3,setup:[2,3,4]},
-      {id:'sf_p2',name:'+2 Formula (+5-3)',trigger:2,setup:[3,4]},
-      {id:'sf_p1',name:'+1 Formula (+5-4)',trigger:1,setup:[4]}
-    ],
-    '2_sf_sub':[
-      {id:'sf_m4',name:'-4 Formula (+1-5)',trigger:-4,setup:[5,6,7,8]},
-      {id:'sf_m3',name:'-3 Formula (+2-5)',trigger:-3,setup:[5,6,7]},
-      {id:'sf_m2',name:'-2 Formula (+3-5)',trigger:-2,setup:[5,6]},
-      {id:'sf_m1',name:'-1 Formula (+4-5)',trigger:-1,setup:[5]}
-    ],
-    '3_bf_add':[
-      {id:'bf_p9',name:'+9 Formula (-1+10)',trigger:9,setup:[1,2,3,4,6,7,8,9]},
-      {id:'bf_p8',name:'+8 Formula (-2+10)',trigger:8,setup:[2,3,4,7,8,9]},
-      {id:'bf_p7',name:'+7 Formula (-3+10)',trigger:7,setup:[3,4,8,9]},
-      {id:'bf_p6',name:'+6 Formula (-4+10)',trigger:6,setup:[4,9]},
-      {id:'bf_p5',name:'+5 Formula (-5+10)',trigger:5,setup:[5,6,7,8,9]},
-      {id:'bf_p4',name:'+4 Formula (-6+10)',trigger:4,setup:[6,7,8,9]},
-      {id:'bf_p3',name:'+3 Formula (-7+10)',trigger:3,setup:[7,8,9]},
-      {id:'bf_p2',name:'+2 Formula (-8+10)',trigger:2,setup:[8,9]},
-      {id:'bf_p1',name:'+1 Formula (-9+10)',trigger:1,setup:[9]}
-    ],
-    '4_bf_sub':[
-      {id:'bf_m9',name:'-9 Formula (-10+1)',trigger:-9,setup:[0,1,2,3,5,6,7,8]},
-      {id:'bf_m8',name:'-8 Formula (-10+2)',trigger:-8,setup:[0,1,2,5,6,7]},
-      {id:'bf_m7',name:'-7 Formula (-10+3)',trigger:-7,setup:[0,1,5,6]},
-      {id:'bf_m6',name:'-6 Formula (-10+4)',trigger:-6,setup:[0,5]},
-      {id:'bf_m5',name:'-5 Formula (-10+5)',trigger:-5,setup:[0,1,2,3,4]},
-      {id:'bf_m4',name:'-4 Formula (-10+6)',trigger:-4,setup:[0,1,2,3]},
-      {id:'bf_m3',name:'-3 Formula (-10+7)',trigger:-3,setup:[0,1,2]},
-      {id:'bf_m2',name:'-2 Formula (-10+8)',trigger:-2,setup:[0,1]},
-      {id:'bf_m1',name:'-1 Formula (-10+9)',trigger:-1,setup:[0]}
-    ],
-    '5_mix_add':[
-      {id:'mix_p6',name:'Mix +6 (+1-5+10)',trigger:6,setup:[5,6,7,8]},
-      {id:'mix_p7',name:'Mix +7 (+2-5+10)',trigger:7,setup:[5,6,7]},
-      {id:'mix_p8',name:'Mix +8 (+3-5+10)',trigger:8,setup:[5,6]},
-      {id:'mix_p9',name:'Mix +9 (+4-5+10)',trigger:9,setup:[5]}
-    ],
-    '6_mix_sub':[
-      {id:'mix_m6',name:'Mix -6 (-10+5-1)',trigger:-6,setup:[1,2,3,4]},
-      {id:'mix_m7',name:'Mix -7 (-10+5-2)',trigger:-7,setup:[2,3,4]},
-      {id:'mix_m8',name:'Mix -8 (-10+5-3)',trigger:-8,setup:[3,4]},
-      {id:'mix_m9',name:'Mix -9 (-10+5-4)',trigger:-9,setup:[4]}
-    ]
+    '1_sf_add':[{id:'sf_p4',name:'+4 Formula (+5-1)',trigger:4,setup:[1,2,3,4]},{id:'sf_p3',name:'+3 Formula (+5-2)',trigger:3,setup:[2,3,4]},{id:'sf_p2',name:'+2 Formula (+5-3)',trigger:2,setup:[3,4]},{id:'sf_p1',name:'+1 Formula (+5-4)',trigger:1,setup:[4]}],
+    '2_sf_sub':[{id:'sf_m4',name:'-4 Formula (+1-5)',trigger:-4,setup:[5,6,7,8]},{id:'sf_m3',name:'-3 Formula (+2-5)',trigger:-3,setup:[5,6,7]},{id:'sf_m2',name:'-2 Formula (+3-5)',trigger:-2,setup:[5,6]},{id:'sf_m1',name:'-1 Formula (+4-5)',trigger:-1,setup:[5]}],
+    '3_bf_add':[{id:'bf_p9',name:'+9 Formula (-1+10)',trigger:9,setup:[1,2,3,4,6,7,8,9]},{id:'bf_p8',name:'+8 Formula (-2+10)',trigger:8,setup:[2,3,4,7,8,9]},{id:'bf_p7',name:'+7 Formula (-3+10)',trigger:7,setup:[3,4,8,9]},{id:'bf_p6',name:'+6 Formula (-4+10)',trigger:6,setup:[4,9]},{id:'bf_p5',name:'+5 Formula (-5+10)',trigger:5,setup:[5,6,7,8,9]},{id:'bf_p4',name:'+4 Formula (-6+10)',trigger:4,setup:[6,7,8,9]},{id:'bf_p3',name:'+3 Formula (-7+10)',trigger:3,setup:[7,8,9]},{id:'bf_p2',name:'+2 Formula (-8+10)',trigger:2,setup:[8,9]},{id:'bf_p1',name:'+1 Formula (-9+10)',trigger:1,setup:[9]}],
+    '4_bf_sub':[{id:'bf_m9',name:'-9 Formula (-10+1)',trigger:-9,setup:[0,1,2,3,5,6,7,8]},{id:'bf_m8',name:'-8 Formula (-10+2)',trigger:-8,setup:[0,1,2,5,6,7]},{id:'bf_m7',name:'-7 Formula (-10+3)',trigger:-7,setup:[0,1,5,6]},{id:'bf_m6',name:'-6 Formula (-10+4)',trigger:-6,setup:[0,5]},{id:'bf_m5',name:'-5 Formula (-10+5)',trigger:-5,setup:[0,1,2,3,4]},{id:'bf_m4',name:'-4 Formula (-10+6)',trigger:-4,setup:[0,1,2,3]},{id:'bf_m3',name:'-3 Formula (-10+7)',trigger:-3,setup:[0,1,2]},{id:'bf_m2',name:'-2 Formula (-10+8)',trigger:-2,setup:[0,1]},{id:'bf_m1',name:'-1 Formula (-10+9)',trigger:-1,setup:[0]}],
+    '5_mix_add':[{id:'mix_p6',name:'Mix +6 (+1-5+10)',trigger:6,setup:[5,6,7,8]},{id:'mix_p7',name:'Mix +7 (+2-5+10)',trigger:7,setup:[5,6,7]},{id:'mix_p8',name:'Mix +8 (+3-5+10)',trigger:8,setup:[5,6]},{id:'mix_p9',name:'Mix +9 (+4-5+10)',trigger:9,setup:[5]}],
+    '6_mix_sub':[{id:'mix_m6',name:'Mix -6 (-10+5-1)',trigger:-6,setup:[1,2,3,4]},{id:'mix_m7',name:'Mix -7 (-10+5-2)',trigger:-7,setup:[2,3,4]},{id:'mix_m8',name:'Mix -8 (-10+5-3)',trigger:-8,setup:[3,4]},{id:'mix_m9',name:'Mix -9 (-10+5-4)',trigger:-9,setup:[4]}]
   };
 
-  let selectedCategory='',selectedFormula=null,currentQuestions=[],currentQIndex=0,currentRound=1,answerBuffer='';
-  let roundStart=0,sessionStart=0,roundResults=[],allWrong=[],studentName='Student',studentUserId=null,currentLevel=Number(sessionStorage.getItem('currentLevel')||0),sessionId=(crypto.randomUUID?crypto.randomUUID():String(Date.now()));
-  let correctionMode=false,correctionQuestions=[],correctionIndex=0,correctionCorrect=0;
-
-  function formatStudentName(identifier){
-    if(!identifier||typeof identifier!=='string') return 'Student';
-    return identifier.split('@')[0].split('.').map(p=>p?p.charAt(0).toUpperCase()+p.slice(1):'').join(' ').trim()||'Student';
-  }
+  function makeSessionId(){if(crypto.randomUUID)return crypto.randomUUID();const h=()=>Math.floor(Math.random()*16).toString(16);return `${h()}${h()}${h()}${h()}${h()}${h()}${h()}${h()}-${h()}${h()}${h()}${h()}-4${h()}${h()}${h()}-8${h()}${h()}${h()}-${h()}${h()}${h()}${h()}${h()}${h()}${h()}${h()}${h()}${h()}${h()}${h()}`}
+  function formatStudentName(identifier){if(!identifier||typeof identifier!=='string')return'Student';return identifier.split('@')[0].split('.').map(p=>p?p.charAt(0).toUpperCase()+p.slice(1):'').join(' ').trim()||'Student'}
   function fmt(sec){sec=Math.max(0,Math.floor(sec||0));return `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`}
 
-  async function init(){
-    studentName=formatStudentName(sessionStorage.getItem('studentIdentifier'));
-    try{
-      const {data:{session}}=await db.auth.getSession();
-      if(session){
-        studentUserId=session.user.id;
-        const {data:p}=await db.from('profiles').select('full_name,current_level').eq('id',session.user.id).maybeSingle();
-        if(p?.full_name) studentName=p.full_name;
-        if(p?.current_level) currentLevel=Number(p.current_level);
-      }
-    }catch(e){console.warn('Profile load skipped',e)}
-    document.getElementById('student-name').textContent=studentName;
-    renderCategories();
-    flushOfflineQueue();
-  }
+  let selectedCategory='',selectedFormula=null,currentQuestions=[],currentQIndex=0,currentRound=1,answerBuffer='',roundStart=0,roundResults=[],allWrong=[],studentName='Student',studentUserId=null,currentLevel=Number(sessionStorage.getItem('currentLevel')||0),sessionId=makeSessionId(),correctionMode=false,correctionQuestions=[],correctionIndex=0,correctionCorrect=0;
 
-  function renderCategories(){
-    const grid=document.getElementById('category-grid');grid.innerHTML='';
-    Object.entries(CATEGORY_META).forEach(([key,m])=>{
-      const b=document.createElement('button');
-      b.className='category-card text-left border-2 border-slate-200 rounded-2xl p-4 bg-white hover:border-indigo-300';
-      b.innerHTML=`<div class="text-2xl">${m.icon}</div><div class="font-black text-slate-800 mt-1">${m.title}</div><div class="text-xs text-gray-500 mt-1">${m.sub}</div>`;
-      b.onclick=()=>selectCategory(key,b);grid.appendChild(b);
-    });
-  }
+  async function init(){studentName=formatStudentName(sessionStorage.getItem('studentIdentifier'));try{const {data:{session}}=await db.auth.getSession();if(session){studentUserId=session.user.id;const {data:p}=await db.from('profiles').select('full_name,current_level').eq('id',session.user.id).maybeSingle();if(p?.full_name)studentName=p.full_name;if(p?.current_level)currentLevel=Number(p.current_level)}}catch(e){console.warn('Profile load skipped',e)}document.getElementById('student-name').textContent=studentName;renderCategories();flushOfflineQueue()}
 
-  function selectCategory(key,btn){
-    selectedCategory=key;selectedFormula=null;
-    document.querySelectorAll('.category-card').forEach(x=>x.classList.remove('selected-card'));btn.classList.add('selected-card');
-    document.getElementById('selected-category-label').textContent=CATEGORY_META[key].title;
-    const fg=document.getElementById('formula-grid');fg.innerHTML='';
-    FORMULA_DATA[key].forEach(f=>{
-      const b=document.createElement('button');
-      b.className='formula-card text-left border-2 border-orange-100 rounded-xl px-4 py-3 bg-orange-50 hover:border-orange-300';
-      const parts=f.name.match(/^(.+? Formula|Mix [+-]\d+)\s*(\(.+\))$/);
-      b.innerHTML=`<div class="font-black text-lg text-slate-800">${parts?parts[1]:f.name}</div><div class="text-sm font-bold text-orange-700">${parts?parts[2]:''}</div>`;
-      b.onclick=()=>startFormula(f);fg.appendChild(b);
-    });
-    document.getElementById('formula-section').classList.remove('hidden');
-    setTimeout(()=>document.getElementById('formula-section').scrollIntoView({behavior:'smooth',block:'start'}),80);
-  }
+  function renderCategories(){const grid=document.getElementById('category-grid');grid.innerHTML='';Object.entries(CATEGORY_META).forEach(([key,m])=>{const b=document.createElement('button');b.className='category-card text-left border-2 border-slate-200 rounded-2xl p-4 bg-white hover:border-indigo-300';b.innerHTML=`<div class="text-2xl">${m.icon}</div><div class="font-black text-slate-800 mt-1">${m.title}</div><div class="text-xs text-gray-500 mt-1">${m.sub}</div>`;b.onclick=()=>selectCategory(key,b);grid.appendChild(b)})}
+  function selectCategory(key,btn){selectedCategory=key;selectedFormula=null;document.querySelectorAll('.category-card').forEach(x=>x.classList.remove('selected-card'));btn.classList.add('selected-card');document.getElementById('selected-category-label').textContent=CATEGORY_META[key].title;const fg=document.getElementById('formula-grid');fg.innerHTML='';FORMULA_DATA[key].forEach(f=>{const b=document.createElement('button');b.className='formula-card text-left border-2 border-orange-100 rounded-xl px-4 py-3 bg-orange-50 hover:border-orange-300';const parts=f.name.match(/^(.+? Formula|Mix [+-]\d+)\s*(\(.+\))$/);b.innerHTML=`<div class="font-black text-lg text-slate-800">${parts?parts[1]:f.name}</div><div class="text-sm font-bold text-orange-700">${parts?parts[2]:''}</div>`;b.onclick=()=>startFormula(f);fg.appendChild(b)});document.getElementById('formula-section').classList.remove('hidden');setTimeout(()=>document.getElementById('formula-section').scrollIntoView({behavior:'smooth',block:'start'}),80)}
+  function clearCategory(){selectedCategory='';selectedFormula=null;document.getElementById('formula-section').classList.add('hidden');document.querySelectorAll('.category-card').forEach(x=>x.classList.remove('selected-card'));document.getElementById('selection-screen').scrollTo({top:0,behavior:'smooth'})}
 
-  function clearCategory(){selectedCategory='';selectedFormula=null;document.getElementById('formula-section').classList.add('hidden');document.querySelectorAll('.category-card').forEach(x=>x.classList.remove('selected-card'));window.scrollTo({top:0,behavior:'smooth'})}
-
-  function isStrictDirectMove(current,val){
-    const unitCurr=current%10,unitRes=unitCurr+val;if(unitRes<0||unitRes>9)return false;
-    const upper=unitCurr>=5,lower=unitCurr%5;
-    if(val>0){const vl=val%5,vu=val>=5;if(vu&&upper)return false;if(lower+vl>4)return false;return true}
-    const a=Math.abs(val),vl=a%5,vu=a>=5;if(vu&&!upper)return false;if(lower<vl)return false;return true;
-  }
-  function generateRandomDirect(total,maxLimit){
-    const opts=[];for(let i=-9;i<=9;i++){if(i===0)continue;if(total+i<0||total+i>maxLimit)continue;if(isStrictDirectMove(total,i))opts.push(i)}
-    return opts.length?opts[Math.floor(Math.random()*opts.length)]:0;
-  }
-  function generateQuestionSet(formulaObj){
-    const MAX=99,ROWS=5,triggerIdx=Math.floor(Math.random()*(ROWS-1))+1,levelIndex=parseInt(selectedCategory.charAt(0));
-    let rows=[],total=0,start=levelIndex>=3?Math.floor(Math.random()*51)+10:Math.floor(Math.random()*9)+1;
-    rows.push(start);total=start;
-    for(let i=1;i<triggerIdx;i++){const n=generateRandomDirect(total,MAX);rows.push(n);total+=n}
-    const last=rows.pop();total-=last;
-    const target=formulaObj.setup[Math.floor(Math.random()*formulaObj.setup.length)],min=levelIndex>=3?-19:-9,max=levelIndex>=3?19:9,valid=[];
-    for(let k=min;k<=max;k++){
-      if(k===0||total+k<0||total+k>MAX||total+k+formulaObj.trigger<0||total+k+formulaObj.trigger>MAX)continue;
-      if((total+k)%10===target&&isStrictDirectMove(total,k))valid.push(k);
-    }
-    if(!valid.length)return generateQuestionSet(formulaObj);
-    const forced=valid[Math.floor(Math.random()*valid.length)];rows.push(forced);total+=forced;rows.push(formulaObj.trigger);total+=formulaObj.trigger;
-    for(let i=triggerIdx+1;i<ROWS;i++){const n=generateRandomDirect(total,MAX);rows.push(n);total+=n}
-    return {numbers:rows,answer:total,userAns:null,round:currentRound};
-  }
-
+  function isStrictDirectMove(current,val){const unitCurr=current%10,unitRes=unitCurr+val;if(unitRes<0||unitRes>9)return false;const upper=unitCurr>=5,lower=unitCurr%5;if(val>0){const vl=val%5,vu=val>=5;if(vu&&upper)return false;if(lower+vl>4)return false;return true}const a=Math.abs(val),vl=a%5,vu=a>=5;if(vu&&!upper)return false;if(lower<vl)return false;return true}
+  function generateRandomDirect(total,maxLimit){const opts=[];for(let i=-9;i<=9;i++){if(i===0)continue;if(total+i<0||total+i>maxLimit)continue;if(isStrictDirectMove(total,i))opts.push(i)}return opts.length?opts[Math.floor(Math.random()*opts.length)]:0}
+  function generateQuestionSet(formulaObj){const MAX=99,ROWS=5,triggerIdx=Math.floor(Math.random()*(ROWS-1))+1,levelIndex=parseInt(selectedCategory.charAt(0));let rows=[],total=0,start=levelIndex>=3?Math.floor(Math.random()*51)+10:Math.floor(Math.random()*9)+1;rows.push(start);total=start;for(let i=1;i<triggerIdx;i++){const n=generateRandomDirect(total,MAX);rows.push(n);total+=n}const last=rows.pop();total-=last;const target=formulaObj.setup[Math.floor(Math.random()*formulaObj.setup.length)],min=levelIndex>=3?-19:-9,max=levelIndex>=3?19:9,valid=[];for(let k=min;k<=max;k++){if(k===0||total+k<0||total+k>MAX||total+k+formulaObj.trigger<0||total+k+formulaObj.trigger>MAX)continue;if((total+k)%10===target&&isStrictDirectMove(total,k))valid.push(k)}if(!valid.length)return generateQuestionSet(formulaObj);const forced=valid[Math.floor(Math.random()*valid.length)];rows.push(forced);total+=forced;rows.push(formulaObj.trigger);total+=formulaObj.trigger;for(let i=triggerIdx+1;i<ROWS;i++){const n=generateRandomDirect(total,MAX);rows.push(n);total+=n}return{numbers:rows,answer:total,userAns:null,round:currentRound}}
   function newRoundQuestions(){currentQuestions=[];for(let i=0;i<10;i++)currentQuestions.push(generateQuestionSet(selectedFormula));currentQIndex=0;answerBuffer='';roundStart=Date.now()}
 
-  function startFormula(f){
-    selectedFormula=f;currentRound=1;roundResults=[];allWrong=[];correctionMode=false;sessionStart=Date.now();sessionId=(crypto.randomUUID?crypto.randomUUID():String(Date.now()));
-    document.getElementById('game-formula').textContent=f.name;
-    document.getElementById('selection-screen').classList.add('hidden');document.getElementById('report-screen').classList.add('hidden');document.getElementById('game-screen').classList.remove('hidden');
-    newRoundQuestions();renderQuestion();
-  }
+  function startFormula(f){selectedFormula=f;currentRound=1;roundResults=[];allWrong=[];correctionMode=false;sessionId=makeSessionId();document.getElementById('game-formula').textContent=f.name;document.getElementById('selection-screen').classList.add('hidden');document.getElementById('report-screen').classList.add('hidden');document.getElementById('round-overlay').classList.add('hidden');document.getElementById('game-screen').classList.remove('hidden');newRoundQuestions();renderQuestion()}
+  function renderQuestion(){const q=correctionMode?correctionQuestions[correctionIndex]:currentQuestions[currentQIndex];document.getElementById('round-label').textContent=correctionMode?'Wrong Sum Practice':`Round ${currentRound}/3`;document.getElementById('sum-label').textContent=correctionMode?`Sum ${correctionIndex+1}/${correctionQuestions.length}`:`Sum ${currentQIndex+1}/10`;let html='<table class="sum-table">';q.numbers.forEach((n,i)=>{html+=`<tr><td class="row-index">${i+1}</td><td class="number-cell ${n<0?'negative-number':''}">${n}</td></tr>`});html+='</table>';document.getElementById('question-container').innerHTML=html;answerBuffer='';updateAnswerDisplay()}
+  function updateAnswerDisplay(){document.getElementById('answer-display').textContent=answerBuffer||'?'}function pressDigit(d){if(answerBuffer.length<4){answerBuffer+=d;answerBuffer=answerBuffer.replace(/^0+(?=\d)/,'');updateAnswerDisplay()}}function clearAnswer(){answerBuffer='';updateAnswerDisplay()}function backspaceAnswer(){answerBuffer=answerBuffer.slice(0,-1);updateAnswerDisplay()}
+  async function submitAnswer(){if(answerBuffer==='')return;const val=parseInt(answerBuffer,10);if(correctionMode){const q=correctionQuestions[correctionIndex];q.correctionAns=val;if(val===q.answer)correctionCorrect++;correctionIndex++;if(correctionIndex<correctionQuestions.length)renderQuestion();else finishCorrection();return}const q=currentQuestions[currentQIndex];q.userAns=val;currentQIndex++;if(currentQIndex<10){renderQuestion();return}await finishRound()}
+  async function finishRound(){const duration=Math.max(1,Math.floor((Date.now()-roundStart)/1000)),score=currentQuestions.filter(q=>q.userAns===q.answer).length,wrong=currentQuestions.filter(q=>q.userAns!==q.answer).map(q=>({...q}));wrong.forEach(q=>allWrong.push(q));roundResults.push({round:currentRound,score,duration,wrong:wrong.length});saveOrQueueResult({name:studentName,formula:selectedFormula.name,score,time:fmt(duration),user_id:studentUserId,level:currentLevel||null,formula_id:selectedFormula.id,category:selectedCategory,round_number:currentRound,duration_seconds:duration,wrong_count:wrong.length,session_id:sessionId});if(currentRound<3){document.getElementById('round-overlay-title').textContent=`Round ${currentRound} Complete`;document.getElementById('round-overlay-text').textContent=`Score ${score}/10 · ${fmt(duration)}`;document.getElementById('round-overlay').classList.remove('hidden');currentRound++;setTimeout(()=>{document.getElementById('round-overlay').classList.add('hidden');newRoundQuestions();renderQuestion()},950)}else showFinalReport()}
+  function showFinalReport(){document.getElementById('game-screen').classList.add('hidden');document.getElementById('report-screen').classList.remove('hidden');const score=roundResults.reduce((a,r)=>a+r.score,0),totalSec=roundResults.reduce((a,r)=>a+r.duration,0);document.getElementById('report-formula').textContent=selectedFormula.name;document.getElementById('report-student').textContent=`${studentName} · ${new Date().toLocaleDateString('en-IN')}`;document.getElementById('final-score').textContent=score;document.getElementById('final-time').textContent=fmt(totalSec);document.getElementById('round-summary').innerHTML=roundResults.map(r=>`<div class="rounded-xl border border-slate-200 bg-slate-50 p-2"><div class="text-[11px] text-gray-500 font-bold">Round ${r.round}</div><div class="text-lg font-black text-slate-800">${r.score}/10</div><div class="text-[11px] text-gray-500">${fmt(r.duration)}</div></div>`).join('');const p=document.getElementById('practice-wrong-btn'),rv=document.getElementById('review-wrong-btn');if(allWrong.length){p.classList.remove('hidden');rv.classList.remove('hidden');p.textContent=`Practise ${allWrong.length} Wrong Sum${allWrong.length===1?'':'s'}`}else{p.classList.add('hidden');rv.classList.add('hidden')}document.getElementById('correction-message').classList.add('hidden');document.getElementById('wrong-answer-area').classList.add('hidden');document.getElementById('report-card').classList.remove('hidden')}
 
-  function renderQuestion(){
-    const q=correctionMode?correctionQuestions[correctionIndex]:currentQuestions[currentQIndex];
-    document.getElementById('round-label').textContent=correctionMode?'Wrong Sum Practice':`Round ${currentRound}/3`;
-    document.getElementById('sum-label').textContent=correctionMode?`Sum ${correctionIndex+1}/${correctionQuestions.length}`:`Sum ${currentQIndex+1}/10`;
-    let html='<table class="sum-table">';q.numbers.forEach((n,i)=>{html+=`<tr><td class="row-index">${i+1}</td><td class="number-cell ${n<0?'negative-number':''}">${n}</td></tr>`});html+='</table>';
-    document.getElementById('question-container').innerHTML=html;answerBuffer='';updateAnswerDisplay();
-  }
-  function updateAnswerDisplay(){document.getElementById('answer-display').textContent=answerBuffer||'?'}
-  function pressDigit(d){if(answerBuffer.length<4){answerBuffer+=d;answerBuffer=answerBuffer.replace(/^0+(?=\d)/,'');updateAnswerDisplay()}}
-  function clearAnswer(){answerBuffer='';updateAnswerDisplay()}
-  function backspaceAnswer(){answerBuffer=answerBuffer.slice(0,-1);updateAnswerDisplay()}
-
-  async function submitAnswer(){
-    if(answerBuffer==='')return;
-    const val=parseInt(answerBuffer,10);
-    if(correctionMode){
-      const q=correctionQuestions[correctionIndex];q.correctionAns=val;if(val===q.answer)correctionCorrect++;
-      correctionIndex++;if(correctionIndex<correctionQuestions.length){renderQuestion()}else{finishCorrection()}return;
-    }
-    const q=currentQuestions[currentQIndex];q.userAns=val;
-    currentQIndex++;if(currentQIndex<10){renderQuestion();return}
-    await finishRound();
-  }
-
-  async function finishRound(){
-    const duration=Math.max(1,Math.floor((Date.now()-roundStart)/1000)),score=currentQuestions.filter(q=>q.userAns===q.answer).length,wrong=currentQuestions.filter(q=>q.userAns!==q.answer).map(q=>({...q}));
-    wrong.forEach(q=>allWrong.push(q));
-    const result={round:currentRound,score,duration,wrong:wrong.length};roundResults.push(result);
-    saveOrQueueResult({
-      name:studentName,formula:selectedFormula.name,score,time:fmt(duration),user_id:studentUserId,level:currentLevel||null,formula_id:selectedFormula.id,
-      category:selectedCategory,round_number:currentRound,duration_seconds:duration,wrong_count:wrong.length,session_id:sessionId
-    });
-    if(currentRound<3){
-      document.getElementById('round-overlay-title').textContent=`Round ${currentRound} Complete`;
-      document.getElementById('round-overlay-text').textContent=`Score ${score}/10 · ${fmt(duration)}`;
-      document.getElementById('round-overlay').classList.remove('hidden');
-      currentRound++;setTimeout(()=>{document.getElementById('round-overlay').classList.add('hidden');newRoundQuestions();renderQuestion()},950);
-    }else showFinalReport();
-  }
-
-  function showFinalReport(){
-    document.getElementById('game-screen').classList.add('hidden');document.getElementById('report-screen').classList.remove('hidden');
-    const score=roundResults.reduce((a,r)=>a+r.score,0),totalSec=Math.max(1,Math.floor((Date.now()-sessionStart)/1000));
-    document.getElementById('report-formula').textContent=selectedFormula.name;
-    document.getElementById('report-student').textContent=`${studentName} · ${new Date().toLocaleDateString('en-IN')}`;
-    document.getElementById('final-score').textContent=score;document.getElementById('final-time').textContent=fmt(totalSec);
-    document.getElementById('round-summary').innerHTML=roundResults.map(r=>`<div class="rounded-xl border border-slate-200 bg-slate-50 p-2"><div class="text-[11px] text-gray-500 font-bold">Round ${r.round}</div><div class="text-lg font-black text-slate-800">${r.score}/10</div><div class="text-[11px] text-gray-500">${fmt(r.duration)}</div></div>`).join('');
-    const p=document.getElementById('practice-wrong-btn'),rv=document.getElementById('review-wrong-btn');
-    if(allWrong.length){p.classList.remove('hidden');rv.classList.remove('hidden');p.textContent=`Practise ${allWrong.length} Wrong Sum${allWrong.length===1?'':'s'}`;}else{p.classList.add('hidden');rv.classList.add('hidden')}
-    document.getElementById('correction-message').classList.add('hidden');document.getElementById('wrong-answer-area').classList.add('hidden');document.getElementById('report-card').classList.remove('hidden');
-  }
-
-  function startWrongPractice(){
-    correctionQuestions=allWrong.map(q=>({...q,correctionAns:null}));if(!correctionQuestions.length)return;
-    correctionMode=true;correctionIndex=0;correctionCorrect=0;document.getElementById('report-screen').classList.add('hidden');document.getElementById('game-screen').classList.remove('hidden');renderQuestion();
-  }
-  function finishCorrection(){
-    correctionMode=false;document.getElementById('game-screen').classList.add('hidden');document.getElementById('report-screen').classList.remove('hidden');
-    const msg=document.getElementById('correction-message');msg.textContent=`Correction complete: ${correctionCorrect}/${correctionQuestions.length} correct.`;msg.classList.remove('hidden');
-  }
+  function startWrongPractice(){correctionQuestions=allWrong.map(q=>({...q,correctionAns:null}));if(!correctionQuestions.length)return;correctionMode=true;correctionIndex=0;correctionCorrect=0;document.getElementById('report-screen').classList.add('hidden');document.getElementById('game-screen').classList.remove('hidden');renderQuestion()}
+  function finishCorrection(){correctionMode=false;document.getElementById('game-screen').classList.add('hidden');document.getElementById('report-screen').classList.remove('hidden');const msg=document.getElementById('correction-message');msg.textContent=`Correction complete: ${correctionCorrect}/${correctionQuestions.length} correct.`;msg.classList.remove('hidden')}
   function repeatSameFormula(){startFormula(selectedFormula)}
-  function chooseAnotherFormula(){
-    document.getElementById('report-screen').classList.add('hidden');document.getElementById('selection-screen').classList.remove('hidden');document.getElementById('wrong-answer-area').classList.add('hidden');document.getElementById('report-card').classList.remove('hidden');
-  }
+  function chooseAnotherFormula(){document.getElementById('game-screen').classList.add('hidden');document.getElementById('round-overlay').classList.add('hidden');document.getElementById('report-screen').classList.add('hidden');document.getElementById('selection-screen').classList.remove('hidden');document.getElementById('wrong-answer-area').classList.add('hidden');document.getElementById('report-card').classList.remove('hidden')}
   function confirmExit(){if(confirm('Exit this practice? Current unfinished round will not be saved.'))chooseAnotherFormula()}
 
-  function showMistakes(){
-    const c=document.getElementById('wrong-sums-list');c.innerHTML='';
-    allWrong.forEach((q,i)=>{
-      let rows='<table class="sum-table" style="max-width:120px">';q.numbers.forEach(n=>rows+=`<tr><td class="number-cell ${n<0?'negative-number':''}" style="font-size:1.45rem">${n}</td></tr>`);rows+='</table>';
-      const d=document.createElement('div');d.className='review-card p-4';d.innerHTML=`<div class="text-xs font-black text-gray-400 mb-2 text-center">WRONG SUM ${i+1} · ROUND ${q.round}</div>${rows}<div class="grid grid-cols-2 gap-2 mt-3"><div class="bg-red-50 rounded-lg p-2 text-center"><div class="text-xs font-bold text-red-500">Your answer</div><div class="font-black text-red-700">${q.userAns}</div></div><div class="bg-green-50 rounded-lg p-2 text-center"><div class="text-xs font-bold text-green-600">Correct</div><div class="font-black text-green-700">${q.answer}</div></div></div>`;c.appendChild(d);
-    });
-    document.getElementById('report-card').classList.add('hidden');document.getElementById('wrong-answer-area').classList.remove('hidden');
-  }
+  function showMistakes(){const c=document.getElementById('wrong-sums-list');c.innerHTML='';allWrong.forEach((q,i)=>{let rows='<table class="sum-table" style="max-width:120px">';q.numbers.forEach(n=>rows+=`<tr><td class="number-cell ${n<0?'negative-number':''}" style="font-size:1.45rem">${n}</td></tr>`);rows+='</table>';const d=document.createElement('div');d.className='review-card p-4';d.innerHTML=`<div class="text-xs font-black text-gray-400 mb-2 text-center">WRONG SUM ${i+1} · ROUND ${q.round}</div>${rows}<div class="grid grid-cols-2 gap-2 mt-3"><div class="bg-red-50 rounded-lg p-2 text-center"><div class="text-xs font-bold text-red-500">Your answer</div><div class="font-black text-red-700">${q.userAns}</div></div><div class="bg-green-50 rounded-lg p-2 text-center"><div class="text-xs font-bold text-green-600">Correct</div><div class="font-black text-green-700">${q.answer}</div></div></div>`;c.appendChild(d)});document.getElementById('report-card').classList.add('hidden');document.getElementById('wrong-answer-area').classList.remove('hidden')}
   function hideMistakes(){document.getElementById('wrong-answer-area').classList.add('hidden');document.getElementById('report-card').classList.remove('hidden')}
 
-  async function saveResult(payload){const {error}=await db.from('level1and2_practice').insert([payload]);if(error)throw error}
-  async function saveOrQueueResult(payload){
-    if(navigator.onLine){try{await saveResult(payload);return}catch(e){console.error('Formula result save failed',e)}}
-    const q=JSON.parse(localStorage.getItem('l12_offlineQueue')||'[]');q.push(payload);localStorage.setItem('l12_offlineQueue',JSON.stringify(q));
-  }
-  async function flushOfflineQueue(){
-    if(!navigator.onLine)return;const q=JSON.parse(localStorage.getItem('l12_offlineQueue')||'[]');if(!q.length)return;let saved=0;
-    for(const item of q){try{await saveResult(item);saved++}catch(e){break}}
-    if(saved)localStorage.setItem('l12_offlineQueue',JSON.stringify(q.slice(saved)));
-  }
+  function cleanPayload(p){return{name:p.name,formula:p.formula,score:p.score,time:p.time,user_id:p.user_id||null,level:p.level||null,formula_id:p.formula_id||null,category:p.category||null,round_number:p.round_number||null,duration_seconds:p.duration_seconds||null,wrong_count:p.wrong_count??null,session_id:p.session_id||null}}
+  async function saveResult(payload){const {error}=await db.from('level1and2_practice').insert([cleanPayload(payload)]);if(error)throw error}
+  async function saveOrQueueResult(payload){if(navigator.onLine){try{await saveResult(payload);return}catch(e){console.error('Formula result save failed',e)}}const q=JSON.parse(localStorage.getItem('l12_offlineQueue')||'[]');q.push(cleanPayload(payload));localStorage.setItem('l12_offlineQueue',JSON.stringify(q))}
+  async function flushOfflineQueue(){if(!navigator.onLine)return;const q=JSON.parse(localStorage.getItem('l12_offlineQueue')||'[]');if(!q.length)return;let saved=0;for(const item of q){try{await saveResult(item);saved++}catch(e){break}}if(saved)localStorage.setItem('l12_offlineQueue',JSON.stringify(q.slice(saved)))}
   window.addEventListener('online',flushOfflineQueue);
-
-  function downloadReport(){
-    const el=document.getElementById('report-card');html2canvas(el,{backgroundColor:'#ffffff'}).then(canvas=>{const a=document.createElement('a');a.download=`Formula_Practice_${selectedFormula.id}_${Date.now()}.png`;a.href=canvas.toDataURL('image/png');a.click()});
-  }
-
-  document.addEventListener('keydown',e=>{
-    if(document.getElementById('game-screen').classList.contains('hidden'))return;
-    if(/^\d$/.test(e.key)){e.preventDefault();pressDigit(e.key)}else if(e.key==='Backspace'){e.preventDefault();backspaceAnswer()}else if(e.key==='Enter'){e.preventDefault();submitAnswer()}else if(e.key==='Escape'){e.preventDefault();clearAnswer()}
-  });
-
+  function downloadReport(){const el=document.getElementById('report-card');html2canvas(el,{backgroundColor:'#ffffff'}).then(canvas=>{const a=document.createElement('a');a.download=`Formula_Practice_${selectedFormula.id}_${Date.now()}.png`;a.href=canvas.toDataURL('image/png');a.click()})}
+  document.addEventListener('keydown',e=>{if(document.getElementById('game-screen').classList.contains('hidden'))return;if(/^\d$/.test(e.key)){e.preventDefault();pressDigit(e.key)}else if(e.key==='Backspace'){e.preventDefault();backspaceAnswer()}else if(e.key==='Enter'){e.preventDefault();submitAnswer()}else if(e.key==='Escape'){e.preventDefault();clearAnswer()}});
   document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
