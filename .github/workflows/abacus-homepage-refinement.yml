@@ -1,0 +1,82 @@
+name: Abacus homepage refinement
+
+on:
+  push:
+    paths:
+      - '.github/workflows/abacus-homepage-refinement.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  refine-homepage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add premium abacus visual language
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text()
+
+          # Theme tokens
+          old = """      --orange:#f59e0b;\n      --orange-soft:#fffbeb;\n      --white:#fff;"""
+          new = """      --orange:#f59e0b;\n      --orange-soft:#fffbeb;\n      --bead:#f59e0b;\n      --bead-dark:#d97706;\n      --abacus-frame:#27364b;\n      --white:#fff;"""
+          if old in s:
+              s = s.replace(old, new, 1)
+
+          # Global abacus-inspired accents
+          marker = """    .icon{width:46px;height:46px;display:grid;place-items:center;border-radius:14px;font-size:22px;background:var(--blue-soft)}\n"""
+          add = marker + """
+
+    /* Abacus visual language */
+    .eyebrow:before{content:'';width:10px;height:15px;border-radius:50%;background:linear-gradient(180deg,#ffb62e,var(--bead));border:1px solid var(--bead-dark);box-shadow:inset 0 1px 1px rgba(255,255,255,.65)}
+    .section-head:after{content:'';display:block;width:190px;height:18px;margin:20px auto 0;background:radial-gradient(ellipse at center,var(--bead) 0 6px,var(--bead-dark) 6px 8px,transparent 8.5px) left center/30px 18px repeat-x,linear-gradient(var(--abacus-frame),var(--abacus-frame)) center/100% 2px no-repeat;opacity:.82}
+    .abacus-mini{position:relative;height:94px;max-width:330px;margin:20px auto 18px;padding:8px 12px;border:6px solid var(--abacus-frame);border-radius:16px;background:#fffaf3;box-shadow:0 12px 30px rgba(15,23,42,.09);overflow:hidden}
+    .abacus-mini:after{content:'';position:absolute;left:0;right:0;top:35px;height:6px;background:var(--abacus-frame);z-index:2}
+    .abacus-rods{height:100%;display:grid;grid-template-columns:repeat(9,1fr);gap:4px}
+    .abacus-rod{position:relative;background:linear-gradient(90deg,transparent calc(50% - 1px),#64748b calc(50% - 1px),#64748b calc(50% + 1px),transparent calc(50% + 1px))}
+    .abacus-rod:before,.abacus-rod:after{content:'';position:absolute;left:50%;transform:translateX(-50%);width:22px;height:10px;border-radius:50%;background:linear-gradient(180deg,#ffb52b,var(--bead));border:1px solid var(--bead-dark);box-shadow:0 1px 2px rgba(15,23,42,.18);z-index:3}
+    .abacus-rod:before{top:6px}
+    .abacus-rod:after{bottom:3px;box-shadow:0 -12px 0 -1px var(--bead),0 -24px 0 -1px var(--bead),0 -36px 0 -1px var(--bead),0 1px 2px rgba(15,23,42,.18)}
+    .abacus-rod:nth-child(2n):before{top:15px}
+    .abacus-rod:nth-child(3n):before{top:10px}
+    .mockup{position:relative}
+    .mockup:before{content:'';position:absolute;left:46px;right:46px;top:-7px;height:14px;background:radial-gradient(ellipse at center,var(--bead) 0 5px,var(--bead-dark) 5px 6px,transparent 6.5px) left center/26px 14px repeat-x;z-index:3;filter:drop-shadow(0 2px 2px rgba(15,23,42,.16))}
+"""
+          if marker in s and '/* Abacus visual language */' not in s:
+              s = s.replace(marker, add, 1)
+
+          # Subtle abacus rods in hero background
+          hero_after = """      linear-gradient(180deg,#fff 0%,#f8fbff 100%);padding:72px 0 48px}\n"""
+          hero_add = hero_after + """    .hero:before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 78px,rgba(39,54,75,.035) 78px 80px);-webkit-mask-image:linear-gradient(to bottom,transparent,rgba(0,0,0,.65) 20%,rgba(0,0,0,.35) 80%,transparent);mask-image:linear-gradient(to bottom,transparent,rgba(0,0,0,.65) 20%,rgba(0,0,0,.35) 80%,transparent);pointer-events:none}\n"""
+          if hero_after in s and '.hero:before{' not in s:
+              s = s.replace(hero_after, hero_add, 1)
+
+          # Add a miniature soroban-style abacus beneath the logo
+          logo = """          <img class=\"visual-logo\" src=\"lil-champs-logo.png?v=20260912\" alt=\"Li'l Champs Abacus Academy\">\n"""
+          mini = logo + """          <div class=\"abacus-mini\" aria-hidden=\"true\">\n            <div class=\"abacus-rods\">\n              <span class=\"abacus-rod\"></span><span class=\"abacus-rod\"></span><span class=\"abacus-rod\"></span>\n              <span class=\"abacus-rod\"></span><span class=\"abacus-rod\"></span><span class=\"abacus-rod\"></span>\n              <span class=\"abacus-rod\"></span><span class=\"abacus-rod\"></span><span class=\"abacus-rod\"></span>\n            </div>\n          </div>\n"""
+          if logo in s and 'class="abacus-mini"' not in s:
+              s = s.replace(logo, mini, 1)
+
+          # Mobile tuning
+          mobile = """      .visual-logo{width:220px;height:220px}\n"""
+          mobile_new = mobile + """      .abacus-mini{height:84px;max-width:285px;border-width:5px;margin-top:16px}\n      .abacus-mini:after{top:31px;height:5px}\n      .abacus-rod:before,.abacus-rod:after{width:18px;height:9px}\n      .abacus-rod:after{bottom:2px;box-shadow:0 -10px 0 -1px var(--bead),0 -20px 0 -1px var(--bead),0 -30px 0 -1px var(--bead),0 1px 2px rgba(15,23,42,.18)}\n      .section-head:after{width:150px}\n"""
+          if mobile in s and 'max-width:285px' not in s:
+              s = s.replace(mobile, mobile_new, 1)
+
+          p.write_text(s)
+          PY
+
+      - name: Commit homepage refinement
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Add premium abacus visual language to homepage"
+          git push
