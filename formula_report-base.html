@@ -1,169 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formula Practice Report</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Nunito', sans-serif; background-color: #f0f9ff; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #4f46e5; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto; display: none; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>My Formula Progress | Li'l Champs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{font-family:'Nunito',sans-serif;background:#f0f9ff;color:#1f2937}
+    .metric{background:white;border:1px solid #dbeafe;border-radius:18px;box-shadow:0 5px 16px rgba(15,23,42,.06)}
+    .session-card{background:white;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 5px 16px rgba(15,23,42,.06)}
+    .round-pill{border:1px solid #e2e8f0;background:#f8fafc;border-radius:12px}
+    .loader{width:34px;height:34px;border:4px solid #e0e7ff;border-top-color:#4f46e5;border-radius:999px;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
 </head>
-<body class="min-h-screen flex flex-col" oncontextmenu="alert('🚫 Security: Report is Read-Only'); return false;">
+<body class="min-h-screen">
+  <header class="bg-indigo-600 text-white shadow-lg sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <div class="min-w-0">
+        <div class="text-xl sm:text-2xl font-black truncate">Li'l Champs Abacus Academy</div>
+        <div class="text-xs sm:text-sm text-indigo-100">My Formula Progress</div>
+      </div>
+      <a href="practice_options.html" class="shrink-0 bg-white/15 hover:bg-white/25 px-3 py-2 rounded-xl font-bold text-sm">← Dashboard</a>
+    </div>
+  </header>
 
-    <header class="bg-indigo-600 text-white p-6 shadow-lg sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-extrabold">Li'l Champs Abacus Academy</h1>
-                <h2 class="text-indigo-100 text-lg">Formula Practice Report</h2>
-            </div>
-            <a href="practice_options.html" class="mt-4 md:mt-0 bg-indigo-700 hover:bg-indigo-800 text-white py-2 px-6 rounded-full font-bold transition-all border border-indigo-400">
-                ⬅ Back to Dashboard
-            </a>
+  <main class="max-w-6xl mx-auto px-4 py-5 pb-12">
+    <section class="bg-white rounded-2xl shadow-lg border border-indigo-100 p-5 mb-5">
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+        <div>
+          <div class="text-xs font-black uppercase tracking-widest text-gray-400">Student</div>
+          <h1 id="studentNameDisplay" class="text-2xl font-black text-indigo-700">Loading...</h1>
+          <div id="studentLevel" class="text-sm font-bold text-gray-500 mt-1"></div>
         </div>
-    </header>
-
-    <main class="flex-grow p-6 flex flex-col items-center">
-
-        <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-4xl mb-8 border-t-4 border-indigo-500">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                📊 Report for: <span id="studentNameDisplay" class="text-indigo-600">Loading...</span>
-            </h3>
-
-            <div class="flex flex-col sm:flex-row gap-4 items-end">
-                <div class="flex-1">
-                    <label class="block text-gray-600 font-bold mb-2">Select Date</label>
-                    <input type="date" id="selectedDate" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
-                <div class="flex-none">
-                    <button onclick="fetchReport()" class="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition-all shadow-md transform active:scale-95">
-                        Show Report
-                    </button>
-                </div>
-            </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full lg:w-auto">
+          <button onclick="setQuickRange(1)" class="bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-xl px-3 py-2 font-bold text-sm">Today</button>
+          <button onclick="setQuickRange(7)" class="bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-xl px-3 py-2 font-bold text-sm">7 Days</button>
+          <button onclick="setQuickRange(30)" class="bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-xl px-3 py-2 font-bold text-sm">30 Days</button>
+          <button onclick="fetchReport()" class="bg-indigo-600 text-white rounded-xl px-3 py-2 font-black text-sm shadow">Refresh</button>
         </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
+        <label class="block"><span class="text-xs font-black uppercase text-gray-500">From</span><input id="startDate" type="date" class="mt-1 w-full p-3 border-2 border-slate-200 rounded-xl font-bold outline-none focus:border-indigo-500"></label>
+        <label class="block"><span class="text-xs font-black uppercase text-gray-500">To</span><input id="endDate" type="date" class="mt-1 w-full p-3 border-2 border-slate-200 rounded-xl font-bold outline-none focus:border-indigo-500"></label>
+      </div>
+    </section>
 
-        <div id="loader" class="loader mb-4"></div>
-        <div id="statusMsg" class="text-center font-bold mb-4 h-6"></div>
+    <div id="loadingBox" class="hidden py-12 flex items-center justify-center"><div class="loader"></div></div>
+    <div id="statusMsg" class="hidden rounded-2xl p-4 mb-5 font-bold text-center"></div>
 
-        <div class="w-full max-w-6xl overflow-x-auto bg-white rounded-2xl shadow-lg hidden" id="tableContainer">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                        <th class="py-3 px-6 text-left">Time</th>
-                        <th class="py-3 px-6 text-left">Formula Used</th>
-                        <th class="py-3 px-6 text-center">Score</th>
-                        <th class="py-3 px-6 text-center">Duration</th>
-                    </tr>
-                </thead>
-                <tbody id="reportBody" class="text-gray-600 text-sm font-light">
-                </tbody>
-            </table>
+    <section id="reportContent" class="hidden">
+      <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
+        <div class="metric p-4"><div class="text-[11px] uppercase font-black text-gray-400">30-Sum Sessions</div><div id="metricSessions" class="text-3xl font-black text-indigo-700 mt-1">0</div></div>
+        <div class="metric p-4"><div class="text-[11px] uppercase font-black text-gray-400">Sums Solved</div><div id="metricSums" class="text-3xl font-black text-sky-700 mt-1">0</div></div>
+        <div class="metric p-4"><div class="text-[11px] uppercase font-black text-gray-400">Accuracy</div><div id="metricAccuracy" class="text-3xl font-black text-emerald-700 mt-1">0%</div></div>
+        <div class="metric p-4"><div class="text-[11px] uppercase font-black text-gray-400">Best Session</div><div id="metricBest" class="text-3xl font-black text-purple-700 mt-1">—</div></div>
+        <div class="metric p-4 col-span-2 lg:col-span-1"><div class="text-[11px] uppercase font-black text-gray-400">Wrong Answers</div><div id="metricWrong" class="text-3xl font-black text-red-600 mt-1">0</div></div>
+      </div>
+
+      <section class="bg-white rounded-2xl shadow-lg border border-emerald-100 p-5 mb-5">
+        <div class="flex items-center justify-between gap-3 mb-4">
+          <div><h2 class="text-xl font-black text-slate-800">📈 Improvement</h2><p class="text-sm text-gray-500">Compares the latest two completed 30-sum sessions of the same formula.</p></div>
         </div>
-    </main>
+        <div id="improvementGrid" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      </section>
 
-    <script>
-        const SUPABASE_URL      = "https://portal-bridge.ucmas-ambernath-pg.workers.dev";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk";
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      <section class="bg-white rounded-2xl shadow-lg border border-indigo-100 p-5 mb-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div><h2 class="text-xl font-black text-slate-800">🎯 30-Sum Practice Sessions</h2><p class="text-sm text-gray-500">Each completed session contains 3 rounds × 10 sums.</p></div>
+          <div id="sessionCountLabel" class="text-sm font-black text-indigo-600"></div>
+        </div>
+        <div id="sessionList" class="space-y-3"></div>
+      </section>
 
-        let currentStudentName = "";
+      <section id="legacySection" class="hidden bg-white rounded-2xl shadow-lg border border-amber-100 p-5">
+        <h2 class="text-xl font-black text-slate-800">🗂 Earlier 10-Sum Practice</h2>
+        <p class="text-sm text-gray-500 mb-4">These records were created before the new 3-round system.</p>
+        <div id="legacyList" class="space-y-2"></div>
+      </section>
+    </section>
+  </main>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const studentId = sessionStorage.getItem('studentIdentifier');
+<script>
+  const SUPABASE_URL="https://portal-bridge.ucmas-ambernath-pg.workers.dev";
+  const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk";
+  const db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  let studentUserId=null,currentStudentName='Student',currentLevel=null;
 
-            if (studentId) {
-                const namePart = studentId.split('@')[0];
-                currentStudentName = namePart.split('.').map(part =>
-                    part.charAt(0).toUpperCase() + part.slice(1)
-                ).join(' ');
-            } else {
-                currentStudentName = "Ronit Dagani";
-            }
+  function formatStudentName(identifier){if(!identifier||typeof identifier!=='string')return'Student';return identifier.split('@')[0].split('.').map(p=>p?p[0].toUpperCase()+p.slice(1):'').join(' ').trim()||'Student'}
+  function isoDateLocal(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
+  function fmtSec(sec){sec=Math.max(0,Math.floor(Number(sec)||0));return `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`}
+  function parseTime(t){if(!t)return 0;const p=String(t).split(':').map(Number);return p.length===2&&p.every(Number.isFinite)?p[0]*60+p[1]:0}
+  function formatDateTime(v){if(!v)return'-';return new Date(v).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Kolkata'})}
+  function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function formulaType(row){if(row.category?.startsWith('1_')||row.category?.startsWith('2_'))return'Small Friend';if(row.category?.startsWith('3_')||row.category?.startsWith('4_'))return'Big Friend';if(row.category?.startsWith('5_')||row.category?.startsWith('6_'))return'Mix';const f=row.formula||'';const small=/\+5|-5/.test(f),big=/\+10|-10/.test(f);return small&&big?'Mix':big?'Big Friend':small?'Small Friend':'Formula'}
+  function typeBadge(type){const cls=type==='Small Friend'?'bg-yellow-50 text-yellow-700 border-yellow-200':type==='Big Friend'?'bg-blue-50 text-blue-700 border-blue-200':'bg-purple-50 text-purple-700 border-purple-200';return `<span class="inline-flex border ${cls} rounded-full px-2 py-1 text-[11px] font-black">${esc(type)}</span>`}
 
-            document.getElementById('studentNameDisplay').textContent = currentStudentName;
+  async function init(){
+    currentStudentName=formatStudentName(sessionStorage.getItem('studentIdentifier'));
+    currentLevel=Number(sessionStorage.getItem('currentLevel')||0)||null;
+    try{
+      const {data:{session}}=await db.auth.getSession();
+      if(session){studentUserId=session.user.id;const {data:p}=await db.from('profiles').select('full_name,current_level').eq('id',studentUserId).maybeSingle();if(p?.full_name)currentStudentName=p.full_name;if(p?.current_level)currentLevel=Number(p.current_level)}
+    }catch(e){console.warn('Profile load skipped',e)}
+    document.getElementById('studentNameDisplay').textContent=currentStudentName;
+    document.getElementById('studentLevel').textContent=currentLevel?`Level ${currentLevel}`:'';
+    setQuickRange(7);
+  }
 
-            // Default to today
-            document.getElementById('selectedDate').valueAsDate = new Date();
-        });
+  function setQuickRange(days){const end=new Date(),start=new Date();start.setDate(end.getDate()-(days-1));document.getElementById('startDate').value=isoDateLocal(start);document.getElementById('endDate').value=isoDateLocal(end);fetchReport()}
 
-        function formatTime(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-        }
+  async function fetchRows(start,end){
+    const selectCols='id,name,formula,score,time,created_at,user_id,level,formula_id,category,round_number,duration_seconds,wrong_count,session_id';
+    const startIso=start+'T00:00:00+05:30',endIso=end+'T23:59:59.999+05:30';
+    const all=[];
+    if(studentUserId){
+      const {data,error}=await db.from('level1and2_practice').select(selectCols).eq('user_id',studentUserId).gte('created_at',startIso).lte('created_at',endIso).order('created_at',{ascending:false}).limit(1000);
+      if(error)throw error;if(data)all.push(...data);
+    }
+    const {data:legacy,error:legacyError}=await db.from('level1and2_practice').select(selectCols).is('user_id',null).ilike('name',currentStudentName).gte('created_at',startIso).lte('created_at',endIso).order('created_at',{ascending:false}).limit(1000);
+    if(legacyError)throw legacyError;if(legacy)all.push(...legacy);
+    const seen=new Set();return all.filter(r=>{if(seen.has(r.id))return false;seen.add(r.id);return true}).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  }
 
-        async function fetchReport() {
-            const selected = document.getElementById('selectedDate').value;
-            const statusMsg      = document.getElementById('statusMsg');
-            const loader         = document.getElementById('loader');
-            const tableContainer = document.getElementById('tableContainer');
-            const tbody          = document.getElementById('reportBody');
+  function buildSessions(rows){
+    const groups=new Map(),legacy=[];
+    rows.forEach(r=>{if(r.session_id){if(!groups.has(r.session_id))groups.set(r.session_id,[]);groups.get(r.session_id).push(r)}else legacy.push(r)});
+    const sessions=[...groups.entries()].map(([id,rs])=>{
+      rs.sort((a,b)=>(a.round_number||0)-(b.round_number||0));
+      const score=rs.reduce((a,r)=>a+(Number(r.score)||0),0),questions=rs.length*10,duration=rs.reduce((a,r)=>a+(Number(r.duration_seconds)||parseTime(r.time)),0),wrong=rs.reduce((a,r)=>a+(r.wrong_count==null?Math.max(0,10-(Number(r.score)||0)):Number(r.wrong_count)),0);
+      const latest=rs.reduce((a,r)=>new Date(r.created_at)>new Date(a.created_at)?r:a,rs[0]);
+      return{id,rows:rs,formula:rs[0]?.formula||'Formula',formulaId:rs[0]?.formula_id||rs[0]?.formula||'formula',type:formulaType(rs[0]||{}),score,questions,duration,wrong,completed:rs.length>=3,date:latest.created_at};
+    }).sort((a,b)=>new Date(b.date)-new Date(a.date));
+    return{sessions,legacy};
+  }
 
-            if (!selected) {
-                statusMsg.className = "text-red-500 font-bold mb-4";
-                statusMsg.textContent = "Please select a date.";
-                return;
-            }
+  function renderMetrics(sessions,legacy){
+    const complete=sessions.filter(s=>s.completed),allSessionRows=sessions.flatMap(s=>s.rows),totalScores=allSessionRows.reduce((a,r)=>a+(Number(r.score)||0),0)+legacy.reduce((a,r)=>a+(Number(r.score)||0),0),totalQuestions=(allSessionRows.length+legacy.length)*10,totalWrong=allSessionRows.reduce((a,r)=>a+(r.wrong_count==null?Math.max(0,10-(Number(r.score)||0)):Number(r.wrong_count)),0)+legacy.reduce((a,r)=>a+Math.max(0,10-(Number(r.score)||0)),0),best=complete.length?Math.max(...complete.map(s=>s.score)):null;
+    document.getElementById('metricSessions').textContent=complete.length;
+    document.getElementById('metricSums').textContent=totalQuestions;
+    document.getElementById('metricAccuracy').textContent=totalQuestions?`${Math.round(totalScores/totalQuestions*100)}%`:'0%';
+    document.getElementById('metricBest').textContent=best==null?'—':`${best}/30`;
+    document.getElementById('metricWrong').textContent=totalWrong;
+  }
 
-            statusMsg.textContent = "";
-            tbody.innerHTML = "";
-            tableContainer.classList.add('hidden');
-            loader.style.display = 'block';
+  function renderImprovements(sessions){
+    const grid=document.getElementById('improvementGrid'),complete=sessions.filter(s=>s.completed),byFormula=new Map();
+    complete.slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(s=>{if(!byFormula.has(s.formulaId))byFormula.set(s.formulaId,[]);byFormula.get(s.formulaId).push(s)});
+    const repeated=[...byFormula.values()].filter(v=>v.length>=2).sort((a,b)=>new Date(b[b.length-1].date)-new Date(a[a.length-1].date));
+    if(!repeated.length){grid.innerHTML='<div class="md:col-span-2 rounded-xl border border-dashed border-emerald-200 bg-emerald-50 p-4 text-center text-emerald-700 font-bold">Repeat the same formula in another 30-sum session to see improvement here.</div>';return}
+    grid.innerHTML=repeated.map(v=>{const prev=v[v.length-2],latest=v[v.length-1],scoreDiff=latest.score-prev.score,timeDiff=latest.duration-prev.duration;const scoreText=scoreDiff>0?`+${scoreDiff} score`:scoreDiff<0?`${scoreDiff} score`:'Same score';const timeText=timeDiff<0?`${Math.abs(timeDiff)} sec faster`:timeDiff>0?`${timeDiff} sec slower`:'Same time';return `<div class="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4"><div class="flex items-start justify-between gap-2"><div><div class="font-black text-slate-800">${esc(latest.formula)}</div><div class="mt-1">${typeBadge(latest.type)}</div></div><div class="text-right"><div class="text-2xl font-black text-emerald-700">${latest.score}/30</div><div class="text-[11px] font-bold text-gray-500">Latest</div></div></div><div class="grid grid-cols-2 gap-2 mt-3"><div class="rounded-xl bg-white border border-emerald-100 p-2"><div class="text-[11px] text-gray-500 font-bold">Previous</div><div class="font-black">${prev.score}/30 · ${fmtSec(prev.duration)}</div></div><div class="rounded-xl bg-white border border-emerald-100 p-2"><div class="text-[11px] text-gray-500 font-bold">Change</div><div class="font-black ${scoreDiff>0?'text-emerald-700':scoreDiff<0?'text-red-600':'text-slate-700'}">${scoreText}</div><div class="text-xs font-bold ${timeDiff<0?'text-emerald-700':timeDiff>0?'text-amber-700':'text-slate-500'}">${timeText}</div></div></div></div>`}).join('');
+  }
 
-            // Query only that single day (start = 00:00:00, end = 23:59:59 IST)
-            const dayStart = selected + 'T00:00:00+05:30';
-            const dayEnd   = selected + 'T23:59:59+05:30';
+  function renderSessions(sessions){
+    const list=document.getElementById('sessionList');document.getElementById('sessionCountLabel').textContent=`${sessions.length} session${sessions.length===1?'':'s'} in range`;
+    if(!sessions.length){list.innerHTML='<div class="rounded-xl bg-slate-50 border border-dashed border-slate-300 p-5 text-center text-gray-500 font-bold">No 3-round sessions in this date range.</div>';return}
+    list.innerHTML=sessions.map(s=>{const acc=s.questions?Math.round(s.score/s.questions*100):0,status=s.completed?'<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-2 py-1 text-[11px] font-black">Completed</span>':`<span class="bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-2 py-1 text-[11px] font-black">Incomplete ${s.rows.length}/3</span>`;return `<article class="session-card p-4"><div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3"><div class="min-w-0"><div class="flex flex-wrap items-center gap-2">${status}${typeBadge(s.type)}</div><div class="font-black text-lg text-slate-800 mt-2">${esc(s.formula)}</div><div class="text-xs text-gray-500 font-bold mt-1">${formatDateTime(s.date)}</div></div><div class="sm:text-right"><div class="text-3xl font-black ${acc===100?'text-emerald-700':acc>=90?'text-indigo-700':'text-amber-700'}">${s.score}/${s.questions}</div><div class="text-xs font-bold text-gray-500">${acc}% · ${fmtSec(s.duration)} · ${s.wrong} wrong</div></div></div><div class="grid grid-cols-3 gap-2 mt-3">${s.rows.map(r=>`<div class="round-pill p-2 text-center"><div class="text-[10px] font-black uppercase text-gray-400">Round ${r.round_number||'?'}</div><div class="font-black text-slate-800">${Number(r.score)||0}/10</div><div class="text-[11px] font-bold text-gray-500">${fmtSec(Number(r.duration_seconds)||parseTime(r.time))}</div></div>`).join('')}</div></article>`}).join('');
+  }
 
-            const { data, error } = await _supabase
-                .from('level1and2_practice')
-                .select('formula, score, time, created_at')
-                .ilike('name', currentStudentName)
-                .gte('created_at', dayStart)
-                .lte('created_at', dayEnd)
-                .order('created_at', { ascending: false });
+  function renderLegacy(legacy){
+    const sec=document.getElementById('legacySection'),list=document.getElementById('legacyList');if(!legacy.length){sec.classList.add('hidden');return}sec.classList.remove('hidden');list.innerHTML=legacy.map(r=>`<div class="rounded-xl border border-amber-100 bg-amber-50/40 p-3 flex items-center justify-between gap-3"><div class="min-w-0"><div class="font-black text-slate-800 truncate">${esc(r.formula||'Formula')}</div><div class="text-xs text-gray-500 font-bold">${formatDateTime(r.created_at)}</div></div><div class="text-right shrink-0"><div class="font-black ${Number(r.score)===10?'text-emerald-700':'text-slate-700'}">${Number(r.score)||0}/10</div><div class="text-xs font-bold text-gray-500">${esc(r.time||'—')}</div></div></div>`).join('');
+  }
 
-            loader.style.display = 'none';
+  async function fetchReport(){
+    const start=document.getElementById('startDate').value,end=document.getElementById('endDate').value,status=document.getElementById('statusMsg'),content=document.getElementById('reportContent'),loading=document.getElementById('loadingBox');
+    if(!start||!end){status.className='rounded-2xl p-4 mb-5 font-bold text-center bg-red-50 text-red-700 border border-red-200';status.textContent='Please select both dates.';status.classList.remove('hidden');return}
+    if(start>end){status.className='rounded-2xl p-4 mb-5 font-bold text-center bg-red-50 text-red-700 border border-red-200';status.textContent='From date cannot be after To date.';status.classList.remove('hidden');return}
+    status.classList.add('hidden');content.classList.add('hidden');loading.classList.remove('hidden');
+    try{const rows=await fetchRows(start,end);loading.classList.add('hidden');if(!rows.length){status.className='rounded-2xl p-4 mb-5 font-bold text-center bg-amber-50 text-amber-700 border border-amber-200';status.textContent='No formula practice found for this date range.';status.classList.remove('hidden');return}const {sessions,legacy}=buildSessions(rows);renderMetrics(sessions,legacy);renderImprovements(sessions);renderSessions(sessions);renderLegacy(legacy);content.classList.remove('hidden')}catch(e){loading.classList.add('hidden');status.className='rounded-2xl p-4 mb-5 font-bold text-center bg-red-50 text-red-700 border border-red-200';status.textContent='Could not load the report. Please try again.';status.classList.remove('hidden');console.error(e)}
+  }
 
-            if (error) {
-                statusMsg.className = "text-red-500 font-bold mb-4";
-                statusMsg.textContent = "Error loading data: " + error.message;
-                console.error("Supabase error:", error);
-                return;
-            }
-
-            if (!data || data.length === 0) {
-                statusMsg.className = "text-yellow-600 font-bold mb-4";
-                statusMsg.textContent = "No practice records found for this date.";
-                return;
-            }
-
-            tableContainer.classList.remove('hidden');
-
-            data.forEach(row => {
-                const tr = document.createElement('tr');
-                tr.className = "border-b border-gray-200 hover:bg-gray-50";
-                const scoreClass = (row.score == 10) ? "text-green-600" : "text-gray-700";
-                tr.innerHTML = `
-                    <td class="py-3 px-6 font-medium text-gray-500">${formatTime(row.created_at)}</td>
-                    <td class="py-3 px-6"><span class="bg-indigo-100 text-indigo-700 py-1 px-3 rounded-full text-xs font-bold">${row.formula}</span></td>
-                    <td class="py-3 px-6 text-center font-bold ${scoreClass}">${row.score}/10</td>
-                    <td class="py-3 px-6 text-center font-mono">${row.time}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'F12') { e.preventDefault(); return false; }
-            if (e.ctrlKey && e.shiftKey && e.key === 'I') { e.preventDefault(); return false; }
-            if (e.ctrlKey && e.shiftKey && e.key === 'C') { e.preventDefault(); return false; }
-            if (e.ctrlKey && e.shiftKey && e.key === 'J') { e.preventDefault(); return false; }
-            if (e.ctrlKey && e.key === 'u') { e.preventDefault(); return false; }
-        });
-    </script>
+  document.addEventListener('DOMContentLoaded',init);
+</script>
 </body>
 </html>
