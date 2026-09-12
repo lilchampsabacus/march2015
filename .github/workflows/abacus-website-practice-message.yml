@@ -19,41 +19,21 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
 
-          # Dashboard: replace the old warning with a direct website-practice rule.
           p = Path('practice_options-base.html')
           s = p.read_text()
-          old = '''    <div class="bg-orange-50 border-l-8 border-orange-500 p-6 rounded-r-lg shadow-md text-left flex flex-col md:flex-row items-start md:items-center gap-4">
-        <div class="text-4xl">⚠️</div>
-        <div>
-            <h3 class="text-xl font-bold text-orange-800">Stop! Are you using your Physical Abacus?</h3>
-            <p class="text-orange-900 mt-1 font-medium">
-                If "NO" then trying to do "Mental Math" now will result in <span class="underline decoration-red-500 decoration-2 font-bold">Low Accuracy</span>. 
-                You must move the physical beads on abacus to build muscle memory!
-            </p>
-        </div>
-    </div>'''
-          new = '''    <div class="bg-orange-50 border-l-8 border-orange-500 p-6 rounded-r-lg shadow-md text-left flex flex-col md:flex-row items-start md:items-center gap-4">
-        <div class="text-4xl">🧮</div>
-        <div>
-            <h3 class="text-xl font-bold text-orange-800">Use Your Physical Abacus for Every Website Sum</h3>
-            <p class="text-orange-900 mt-1 font-medium">
-                For all practice on this website, solve each sum using your <b>physical abacus</b>. Do not solve mentally. Move the beads for every calculation to improve <b>accuracy, speed and correct abacus technique</b>.
-            </p>
-        </div>
-    </div>'''
-          if old not in s:
-              raise SystemExit('Old dashboard abacus message not found')
-          p.write_text(s.replace(old, new, 1))
+          pattern = r'<div class="bg-orange-50 border-l-8 border-orange-500 p-6 rounded-r-lg shadow-md text-left flex flex-col md:flex-row items-start md:items-center gap-4">.*?</div>\s*</div>'
+          replacement = '<div class="bg-orange-50 border-l-8 border-orange-500 p-6 rounded-r-lg shadow-md text-left flex flex-col md:flex-row items-start md:items-center gap-4">\n        <div class="text-4xl">🧮</div>\n        <div>\n            <h3 class="text-xl font-bold text-orange-800">Use Your Physical Abacus for Every Website Sum</h3>\n            <p class="text-orange-900 mt-1 font-medium">For all practice on this website, solve each sum using your <b>physical abacus</b>. Do not solve mentally. Move the beads for every calculation to improve <b>accuracy, speed and correct abacus technique</b>.</p>\n        </div>\n    </div>'
+          s, n = re.subn(pattern, replacement, s, count=1, flags=re.S)
+          if n != 1:
+              raise SystemExit('Dashboard abacus message not found')
+          p.write_text(s)
 
-          # Daily Practice: repeat the rule immediately before choosing a section.
           p = Path('daily-practice.html')
           s = p.read_text()
-          marker = '''        <div class="mb-3"><h1 class="text-2xl sm:text-3xl font-black">What do you want to solve first?</h1><p class="text-gray-500 mt-1">Complete one section, then choose the next section.</p></div>
-        <div id="section-cards" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>'''
-          replacement = '''        <div class="mb-3"><h1 class="text-2xl sm:text-3xl font-black">What do you want to solve first?</h1><p class="text-gray-500 mt-1">Complete one section, then choose the next section.</p></div>
-        <div class="mb-4 bg-orange-50 border border-orange-200 border-l-4 border-l-orange-500 rounded-xl p-3 text-sm text-orange-950"><b>🧮 Website Practice Rule:</b> Use your <b>physical abacus for every sum</b>. Do not solve mentally. Move the beads for each calculation.</div>
-        <div id="section-cards" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>'''
+          marker = '<div class="mb-3"><h1 class="text-2xl sm:text-3xl font-black">What do you want to solve first?</h1><p class="text-gray-500 mt-1">Complete one section, then choose the next section.</p></div>\n        <div id="section-cards" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>'
+          replacement = '<div class="mb-3"><h1 class="text-2xl sm:text-3xl font-black">What do you want to solve first?</h1><p class="text-gray-500 mt-1">Complete one section, then choose the next section.</p></div>\n        <div class="mb-4 bg-orange-50 border border-orange-200 border-l-4 border-l-orange-500 rounded-xl p-3 text-sm text-orange-950"><b>🧮 Website Practice Rule:</b> Use your <b>physical abacus for every sum</b>. Do not solve mentally. Move the beads for each calculation.</div>\n        <div id="section-cards" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>'
           if marker not in s:
               raise SystemExit('Daily Practice insertion point not found')
           p.write_text(s.replace(marker, replacement, 1))
