@@ -1,0 +1,37 @@
+name: Add Daily Practice progress link
+
+on:
+  push:
+    paths:
+      - '.github/workflows/add-progress-link.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Add progress link after completion
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('daily-practice.html')
+          s=p.read_text()
+          old='''<section id="final-screen" class="hidden bg-white rounded-2xl shadow-xl p-6"><div class="text-center"><div class="text-6xl">🏁</div><h2 class="text-3xl font-black mt-2">Daily Practice Completed!</h2><p class="text-gray-500">Your official first-attempt result has been saved.</p></div><div id="final-stats" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5"></div><a href="practice_options.html" class="mt-5 block text-center bg-indigo-600 text-white font-black px-6 py-3 rounded-xl no-underline">Back to Practice Dashboard</a></section>'''
+          new='''<section id="final-screen" class="hidden bg-white rounded-2xl shadow-xl p-6"><div class="text-center"><div class="text-6xl">🏁</div><h2 class="text-3xl font-black mt-2">Daily Practice Completed!</h2><p class="text-gray-500">Your official first-attempt result has been saved.</p></div><div id="final-stats" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5"></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5"><a href="student-progress.html" class="block text-center bg-emerald-600 text-white font-black px-6 py-3 rounded-xl no-underline">📊 View My Progress</a><a href="practice_options.html" class="block text-center bg-indigo-600 text-white font-black px-6 py-3 rounded-xl no-underline">Back to Practice Dashboard</a></div></section>'''
+          if old not in s:
+              raise SystemExit('Expected final-screen markup not found')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: Commit change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add daily-practice.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Add My Progress link to Daily Practice completion"
+          git push
