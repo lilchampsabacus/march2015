@@ -17,7 +17,7 @@ try{
   if(!q.error&&q.data){status=q.data.status||'not_started';done=Array.isArray(q.data.completed_sections)?q.data.completed_sections.length:0}
   const grid=document.querySelector('main .grid');if(!grid||document.getElementById('official-daily-practice-card'))return;
   const total=requiredCount(level),label=status==='completed'?'Completed ✅':status==='in_progress'?`Continue · ${done}/${total} sections`:'Start Today';
-  const wrap=document.createElement('div');wrap.id='official-daily-practice-card';wrap.className='w-full max-w-6xl mb-8';
+  const wrap=document.createElement('div');wrap.id='official-daily-practice-card';wrap.className='w-full max-w-6xl mb-5';
   wrap.innerHTML=`
     <div class="mb-3 flex items-center gap-2"><span class="text-xs font-black uppercase tracking-widest text-indigo-600">Daily Practice</span><span class="h-px flex-1 bg-indigo-100"></span></div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -35,7 +35,8 @@ try{
         </div>
         <div class="sm:hidden mt-4 bg-emerald-600 text-white font-black rounded-xl px-4 py-3 text-center">View Progress →</div>
       </a>
-    </div>`;
+    </div>
+    <div class="mt-7 flex items-center gap-2"><span class="text-xs font-black uppercase tracking-widest text-slate-500">Other Practice</span><span class="h-px flex-1 bg-slate-200"></span></div>`;
   const parent=grid.parentElement;parent.insertBefore(wrap,grid);
 }catch(e){console.error('Daily practice card:',e)}
 })();
