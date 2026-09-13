@@ -11,17 +11,103 @@
         body {font-family:'Nunito',sans-serif;background-color:#f0f9ff;background-image:radial-gradient(#e0f2fe 2px,transparent 2px);background-size:24px 24px;}
         .input-field{transition:all .3s ease}.input-field:focus{transform:translateY(-2px)}
         .status-pulse{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+        /* Ganpati festival week: 14-20 Sep 2026 (IST). */
+        #loginWrap{position:relative;width:100%;max-width:28rem;transition:padding .3s ease}
+        #loginWrap.festival-active{padding-top:84px}
+        .card-shell{position:relative;z-index:2}
+        .ganpati-stage,.festival-petals,.festival-greeting{display:none}
+        .festival-active .ganpati-stage{display:block;position:absolute;top:4px;right:16px;width:146px;height:128px;z-index:1;pointer-events:none}
+        .festival-active .festival-petals{display:block;position:absolute;inset:0 0 auto 0;height:104px;z-index:3;pointer-events:none;overflow:hidden}
+        .festival-active .festival-greeting{display:block}
+        .ganpati-art{width:100%;height:100%;transform-origin:50% 90%;filter:drop-shadow(0 8px 8px rgba(88,28,135,.18));animation:ganpatiPeek 6.5s ease-in-out infinite}
+        @keyframes ganpatiPeek{
+            0%,100%{transform:translateY(48px) rotate(0deg)}
+            13%,55%{transform:translateY(0) rotate(0deg)}
+            26%{transform:translateY(0) rotate(-2deg)}
+            34%{transform:translateY(0) rotate(2deg)}
+            43%{transform:translateY(0) rotate(0deg)}
+            70%{transform:translateY(48px) rotate(0deg)}
+        }
+        .petal{position:absolute;top:-14px;left:var(--left);width:10px;height:7px;border-radius:70% 20% 70% 20%;background:linear-gradient(135deg,#fb7185,#f97316);opacity:0;animation:petalFall 5.2s linear infinite;animation-delay:var(--delay)}
+        @keyframes petalFall{
+            0%{transform:translate3d(0,-10px,0) rotate(0deg);opacity:0}
+            12%{opacity:.85}
+            100%{transform:translate3d(var(--drift),105px,0) rotate(260deg);opacity:0}
+        }
+        @media(max-width:420px){
+            #loginWrap.festival-active{padding-top:74px}
+            .festival-active .ganpati-stage{width:130px;height:114px;right:10px}
+        }
+        @media(prefers-reduced-motion:reduce){
+            .ganpati-art{animation:none;transform:translateY(8px)}
+            .petal{animation:none;display:none}
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col justify-center items-center p-4">
-<div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-<div class="bg-indigo-600 p-6 text-center"><h1 class="text-2xl font-extrabold text-white tracking-wide uppercase">Li'l Champs</h1><p class="text-indigo-200 text-sm font-semibold mt-1">Abacus Academy • Ambernath</p></div>
-<div class="p-8"><div class="text-center mb-8 relative"><h2 class="text-xl font-bold text-gray-800 inline-flex items-center gap-2">Academy Portal <span id="statusLight" class="h-3 w-3 rounded-full bg-gray-400" title="Checking Connection..."></span></h2><p id="statusText" class="text-gray-500 text-xs mt-1 italic">Checking server connection...</p></div>
-<form id="loginForm" class="space-y-6"><div><label for="emailInput" class="block text-sm font-bold text-gray-700 mb-1">Email or Username</label><input type="text" id="emailInput" placeholder="e.g. rahul.patil" class="input-field w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-gray-700 bg-gray-50 placeholder-gray-400" required></div>
-<div><label for="password" class="block text-sm font-bold text-gray-700 mb-1">Password</label><div class="relative"><input type="password" id="password" placeholder="••••" class="input-field w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-gray-700 bg-gray-50 placeholder-gray-400" required><button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-indigo-600"><svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></button></div></div>
-<button type="button" onclick="handleLogin()" id="loginBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform active:scale-95 flex justify-center items-center gap-2"><span>Log In</span><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg></button></form><div id="login-message" class="mt-4 text-center text-sm font-semibold min-h-[20px]"></div></div></div>
+<div id="loginWrap">
+    <div class="ganpati-stage" aria-hidden="true">
+        <svg class="ganpati-art" viewBox="0 0 180 160" xmlns="http://www.w3.org/2000/svg" role="img">
+            <defs>
+                <linearGradient id="halo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset="1" stop-color="#fb923c"/></linearGradient>
+                <linearGradient id="crown" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fef3c7"/><stop offset="1" stop-color="#f59e0b"/></linearGradient>
+                <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fb923c"/><stop offset="1" stop-color="#ea580c"/></linearGradient>
+            </defs>
+            <circle cx="91" cy="79" r="67" fill="url(#halo)" opacity=".24"/>
+            <path d="M39 75c-22-2-31 17-24 34 7 18 28 17 44 5l-20-39Z" fill="#fb7185" stroke="#be123c" stroke-width="3"/>
+            <path d="M141 75c22-2 31 17 24 34-7 18-28 17-44 5l20-39Z" fill="#fb7185" stroke="#be123c" stroke-width="3"/>
+            <path d="M58 58 69 25l13 12 10-25 11 25 14-12 8 34Z" fill="url(#crown)" stroke="#b45309" stroke-width="3" stroke-linejoin="round"/>
+            <circle cx="92" cy="80" r="46" fill="url(#skin)" stroke="#c2410c" stroke-width="3"/>
+            <path d="M82 82c-5 23-4 42 10 52 14 10 25-3 20-12-4-8-13-4-14 2" fill="none" stroke="#c2410c" stroke-width="15" stroke-linecap="round"/>
+            <path d="M83 82c-4 21-3 37 9 47" fill="none" stroke="#fdba74" stroke-width="8" stroke-linecap="round" opacity=".8"/>
+            <path d="M69 75q9-9 18 0" fill="none" stroke="#7c2d12" stroke-width="4" stroke-linecap="round"/>
+            <path d="M102 75q9-9 18 0" fill="none" stroke="#7c2d12" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="80" cy="78" r="3.5" fill="#431407"/><circle cx="111" cy="78" r="3.5" fill="#431407"/>
+            <path d="M94 47v16" stroke="#fff7ed" stroke-width="5" stroke-linecap="round"/><circle cx="94" cy="44" r="4" fill="#ef4444"/>
+            <path d="M62 116c-15 11-22 25-22 42h104c0-18-7-32-23-42-15 12-44 13-59 0Z" fill="#7c3aed" stroke="#5b21b6" stroke-width="3"/>
+            <path d="M48 139h88" stroke="#fbbf24" stroke-width="6" stroke-linecap="round"/>
+            <circle cx="91" cy="140" r="8" fill="#fbbf24" stroke="#b45309" stroke-width="2"/>
+        </svg>
+    </div>
+    <div class="festival-petals" aria-hidden="true">
+        <span class="petal" style="--left:9%;--delay:.2s;--drift:18px"></span>
+        <span class="petal" style="--left:25%;--delay:1.8s;--drift:-12px"></span>
+        <span class="petal" style="--left:48%;--delay:.9s;--drift:15px"></span>
+        <span class="petal" style="--left:67%;--delay:2.7s;--drift:-16px"></span>
+        <span class="petal" style="--left:84%;--delay:1.3s;--drift:12px"></span>
+        <span class="petal" style="--left:94%;--delay:3.5s;--drift:-14px"></span>
+    </div>
+
+    <div class="card-shell bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+        <div class="bg-indigo-600 p-6 text-center">
+            <h1 class="text-2xl font-extrabold text-white tracking-wide uppercase">Li'l Champs</h1>
+            <p class="text-indigo-200 text-sm font-semibold mt-1">Abacus Academy • Ambernath</p>
+            <div class="festival-greeting mt-3">
+                <div class="inline-flex items-center gap-2 rounded-full bg-white/15 border border-white/20 px-4 py-1.5 text-sm font-extrabold text-amber-100 shadow-sm">
+                    <span>🙏</span><span>Ganpati Bappa Morya!</span>
+                </div>
+            </div>
+        </div>
+        <div class="p-8">
+            <div class="text-center mb-8 relative"><h2 class="text-xl font-bold text-gray-800 inline-flex items-center gap-2">Academy Portal <span id="statusLight" class="h-3 w-3 rounded-full bg-gray-400" title="Checking Connection..."></span></h2><p id="statusText" class="text-gray-500 text-xs mt-1 italic">Checking server connection...</p></div>
+            <form id="loginForm" class="space-y-6"><div><label for="emailInput" class="block text-sm font-bold text-gray-700 mb-1">Email or Username</label><input type="text" id="emailInput" placeholder="e.g. rahul.patil" class="input-field w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-gray-700 bg-gray-50 placeholder-gray-400" required></div>
+            <div><label for="password" class="block text-sm font-bold text-gray-700 mb-1">Password</label><div class="relative"><input type="password" id="password" placeholder="••••" class="input-field w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-gray-700 bg-gray-50 placeholder-gray-400" required><button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-indigo-600"><svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></button></div></div>
+            <button type="button" onclick="handleLogin()" id="loginBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform active:scale-95 flex justify-center items-center gap-2"><span>Log In</span><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg></button></form><div id="login-message" class="mt-4 text-center text-sm font-semibold min-h-[20px]"></div>
+        </div>
+    </div>
+</div>
 <footer class="mt-8 text-center text-gray-500 text-sm"><p>Developed by: Practice Buddy Pvt Ltd</p></footer>
 <script>
+(function initGanpatiWeek(){
+    const FESTIVAL_START_UTC=Date.parse('2026-09-13T18:30:00Z'); // 14 Sep, 12:00 AM IST
+    const FESTIVAL_END_UTC=Date.parse('2026-09-20T18:30:00Z');   // 21 Sep, 12:00 AM IST
+    const now=Date.now();
+    if(now>=FESTIVAL_START_UTC&&now<FESTIVAL_END_UTC){
+        document.getElementById('loginWrap').classList.add('festival-active');
+    }
+})();
+
 const SUPABASE_URL="https://portal-bridge.ucmas-ambernath-pg.workers.dev";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk";
 const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
