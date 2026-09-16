@@ -215,13 +215,24 @@
             if (reports) { processMissingPractice(reports); processDailyStatus(reports); }
         });
 
+        async function getFunctionErrorMessage(error) {
+            try {
+                if (error && error.context && typeof error.context.json === 'function') {
+                    const body = await error.context.json();
+                    if (body && body.error) return body.error;
+                }
+            } catch (_) {}
+            return error && error.message ? error.message : 'Request failed.';
+        }
+
         async function forceResetPassword() {
             const email = document.getElementById('resetUserEmail').value.trim();
             const newPassword = document.getElementById('newPassInput').value.trim();
+            if (!email || !newPassword) return alert('Enter the student email and new password.');
             const { error } = await supabase.functions.invoke('manage-student', {
-                body: { action: 'resetPassword', email, newPassword, adminEmail: userEmail }
+                body: { action: 'resetPassword', email, newPassword }
             });
-            if (error) alert(error.message); else { alert("Updated!"); fetchSecurityLogs(); }
+            if (error) alert(await getFunctionErrorMessage(error)); else { alert("Password updated!"); fetchSecurityLogs(); }
         }
 
         async function fetchSecurityLogs() {
@@ -253,17 +264,13 @@
             }
 
             const { data, error } = await supabase.functions.invoke('manage-student', {
-                body: { action: 'enroll', firstName, lastName, level, adminEmail: userEmail }
+                body: { action: 'enroll', firstName, lastName, level }
             });
 
             if (error) {
-                if (error.message && error.message.includes("non-2xx")) {
-                    alert("User already existed");
-                } else {
-                    alert(error.message);
-                }
+                alert(await getFunctionErrorMessage(error));
             } else {
-                alert("Student enrolled successfully!");
+                alert(`Student enrolled successfully!\n\nLogin: ${data.email}\nTemporary password: ${data.temporaryPassword}\n\nPlease share these details securely.`);
                 location.reload();
             }
         }
@@ -284,13 +291,12 @@
         body: { 
             action: 'toggleAccess', 
             email: email, 
-            status: newStatus,
-            adminEmail: userEmail 
+            status: newStatus
         }
     });
 
     if (error) {
-        alert("Error: " + error.message);
+        alert("Error: " + await getFunctionErrorMessage(error));
     } else {
         alert("Success: " + data.message);
         document.getElementById('banUserEmail').value = '';
@@ -301,12 +307,30 @@
         async function handleCSV(event) {
             const file = event.target.files[0];
             Papa.parse(file, { header: true, complete: async (results) => {
-                for (const student of results.data) {
-                    await supabase.functions.invoke('manage-student', {
-                        body: { action: 'enroll', firstName: student.firstName, lastName: student.lastName, level: student.level, adminEmail: userEmail }
+                const credentials = [];
+                const failures = [];
+                for (const student of results.data.filter(row => row.firstName && row.lastName)) {
+                    const { data, error } = await supabase.functions.invoke('manage-student', {
+                        body: { action: 'enroll', firstName: student.firstName, lastName: student.lastName, level: student.level }
                     });
+                    if (error) failures.push(`${student.firstName} ${student.lastName}: ${await getFunctionErrorMessage(error)}`);
+                    else credentials.push({ name: `${student.firstName} ${student.lastName}`, email: data.email, password: data.temporaryPassword });
                 }
-                alert("Bulk Upload Done!"); location.reload();
+
+                if (credentials.length) {
+                    const escapeCsv = value => `"${String(value).replace(/"/g, '""')}"`;
+                    const csv = ['Student Name,Login Email,Temporary Password', ...credentials.map(row => [row.name, row.email, row.password].map(escapeCsv).join(','))].join('\n');
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+                    link.download = `student-login-details-${new Date().toISOString().slice(0, 10)}.csv`;
+                    link.click();
+                    URL.revokeObjectURL(link.href);
+                }
+
+                const summary = [`${credentials.length} student(s) enrolled.`];
+                if (failures.length) summary.push(`${failures.length} failed:\n${failures.join('\n')}`);
+                alert(summary.join('\n\n'));
+                if (credentials.length) location.reload();
             }});
         }
 
