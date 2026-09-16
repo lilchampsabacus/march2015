@@ -187,6 +187,27 @@ Deno.serve(async (req: Request) => {
         throw new HttpError(400, "Level must be between 1 and 8.")
       }
 
+      const centreId = payload.centreId === undefined || payload.centreId === null || payload.centreId === ""
+        ? null
+        : Number(payload.centreId)
+      if (centreId !== null && (!Number.isInteger(centreId) || centreId < 1)) {
+        throw new HttpError(400, "A valid centre is required.")
+      }
+
+      let centre: { id: number; name: string } | null = null
+      if (centreId !== null) {
+        const { data, error: centreError } = await supabaseAdmin
+          .from("centres")
+          .select("id, name")
+          .eq("id", centreId)
+          .eq("is_active", true)
+          .maybeSingle()
+
+        if (centreError) throw centreError
+        if (!data) throw new HttpError(400, "The selected centre is not available.")
+        centre = data
+      }
+
       const firstPart = emailPart(firstName)
       const lastPart = emailPart(lastName)
       if (!firstPart || !lastPart) throw new HttpError(400, "Names must contain English letters for the login email.")
@@ -215,6 +236,7 @@ Deno.serve(async (req: Request) => {
           full_name: fullName,
           role: "student",
           current_level: level,
+          centre_id: centreId,
           is_active: true,
         })
         if (profileError) throw profileError
@@ -223,7 +245,7 @@ Deno.serve(async (req: Request) => {
           admin_name: adminEmail,
           action_type: "Enrolled Student",
           target_student: fullName,
-          details: `Level ${level}`,
+          details: centre ? `Level ${level} • ${centre.name}` : `Level ${level}`,
         })
         if (logError) throw logError
       } catch (error) {
