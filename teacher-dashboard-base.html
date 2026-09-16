@@ -53,9 +53,10 @@
             <div class="bg-white p-6 rounded-xl shadow-md border-2 border-indigo-500 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
                     <h3 class="text-xl font-bold text-indigo-800">Owner Management Tools</h3>
-                    <p class="text-gray-500 mt-1">Enroll students or perform bulk uploads.</p>
+                    <p class="text-gray-500 mt-1">Enroll students, assign centres or perform bulk uploads.</p>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex flex-wrap gap-2">
+                    <a href="student-level-management.html" class="bg-cyan-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-cyan-700 transition">Manage Students</a>
                     <button onclick="document.getElementById('addStudentModal').style.display='block'" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-700 transition"> + Add Student</button>
                     <button onclick="document.getElementById('csv-input').click()" class="bg-white text-indigo-600 border border-indigo-300 px-4 py-2 rounded-lg font-bold hover:bg-indigo-100 transition"> ⬆️ Bulk Import</button>
                     <input type="file" id="csv-input" accept=".csv" class="hidden" onchange="handleCSV(event)">
@@ -182,6 +183,9 @@
                 <select id="stdLevel" class="w-full border p-3 rounded-lg">
                     <option value="1">Level 1</option><option value="2">Level 2</option><option value="8">Level 8</option>
                 </select>
+                <select id="stdCentre" class="w-full border p-3 rounded-lg">
+                    <option value="">Select Centre</option>
+                </select>
                 <button onclick="addNewStudent()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg shadow-md">Enroll Student</button>
                 <button onclick="document.getElementById('addStudentModal').style.display='none'" class="w-full text-gray-400 py-2">Cancel</button>
             </div>
@@ -195,6 +199,7 @@
 
         const userRole = sessionStorage.getItem('userRole');
         const userEmail = sessionStorage.getItem('userEmail');
+        let ownerCentres = [];
 
         function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
 
@@ -209,6 +214,7 @@
                 document.getElementById('security-log-section').classList.remove('hidden');
                 
                 fetchSecurityLogs();
+                loadCentreOptions();
             }
 
             const { data: reports } = await supabase.from('reports').select('*').order('indian_time', { ascending: false });
@@ -252,19 +258,48 @@
             document.getElementById('emailPreview').innerText = f && l ? `${f}.${l}@gmail.com` : "...";
         }
 
+        async function loadCentreOptions() {
+            const { data, error } = await supabase.rpc('admin_list_centres');
+            if (error) {
+                console.error('Could not load centres:', error);
+                return;
+            }
+            ownerCentres = data || [];
+            const select = document.getElementById('stdCentre');
+            select.innerHTML = '<option value="">Select Centre</option>' + ownerCentres.map(centre =>
+                `<option value="${centre.id}">${centre.name}</option>`
+            ).join('');
+        }
+
+        function resolveCsvCentre(value) {
+            const wanted = String(value || '').trim().toLowerCase();
+            if (!wanted) return null;
+            return ownerCentres.find(centre =>
+                String(centre.id) === wanted ||
+                String(centre.code || '').toLowerCase() === wanted ||
+                String(centre.name || '').toLowerCase() === wanted ||
+                String(centre.short_name || '').toLowerCase() === wanted
+            ) || null;
+        }
+
         async function addNewStudent() {
             const firstName = document.getElementById('stdFirstName').value;
             const lastName = document.getElementById('stdLastName').value;
             const level = document.getElementById('stdLevel').value;
+            const centreId = Number(document.getElementById('stdCentre').value);
 
             // 1. Basic validation to prevent empty submissions
             if (!firstName || !lastName) {
                 alert("Please enter both First Name and Surname.");
                 return;
             }
+            if (!centreId) {
+                alert("Please select the student's centre.");
+                return;
+            }
 
             const { data, error } = await supabase.functions.invoke('manage-student', {
-                body: { action: 'enroll', firstName, lastName, level }
+                body: { action: 'enroll', firstName, lastName, level, centreId }
             });
 
             if (error) {
@@ -310,8 +345,13 @@
                 const credentials = [];
                 const failures = [];
                 for (const student of results.data.filter(row => row.firstName && row.lastName)) {
+                    const centre = resolveCsvCentre(student.centre || student.centreCode || student.centreId);
+                    if (!centre) {
+                        failures.push(`${student.firstName} ${student.lastName}: valid centre is required in the centre column`);
+                        continue;
+                    }
                     const { data, error } = await supabase.functions.invoke('manage-student', {
-                        body: { action: 'enroll', firstName: student.firstName, lastName: student.lastName, level: student.level }
+                        body: { action: 'enroll', firstName: student.firstName, lastName: student.lastName, level: student.level, centreId: centre.id }
                     });
                     if (error) failures.push(`${student.firstName} ${student.lastName}: ${await getFunctionErrorMessage(error)}`);
                     else credentials.push({ name: `${student.firstName} ${student.lastName}`, email: data.email, password: data.temporaryPassword });

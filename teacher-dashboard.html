@@ -11,7 +11,7 @@
 <script>
 (async function(){
   try {
-    const res = await fetch('teacher-dashboard-base.html?v=1', { cache: 'no-store' });
+    const res = await fetch('teacher-dashboard-base.html?v=2-centres', { cache: 'no-store' });
     if (!res.ok) throw new Error('Dashboard source could not be loaded.');
     let html = await res.text();
 
