@@ -19,7 +19,7 @@
     <div class="max-w-5xl mx-auto flex justify-between items-center mb-8">
         <div>
             <h1 class="text-3xl font-extrabold text-red-600">Inactive Students</h1>
-            <p class="text-gray-600 font-semibold">Students who haven't practiced in over 3 days.</p>
+            <p class="text-gray-600 font-semibold">Active enrolled students who haven't practiced in over 3 days.</p>
         </div>
         <a href="teacher-dashboard.html" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg">← Back</a>
     </div>
@@ -107,37 +107,27 @@
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
-            const { data: reports, error } = await supabase.from('reports').select('*').order('indian_time', { ascending: false });
+            const { data: students, error } = await supabase.rpc('staff_active_student_practice_overview');
 
             if (error) {
                 document.getElementById('loading').innerText = "Error loading data.";
                 return;
             }
 
-            const studentLastActive = {};
-            reports.forEach(row => {
-                const name = row.student_name;
-                const date = new Date(row.indian_time);
-                if (!studentLastActive[name] || date > studentLastActive[name]) {
-                    studentLastActive[name] = date;
-                }
-            });
-
             const now = new Date();
-            const inactiveList = [];
+            const inactiveList = (students || []).map(student => {
+                const lastDate = student.last_practice_at ? new Date(student.last_practice_at) : null;
+                const diffDays = lastDate ? Math.floor(Math.max(0, now - lastDate) / (1000 * 60 * 60 * 24)) : null;
+                return { name: student.student_name, lastDate, diffDays };
+            }).filter(student => student.diffDays === null || student.diffDays > 3);
 
-            for (const [name, lastDate] of Object.entries(studentLastActive)) {
-                const diffTime = Math.abs(now - lastDate);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-                
-                if (diffDays > 3) {
-                    inactiveList.push({ name, lastDate, diffDays });
-                }
-            }
-
-            inactiveList.sort((a, b) => b.diffDays - a.diffDays);
+            inactiveList.sort((a, b) => (b.diffDays ?? Number.MAX_SAFE_INTEGER) - (a.diffDays ?? Number.MAX_SAFE_INTEGER));
             renderTable(inactiveList);
         });
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+        }
 
         function renderTable(list) {
             const loading = document.getElementById('loading');
@@ -154,26 +144,31 @@
                 return;
             }
 
-            list.forEach(student => {
-                const dateStr = student.lastDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-
-                const tr = `
+            tbody.innerHTML = list.map((student, index) => {
+                const dateStr = student.lastDate ? student.lastDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Never';
+                const inactivityText = student.diffDays === null ? 'Never practised' : `${student.diffDays} Days`;
+                return `
                     <tr class="hover:bg-red-50 transition">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-800">${student.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-800">${escapeHtml(student.name)}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${dateStr}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                             <span class="px-2 py-1 text-xs font-bold text-red-700 bg-red-100 rounded-full">
-                                ${student.diffDays} Days
+                                ${inactivityText}
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button onclick="openPopup('${student.name}', '${student.diffDays}')" class="bg-white border border-green-500 text-green-600 hover:bg-green-50 px-3 py-1 rounded-lg flex items-center gap-1 font-bold text-xs transition shadow-sm">
+                            <button data-index="${index}" class="reminderBtn bg-white border border-green-500 text-green-600 hover:bg-green-50 px-3 py-1 rounded-lg flex items-center gap-1 font-bold text-xs transition shadow-sm">
                                 📝 Get Message
                             </button>
                         </td>
                     </tr>
                 `;
-                tbody.innerHTML += tr;
+            }).join('');
+            document.querySelectorAll('.reminderBtn').forEach(button => {
+                button.onclick = () => {
+                    const student = list[Number(button.dataset.index)];
+                    openPopup(student.name, student.diffDays === null ? 'many' : student.diffDays);
+                };
             });
         }
     </script>

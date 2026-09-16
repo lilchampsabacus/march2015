@@ -217,8 +217,14 @@
                 loadCentreOptions();
             }
 
-            const { data: reports } = await supabase.from('reports').select('*').order('indian_time', { ascending: false });
-            if (reports) { processMissingPractice(reports); processDailyStatus(reports); }
+            const [{ data: practiceOverview, error: overviewError }, { data: dailyRows, error: dailyError }] = await Promise.all([
+                supabase.rpc('staff_active_student_practice_overview'),
+                supabase.rpc('staff_official_daily_practice_status')
+            ]);
+            if (overviewError) console.error('Could not load missing-practice summary:', overviewError);
+            else processMissingPractice(practiceOverview || []);
+            if (dailyError) console.error('Could not load daily-practice summary:', dailyError);
+            else processDailyStatus(dailyRows || []);
         });
 
         async function getFunctionErrorMessage(error) {
@@ -374,18 +380,18 @@
             }});
         }
 
-        function processMissingPractice(reports) {
-            const lastActive = {};
-            reports.forEach(r => { if(!lastActive[r.student_name] || new Date(r.indian_time) > lastActive[r.student_name]) lastActive[r.student_name] = new Date(r.indian_time); });
-            const count = Object.values(lastActive).filter(date => Math.ceil(Math.abs(new Date() - date) / (1000 * 60 * 60 * 24)) > 3).length;
+        function processMissingPractice(students) {
+            const now = new Date();
+            const count = students.filter(student => {
+                if (!student.last_practice_at) return true;
+                return Math.floor(Math.max(0, now - new Date(student.last_practice_at)) / (1000 * 60 * 60 * 24)) > 3;
+            }).length;
             document.getElementById('inactive-count').innerText = count;
         }
 
-        function processDailyStatus(reports) {
-            const today = new Date().toISOString().split('T')[0];
-            const all = new Set(reports.map(r => r.student_name));
-            const done = new Set(reports.filter(r => r.indian_time?.startsWith(today)).map(r => r.student_name));
-            document.getElementById('daily-stats').innerHTML = `${done.size} <span class="text-sm text-gray-400">/ ${all.size}</span>`;
+        function processDailyStatus(students) {
+            const practiced = students.filter(student => Boolean(student.practice_id)).length;
+            document.getElementById('daily-stats').innerHTML = `${practiced} <span class="text-sm text-gray-400">/ ${students.length}</span>`;
         }
     </script>
 </body>
