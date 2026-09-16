@@ -11,15 +11,9 @@
 <script>
 (async function(){
   try {
-    const res = await fetch('teacher-dashboard-base.html?v=2-centres', { cache: 'no-store' });
+    const res = await fetch('teacher-dashboard-base.html?v=3-owner-overview', { cache: 'no-store' });
     if (!res.ok) throw new Error('Dashboard source could not be loaded.');
-    let html = await res.text();
-
-    const pattern = /(<div id="admin-controls"[\s\S]*?<div class="flex gap-2">)/;
-    const link = '<a href="student-level-management.html" class="bg-purple-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-purple-700 transition">🎓 Student Levels</a>';
-    if (pattern.test(html)) {
-      html = html.replace(pattern, '$1' + link);
-    }
+    const html = await res.text();
 
     document.open();
     document.write(html);

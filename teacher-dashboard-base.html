@@ -26,6 +26,9 @@
         .card-multi { border-color: #3b82f6; }
         .card-plus { border-color: #f59e0b; }
         .card-daily { border-color: #10b981; }
+        .overview-card { min-height: 112px; }
+        .overview-bar { transition: width 0.35s ease; }
+        .attention-pill { display: inline-block; margin: 0.12rem; padding: 0.2rem 0.55rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 800; white-space: nowrap; }
         
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
         .modal-content { background: white; margin: 10% auto; padding: 2rem; border-radius: 1rem; max-width: 500px; animation: slideIn 0.4s ease-out; }
@@ -48,6 +51,61 @@
     </header>
 
     <main class="flex-grow p-6 md:p-10 flex flex-col items-center gap-8">
+
+        <section id="owner-overview" class="hidden w-full max-w-7xl space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-gray-900">Centre Owner Overview</h2>
+                    <p class="text-sm text-gray-500 font-semibold mt-1">Student strength and items needing attention</p>
+                </div>
+                <label class="font-bold text-sm text-gray-700">Centre
+                    <select id="ownerCentreFilter" class="block mt-1 min-w-64 bg-white border-2 border-indigo-100 rounded-lg px-3 py-2 focus:border-indigo-500 focus:outline-none">
+                        <option value="all">All Centres</option>
+                    </select>
+                </label>
+            </div>
+
+            <div id="ownerOverviewLoading" class="bg-white rounded-2xl shadow p-8 text-center font-bold text-indigo-600">Loading owner overview...</div>
+            <div id="ownerOverviewError" class="hidden bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 font-bold">Owner overview could not be loaded. Please refresh the page.</div>
+
+            <div id="ownerOverviewContent" class="hidden space-y-5">
+                <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-9 gap-3">
+                    <div class="overview-card bg-white rounded-xl shadow p-4 border-t-4 border-indigo-500"><div class="text-sm font-bold text-gray-500">Total Accounts</div><div id="ownerTotal" class="text-3xl font-extrabold text-indigo-700 mt-2">0</div></div>
+                    <div class="overview-card bg-white rounded-xl shadow p-4 border-t-4 border-green-500"><div class="text-sm font-bold text-gray-500">Active Students</div><div id="ownerActive" class="text-3xl font-extrabold text-green-700 mt-2">0</div></div>
+                    <div class="overview-card bg-white rounded-xl shadow p-4 border-t-4 border-amber-500"><div class="text-sm font-bold text-gray-500">On Hold</div><div id="ownerOnHold" class="text-3xl font-extrabold text-amber-600 mt-2">0</div></div>
+                    <div class="overview-card bg-white rounded-xl shadow p-4 border-t-4 border-red-500"><div class="text-sm font-bold text-gray-500">Dropped Out</div><div id="ownerDropped" class="text-3xl font-extrabold text-red-600 mt-2">0</div></div>
+                    <div class="overview-card bg-white rounded-xl shadow p-4 border-t-4 border-blue-500"><div class="text-sm font-bold text-gray-500">Passed Out</div><div id="ownerPassed" class="text-3xl font-extrabold text-blue-700 mt-2">0</div></div>
+                    <div class="overview-card bg-white rounded-xl shadow p-4 border-t-4 border-gray-400"><div class="text-sm font-bold text-gray-500">Not Enrolled</div><div id="ownerNotEnrolled" class="text-3xl font-extrabold text-gray-700 mt-2">0</div></div>
+                    <div class="overview-card bg-white rounded-xl shadow p-4 border-t-4 border-rose-500"><div class="text-sm font-bold text-gray-500">Login Blocked</div><div id="ownerBlocked" class="text-3xl font-extrabold text-rose-700 mt-2">0</div></div>
+                    <div class="overview-card bg-white rounded-xl shadow p-4 border-t-4 border-orange-500"><div class="text-sm font-bold text-gray-500">Missing Practice</div><div id="ownerMissing" class="text-3xl font-extrabold text-orange-700 mt-2">0</div><div class="text-xs text-gray-400 font-bold">Over 3 days</div></div>
+                    <div class="overview-card bg-white rounded-xl shadow p-4 border-t-4 border-teal-500"><div class="text-sm font-bold text-gray-500">Practised Today</div><div id="ownerToday" class="text-2xl font-extrabold text-teal-700 mt-2">0 / 0</div></div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    <div class="bg-white rounded-2xl shadow p-5">
+                        <div class="flex items-center justify-between mb-5"><h3 class="text-lg font-extrabold text-gray-900">Active Students by Centre</h3><span class="text-xs font-bold text-gray-400">All centres</span></div>
+                        <div id="ownerCentreChart" class="space-y-4"></div>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow p-5">
+                        <div class="flex items-center justify-between mb-5"><h3 class="text-lg font-extrabold text-gray-900">Active Students by Level</h3><span id="ownerLevelChartLabel" class="text-xs font-bold text-gray-400">All centres</span></div>
+                        <div id="ownerLevelChart" class="h-52 flex items-end gap-2 sm:gap-4 border-b border-gray-200 px-1 pt-5"></div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow overflow-hidden">
+                    <div class="px-5 py-4 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div><h3 class="text-lg font-extrabold text-gray-900">Students Needing Attention</h3><p id="ownerAttentionSummary" class="text-sm text-gray-500 font-semibold"></p></div>
+                        <a href="student-level-management.html" class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg font-bold text-sm text-center">Open Student Management</a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[720px] text-sm">
+                            <thead class="bg-gray-50 text-gray-600"><tr><th class="px-5 py-3 text-left">Student</th><th class="px-5 py-3 text-left">Centre</th><th class="px-5 py-3 text-center">Level</th><th class="px-5 py-3 text-left">Attention Needed</th></tr></thead>
+                            <tbody id="ownerAttentionBody" class="divide-y divide-gray-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
         
         <div id="admin-controls" class="w-full max-w-4xl mx-auto hidden">
             <div class="bg-white p-6 rounded-xl shadow-md border-2 border-indigo-500 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -200,31 +258,57 @@
         const userRole = sessionStorage.getItem('userRole');
         const userEmail = sessionStorage.getItem('userEmail');
         let ownerCentres = [];
+        let ownerStudents = [];
+        let ownerPracticeOverview = [];
+        let ownerDailyRows = [];
+        const ownerStatusLabels = { active: 'Active', on_hold: 'On Hold', dropped_out: 'Dropped Out', passed_out: 'Passed Out', not_enrolled: 'Not Enrolled' };
 
         function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
 
         document.addEventListener('DOMContentLoaded', async () => {
             const isOwner = (userRole === 'admin' || userEmail === 'admin.ambernath@gmail.com');
+            let centrePromise = Promise.resolve();
             
             document.getElementById('welcome-name').innerText = isOwner ? "Center Owner" : "Teacher";
             if (isOwner) {
+                document.getElementById('owner-overview').classList.remove('hidden');
                 document.getElementById('admin-controls').classList.remove('hidden');
                 document.getElementById('password-reset-section').classList.remove('hidden');
                 document.getElementById('access-control-section').classList.remove('hidden');
                 document.getElementById('security-log-section').classList.remove('hidden');
                 
                 fetchSecurityLogs();
-                loadCentreOptions();
+                centrePromise = loadCentreOptions();
             }
 
-            const [{ data: practiceOverview, error: overviewError }, { data: dailyRows, error: dailyError }] = await Promise.all([
+            const requests = [
                 supabase.rpc('staff_active_student_practice_overview'),
                 supabase.rpc('staff_official_daily_practice_status')
-            ]);
+            ];
+            if (isOwner) requests.push(supabase.rpc('admin_list_student_levels'));
+            const [practiceResult, dailyResult, studentResult] = await Promise.all(requests);
+            const { data: practiceOverview, error: overviewError } = practiceResult;
+            const { data: dailyRows, error: dailyError } = dailyResult;
             if (overviewError) console.error('Could not load missing-practice summary:', overviewError);
             else processMissingPractice(practiceOverview || []);
             if (dailyError) console.error('Could not load daily-practice summary:', dailyError);
             else processDailyStatus(dailyRows || []);
+
+            if (isOwner) {
+                await centrePromise;
+                if (studentResult.error || overviewError || dailyError) {
+                    console.error('Could not load owner overview:', studentResult.error || overviewError || dailyError);
+                    document.getElementById('ownerOverviewLoading').classList.add('hidden');
+                    document.getElementById('ownerOverviewError').classList.remove('hidden');
+                } else {
+                    ownerStudents = studentResult.data || [];
+                    ownerPracticeOverview = practiceOverview || [];
+                    ownerDailyRows = dailyRows || [];
+                    renderOwnerOverview();
+                    document.getElementById('ownerOverviewLoading').classList.add('hidden');
+                    document.getElementById('ownerOverviewContent').classList.remove('hidden');
+                }
+            }
         });
 
         async function getFunctionErrorMessage(error) {
@@ -275,6 +359,12 @@
             select.innerHTML = '<option value="">Select Centre</option>' + ownerCentres.map(centre =>
                 `<option value="${centre.id}">${centre.name}</option>`
             ).join('');
+            const overviewFilter = document.getElementById('ownerCentreFilter');
+            if (overviewFilter) {
+                overviewFilter.innerHTML = '<option value="all">All Centres</option>' + ownerCentres.map(centre =>
+                    `<option value="${centre.id}">${escapeOwnerHtml(centre.short_name)}</option>`
+                ).join('') + '<option value="unassigned">Centre Not Assigned</option>';
+            }
         }
 
         function resolveCsvCentre(value) {
@@ -379,6 +469,125 @@
                 if (credentials.length) location.reload();
             }});
         }
+
+        function escapeOwnerHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+        }
+
+        function matchesOwnerCentre(record, centreValue) {
+            if (centreValue === 'all') return true;
+            if (centreValue === 'unassigned') return !record.centre_id;
+            return Number(record.centre_id) === Number(centreValue);
+        }
+
+        function ownerDaysInactive(lastPracticeAt) {
+            if (!lastPracticeAt) return null;
+            return Math.floor(Math.max(0, new Date() - new Date(lastPracticeAt)) / (1000 * 60 * 60 * 24));
+        }
+
+        function setOwnerMetric(id, value) {
+            document.getElementById(id).textContent = value;
+        }
+
+        function renderOwnerOverview() {
+            const centreValue = document.getElementById('ownerCentreFilter').value;
+            const filteredAccounts = ownerStudents.filter(student => matchesOwnerCentre(student, centreValue));
+            const activeAccounts = filteredAccounts.filter(student => student.student_status === 'active');
+            const filteredPractice = ownerPracticeOverview.filter(student => matchesOwnerCentre(student, centreValue));
+            const missingPractice = filteredPractice.filter(student => {
+                const days = ownerDaysInactive(student.last_practice_at);
+                return days === null || days > 3;
+            });
+            const studentById = new Map(ownerStudents.map(student => [String(student.id), student]));
+            const filteredDaily = ownerDailyRows.filter(row => {
+                const student = studentById.get(String(row.user_id));
+                return student && matchesOwnerCentre(student, centreValue);
+            });
+            const practisedToday = filteredDaily.filter(row => Boolean(row.practice_id)).length;
+
+            setOwnerMetric('ownerTotal', filteredAccounts.length);
+            setOwnerMetric('ownerActive', activeAccounts.length);
+            setOwnerMetric('ownerOnHold', filteredAccounts.filter(student => student.student_status === 'on_hold').length);
+            setOwnerMetric('ownerDropped', filteredAccounts.filter(student => student.student_status === 'dropped_out').length);
+            setOwnerMetric('ownerPassed', filteredAccounts.filter(student => student.student_status === 'passed_out').length);
+            setOwnerMetric('ownerNotEnrolled', filteredAccounts.filter(student => student.student_status === 'not_enrolled').length);
+            setOwnerMetric('ownerBlocked', filteredAccounts.filter(student => student.is_active === false).length);
+            setOwnerMetric('ownerMissing', missingPractice.length);
+            setOwnerMetric('ownerToday', `${practisedToday} / ${filteredDaily.length}`);
+
+            renderOwnerCentreChart(centreValue);
+            renderOwnerLevelChart(activeAccounts, centreValue);
+            renderOwnerAttentionTable(filteredAccounts);
+        }
+
+        function renderOwnerCentreChart(selectedCentre) {
+            const centreRows = ownerCentres.map(centre => ({
+                id: String(centre.id),
+                name: centre.short_name,
+                count: ownerStudents.filter(student => student.student_status === 'active' && Number(student.centre_id) === Number(centre.id)).length
+            }));
+            const unassignedCount = ownerStudents.filter(student => student.student_status === 'active' && !student.centre_id).length;
+            if (unassignedCount) centreRows.push({ id: 'unassigned', name: 'Centre Not Assigned', count: unassignedCount });
+            const maximum = Math.max(1, ...centreRows.map(row => row.count));
+            document.getElementById('ownerCentreChart').innerHTML = centreRows.map(row => {
+                const width = row.count ? Math.max(5, Math.round((row.count / maximum) * 100)) : 0;
+                const selected = selectedCentre !== 'all' && selectedCentre === row.id;
+                return `<div>
+                    <div class="flex justify-between gap-3 mb-1"><span class="font-bold text-gray-700">${escapeOwnerHtml(row.name)}</span><span class="font-extrabold ${selected ? 'text-teal-700' : 'text-indigo-700'}">${row.count}</span></div>
+                    <div class="h-3 bg-gray-100 rounded-full overflow-hidden"><div class="overview-bar h-full rounded-full ${selected ? 'bg-teal-500' : 'bg-indigo-500'}" style="width:${width}%" role="progressbar" aria-label="${escapeOwnerHtml(row.name)} active students" aria-valuenow="${row.count}" aria-valuemin="0" aria-valuemax="${maximum}"></div></div>
+                </div>`;
+            }).join('') || '<p class="text-gray-400 font-semibold">No centre data available.</p>';
+        }
+
+        function renderOwnerLevelChart(activeAccounts, centreValue) {
+            const levelCounts = Array.from({ length: 8 }, (_, index) => activeAccounts.filter(student => Number(student.current_level) === index + 1).length);
+            const maximum = Math.max(1, ...levelCounts);
+            const selectedCentre = ownerCentres.find(centre => Number(centre.id) === Number(centreValue));
+            document.getElementById('ownerLevelChartLabel').textContent = centreValue === 'all' ? 'All centres' : centreValue === 'unassigned' ? 'Centre not assigned' : selectedCentre?.short_name || 'Selected centre';
+            document.getElementById('ownerLevelChart').innerHTML = levelCounts.map((count, index) => {
+                const height = count ? Math.max(10, Math.round((count / maximum) * 145)) : 4;
+                return `<div class="flex-1 min-w-0 h-full flex flex-col justify-end items-center">
+                    <span class="text-sm font-extrabold text-indigo-800 mb-1">${count}</span>
+                    <div class="w-full max-w-12 bg-gradient-to-t from-indigo-600 to-cyan-400 rounded-t-lg" style="height:${height}px" role="progressbar" aria-label="Level ${index + 1} active students" aria-valuenow="${count}" aria-valuemin="0" aria-valuemax="${maximum}"></div>
+                    <span class="text-xs sm:text-sm font-extrabold text-gray-600 mt-2">L${index + 1}</span>
+                </div>`;
+            }).join('');
+        }
+
+        function renderOwnerAttentionTable(filteredAccounts) {
+            const practiceById = new Map(ownerPracticeOverview.map(student => [String(student.user_id), student]));
+            const attentionRows = filteredAccounts.map(student => {
+                const issues = [];
+                if (student.student_status === 'active') {
+                    if (!student.centre_id) issues.push({ text: 'Centre not assigned', style: 'bg-amber-100 text-amber-800' });
+                    if (!String(student.batch_name || '').trim()) issues.push({ text: 'Batch not assigned', style: 'bg-purple-100 text-purple-800' });
+                    if (student.is_active !== false) {
+                        const practice = practiceById.get(String(student.id));
+                        const days = ownerDaysInactive(practice?.last_practice_at);
+                        if (days === null) issues.push({ text: 'Never practised', style: 'bg-red-100 text-red-700' });
+                        else if (days > 3) issues.push({ text: `No practice for ${days} days`, style: 'bg-orange-100 text-orange-800' });
+                    }
+                }
+                if (student.is_active === false) issues.push({ text: 'Login blocked', style: 'bg-rose-100 text-rose-700' });
+                return { student, issues };
+            }).filter(row => row.issues.length).sort((a, b) => b.issues.length - a.issues.length || String(a.student.full_name || '').localeCompare(String(b.student.full_name || '')));
+
+            const body = document.getElementById('ownerAttentionBody');
+            const summary = document.getElementById('ownerAttentionSummary');
+            summary.textContent = attentionRows.length ? `${attentionRows.length} student${attentionRows.length === 1 ? '' : 's'} need attention${attentionRows.length > 10 ? ' · Showing first 10' : ''}` : 'No pending items for this centre.';
+            if (!attentionRows.length) {
+                body.innerHTML = '<tr><td colspan="4" class="px-5 py-8 text-center text-green-700 font-bold">No students need attention.</td></tr>';
+                return;
+            }
+            body.innerHTML = attentionRows.slice(0, 10).map(({ student, issues }) => `<tr class="hover:bg-indigo-50">
+                <td class="px-5 py-4 font-extrabold text-gray-800">${escapeOwnerHtml(student.full_name || student.email || 'Student')}</td>
+                <td class="px-5 py-4 font-semibold ${student.centre_id ? 'text-cyan-700' : 'text-amber-700'}">${escapeOwnerHtml(student.centre_short_name || 'Not assigned')}</td>
+                <td class="px-5 py-4 text-center font-bold">${student.current_level ? `L${student.current_level}` : '—'}</td>
+                <td class="px-5 py-4">${issues.map(issue => `<span class="attention-pill ${issue.style}">${escapeOwnerHtml(issue.text)}</span>`).join('')}</td>
+            </tr>`).join('');
+        }
+
+        document.getElementById('ownerCentreFilter').addEventListener('change', renderOwnerOverview);
 
         function processMissingPractice(students) {
             const now = new Date();
