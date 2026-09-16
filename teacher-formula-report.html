@@ -235,53 +235,55 @@
             return isoString.split('T')[0].split(' ')[0];
         }
 
-        /* ── Load dropdown (students who have practiced) ──────────── */
+        /* ── Load dropdown (current active Level 1 and 2 students) ─── */
         document.addEventListener('DOMContentLoaded', async () => {
             const dropdown = document.getElementById('studentDropdown');
             dropdown.innerHTML = '<option>Loading Students...</option>';
 
             try {
-                let allStudents = new Set();
-                let from = 0;
-                const step = 1000;
-                let keepFetching = true;
+                const { data, error } = await supabase
+                    .rpc('staff_list_active_formula_students');
 
-                while (keepFetching) {
-                    const { data, error } = await supabase
-                        .from('level1and2_practice')
-                        .select('name')
-                        .range(from, from + step - 1);
+                if (error) throw error;
 
-                    if (error) throw error;
-                    if (!data || data.length === 0) {
-                        keepFetching = false;
-                    } else {
-                        data.forEach(item => {
-                            if (item.name && item.name.trim() !== '') {
-                                allStudents.add(item.name.trim());
-                            }
+                const studentsByName = new Map();
+                (data || []).forEach(student => {
+                    const name = String(student.full_name || '').trim();
+                    if (!name) return;
+
+                    const key = name.toLocaleLowerCase();
+                    const existing = studentsByName.get(key);
+                    if (!existing || Number(student.current_level) < Number(existing.current_level)) {
+                        studentsByName.set(key, {
+                            name,
+                            level: Number(student.current_level)
                         });
-                        from += step;
                     }
-                }
+                });
 
-                if (allStudents.size === 0) {
-                    dropdown.innerHTML = '<option>No formula practice records found</option>';
+                const activeStudents = Array.from(studentsByName.values())
+                    .sort((a, b) => a.name.localeCompare(
+                        b.name,
+                        undefined,
+                        { numeric: true, sensitivity: 'base' }
+                    ));
+
+                if (activeStudents.length === 0) {
+                    dropdown.innerHTML = '<option>No active Level 1 or Level 2 students found</option>';
                     return;
                 }
 
-                const uniqueNames = Array.from(allStudents).sort();
                 dropdown.innerHTML = '<option value="">-- Choose a Student --</option>';
-                uniqueNames.forEach(name => {
+                activeStudents.forEach(student => {
                     const opt = document.createElement('option');
-                    opt.value = name;
-                    opt.textContent = name;
+                    opt.value = student.name;
+                    opt.textContent = `${student.name} — Level ${student.level}`;
                     dropdown.appendChild(opt);
                 });
 
             } catch (err) {
                 console.error('Fetch error:', err);
-                dropdown.innerHTML = '<option>Error loading list</option>';
+                dropdown.innerHTML = '<option>Error loading active students</option>';
             }
 
             const today = new Date();
