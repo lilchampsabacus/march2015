@@ -9,7 +9,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
 
     <style>
         body { font-family: 'Nunito', sans-serif; background-color: #f5f3ff; }
@@ -203,6 +204,7 @@
         Chart.register(ChartDataLabels);
         let myChart = null;
         let globalReports = [];
+        let currentReportRows = [];
 
         /* ── Formula classifier ───────────────────────────────────── */
         function classifyFormula(formula) {
@@ -371,6 +373,7 @@
                 globalReports = buildPracticeSessions(validRows);
 
                 const filtered = filterByDate(globalReports, startDate, endDate);
+                currentReportRows = filtered;
                 renderTable(filtered);
                 renderGraph(filtered);
                 renderCalendar(globalReports);    // calendar uses all-time data
@@ -579,5 +582,6 @@
             });
         }
     </script>
+    <script src="teacher-formula-report-pdf.js?v=1"></script>
 </body>
 </html>
