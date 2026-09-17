@@ -124,7 +124,7 @@
         <div id="resultsArea" class="hidden mb-6 avoid-break">
             <div class="bg-white rounded-xl border-2 border-purple-100 p-5 flex justify-between items-center shadow-sm">
                 <div class="text-center w-1/3 border-r-2 border-gray-200">
-                    <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Practices</p>
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Practice Sessions</p>
                     <p id="totalCount" class="text-4xl font-extrabold text-purple-700 mt-1">0</p>
                 </div>
                 <div class="text-center w-1/3 border-r-2 border-gray-200">
@@ -174,7 +174,7 @@
 
         <!-- Detailed table -->
         <div id="tableContainer" class="bg-white shadow-lg rounded-2xl overflow-hidden hidden mt-4 border border-gray-300">
-            <h3 class="text-lg font-bold text-gray-800 p-4 border-b border-gray-200 bg-gray-50">Detailed History</h3>
+            <h3 class="text-lg font-bold text-gray-800 p-4 border-b border-gray-200 bg-gray-50">Practice Sessions <span class="text-sm font-semibold text-gray-500">(3 rounds × 10 sums)</span></h3>
             <table class="min-w-full leading-normal">
                 <thead>
                     <tr class="bg-gray-100">
@@ -233,6 +233,46 @@
         function getDateOnly(isoString) {
             if (!isoString) return '';
             return isoString.split('T')[0].split(' ')[0];
+        }
+
+        function parsePracticeTime(value) {
+            if (!value) return 0;
+            const parts = String(value).split(':').map(Number);
+            return parts.length === 2 && parts.every(Number.isFinite) ? (parts[0] * 60) + parts[1] : 0;
+        }
+
+        function formatPracticeTime(seconds) {
+            const total = Math.max(0, Math.floor(Number(seconds) || 0));
+            return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+        }
+
+        function buildPracticeSessions(rows) {
+            const grouped = new Map();
+            const earlierTenSumRecords = [];
+            rows.forEach(row => {
+                if (row.session_id) {
+                    if (!grouped.has(row.session_id)) grouped.set(row.session_id, []);
+                    grouped.get(row.session_id).push(row);
+                } else {
+                    earlierTenSumRecords.push({...row, questions: 10, rounds: [row], isThirtySumSession: false});
+                }
+            });
+            const sessions = Array.from(grouped.values()).map(rounds => {
+                rounds.sort((a, b) => (Number(a.round_number) || 0) - (Number(b.round_number) || 0));
+                const latest = rounds.reduce((current, row) => new Date(row.created_at) > new Date(current.created_at) ? row : current, rounds[0]);
+                const durationSeconds = rounds.reduce((total, row) => total + (Number(row.duration_seconds) || parsePracticeTime(row.time)), 0);
+                return {
+                    ...rounds[0],
+                    created_at: latest.created_at,
+                    score: rounds.reduce((total, row) => total + (Number(row.score) || 0), 0),
+                    questions: rounds.length * 10,
+                    time: formatPracticeTime(durationSeconds),
+                    rounds,
+                    isThirtySumSession: true,
+                    completed: rounds.length >= 3
+                };
+            });
+            return sessions.concat(earlierTenSumRecords).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         }
 
         /* ── Load dropdown (current active Level 1 and 2 students) ─── */
@@ -323,11 +363,12 @@
             if (error) { alert('Error: ' + error.message); return; }
 
             if (rows) {
-                // Keep only rows with score > 0
-                globalReports = rows.filter(r => {
+                // Keep valid round scores, then combine the 3 rounds into one 30-sum session.
+                const validRows = rows.filter(r => {
                     const s = parseInt(r.score);
-                    return !isNaN(s) && s > 0;
+                    return !isNaN(s) && s >= 0;
                 });
+                globalReports = buildPracticeSessions(validRows);
 
                 const filtered = filterByDate(globalReports, startDate, endDate);
                 renderTable(filtered);
@@ -466,14 +507,20 @@
             }
 
             rows.forEach(row => {
-                const type   = classifyFormula(row.formula);
-                const badge  = formulaBadge(type);
+                const type = classifyFormula(row.formula);
+                const badge = formulaBadge(type);
+                const roundScores = row.isThirtySumSession
+                    ? `<div class="mt-1 flex flex-wrap gap-1">${row.rounds.map(r => `<span class="inline-flex rounded bg-purple-50 border border-purple-100 px-1.5 py-0.5 text-[10px] font-bold text-purple-700">R${r.round_number || '?'}: ${Number(r.score) || 0}/10</span>`).join('')}</div>`
+                    : '<div class="mt-1 text-[10px] font-bold text-amber-600">Earlier 10-sum record</div>';
+                const sessionStatus = row.isThirtySumSession && !row.completed
+                    ? `<div class="mt-1 text-[10px] font-bold text-amber-600">Incomplete: ${row.rounds.length}/3 rounds</div>`
+                    : '';
                 const tr = `
                     <tr class="hover:bg-gray-50 border-b">
                         <td class="px-5 py-4 text-sm font-bold text-gray-800">${getRawDate(row.created_at)}</td>
-                        <td class="px-5 py-4 text-sm font-medium text-gray-700">${row.formula || '-'}</td>
+                        <td class="px-5 py-4 text-sm font-medium text-gray-700">${row.formula || '-'}${sessionStatus}</td>
                         <td class="px-5 py-4 text-sm">${badge}</td>
-                        <td class="px-5 py-4 text-sm font-bold text-purple-600">${row.score ?? '-'}</td>
+                        <td class="px-5 py-4 text-sm font-bold text-purple-600"><div>${row.score ?? '-'}/${row.questions || 10}</div>${roundScores}</td>
                         <td class="px-5 py-4 text-sm font-bold text-gray-700">⏱️ ${row.time || '-'}</td>
                     </tr>`;
                 tbody.innerHTML += tr;
