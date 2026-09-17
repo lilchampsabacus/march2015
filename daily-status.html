@@ -13,6 +13,9 @@
     body{font-family:'Nunito',sans-serif;background:#f0f9ff;color:#1f2937}
     .status-pill{display:inline-flex;align-items:center;border-radius:999px;padding:.25rem .65rem;font-size:.75rem;font-weight:800;white-space:nowrap}
     .table-wrap{overflow-x:auto}.table-wrap table{min-width:1180px}tr[data-row]{cursor:pointer}
+    .batch-report-card{background:linear-gradient(145deg,#fff 0%,#f8fafc 100%)}
+    .share-toast{position:fixed;left:50%;bottom:1.25rem;z-index:70;transform:translate(-50%,1rem);opacity:0;pointer-events:none;transition:.2s ease;max-width:calc(100vw - 2rem)}
+    .share-toast.show{transform:translate(-50%,0);opacity:1}
   </style>
 </head>
 <body class="min-h-screen p-3 md:p-8">
@@ -47,6 +50,17 @@
       <div class="bg-white rounded-2xl shadow p-4 border-l-4 border-red-500"><div class="text-xs font-black uppercase text-red-600">Not Started</div><div id="notStartedCount" class="text-3xl font-black text-red-700 mt-1">0</div></div>
     </div>
 
+    <section class="bg-white rounded-2xl shadow p-4 md:p-5 mb-5">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+        <div>
+          <h2 class="font-black text-xl text-gray-800">WhatsApp Batch Reports</h2>
+          <p class="text-sm text-gray-500">Share a ready-made image of students who completed the selected day’s Daily Practice.</p>
+        </div>
+        <span class="text-xs font-black text-indigo-700 bg-indigo-50 px-3 py-2 rounded-full self-start">Tap Share, then choose the batch group</span>
+      </div>
+      <div id="batchReportGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3"></div>
+    </section>
+
     <div class="bg-white rounded-2xl shadow overflow-hidden">
       <div class="px-4 py-3 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div><h2 class="font-black text-lg">Student Status</h2><p id="dateLabel" class="text-sm text-gray-500"></p></div>
@@ -74,6 +88,8 @@
   </div>
 </div>
 
+<div id="shareToast" class="share-toast bg-gray-900 text-white font-bold text-sm px-4 py-3 rounded-xl shadow-2xl" role="status" aria-live="polite"></div>
+
 <script>
 const SUPABASE_URL='https://portal-bridge.ucmas-ambernath-pg.workers.dev';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
@@ -94,6 +110,11 @@ function overall(row){const secs=sectionsFor(row.level),stats=secs.map(s=>sectio
 function normalizedStatus(row){if(!row.practice_id)return'not_started';if(row.practice_status==='completed')return'completed';const o=overall(row);return(o.answered>0||o.done>0||row.practice_status==='in_progress')?'in_progress':'not_started';}
 function statusPill(status){if(status==='completed')return'<span class="status-pill bg-green-100 text-green-700">✅ Completed</span>';if(status==='in_progress')return'<span class="status-pill bg-amber-100 text-amber-700">🟡 In Progress</span>';return'<span class="status-pill bg-red-100 text-red-700">🔴 Not Started</span>';}
 function retryInfo(row){const retries=Array.isArray(row.retry_summary)?row.retry_summary:[];const completed=retries.filter(r=>r?.completed).length;const targeted=retries.filter(r=>r?.completed&&(r.retry_type==='wrong'||r.retry_type==='skipped')).length;return{completed,targeted};}
+function safeFilename(value){return String(value||'batch').trim().replace(/[^a-z0-9]+/gi,'-').replace(/^-+|-+$/g,'').toLowerCase()||'batch';}
+function currentIndiaTime(){return new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date()).toUpperCase();}
+function showShareToast(message){const toast=$('shareToast');toast.textContent=message;toast.classList.add('show');clearTimeout(showShareToast.timer);showShareToast.timer=setTimeout(()=>toast.classList.remove('show'),4200);}
+function batchRows(name){return allRows.filter(r=>batchName(r)===name);}
+function completedRows(rows){return rows.filter(r=>r._status==='completed').sort((a,b)=>String(a.student_name).localeCompare(String(b.student_name),undefined,{sensitivity:'base'}));}
 
 async function verifyStaff(){const {data:{session}}=await client.auth.getSession();if(!session){location.replace('login.html');return false;}const {data,error}=await client.from('profiles').select('role,is_active').eq('id',session.user.id).single();if(error||!data||data.is_active===false||!['admin','teacher'].includes(data.role)){$('loading').classList.add('hidden');$('denied').classList.remove('hidden');return false;}return true;}
 
@@ -105,8 +126,18 @@ async function loadData(){
   allRows=(data||[]).map(r=>({...r,_status:normalizedStatus(r)}));populateBatchFilter();$('loading').classList.add('hidden');$('app').classList.remove('hidden');applyFilters();
 }
 function matchesBase(r){const level=$('levelFilter').value,batch=$('batchFilter').value,search=$('searchFilter').value.trim().toLowerCase(),bn=batchName(r);return(level==='all'||String(r.level)===level)&&(batch==='all'||(batch==='unassigned'?!bn:bn===batch))&&(!search||`${r.student_name} ${bn}`.toLowerCase().includes(search));}
-function applyFilters(){const status=$('statusFilter').value;summaryRows=allRows.filter(matchesBase);filteredRows=summaryRows.filter(r=>status==='all'||(status==='incomplete'?r._status!=='completed':r._status===status));renderCounts();renderTable();const batch=$('batchFilter').value;const batchText=batch==='all'?'All Batches':batch==='unassigned'?'Batch Not Assigned':batch;$('dateLabel').textContent=`${formatDate($('dateFilter').value)} · ${batchText}`;}
+function applyFilters(){const status=$('statusFilter').value;summaryRows=allRows.filter(matchesBase);filteredRows=summaryRows.filter(r=>status==='all'||(status==='incomplete'?r._status!=='completed':r._status===status));renderCounts();renderBatchReports();renderTable();const batch=$('batchFilter').value;const batchText=batch==='all'?'All Batches':batch==='unassigned'?'Batch Not Assigned':batch;$('dateLabel').textContent=`${formatDate($('dateFilter').value)} · ${batchText}`;}
 function renderCounts(){$('totalCount').textContent=summaryRows.length;$('completeCount').textContent=summaryRows.filter(r=>r._status==='completed').length;$('progressCount').textContent=summaryRows.filter(r=>r._status==='in_progress').length;$('notStartedCount').textContent=summaryRows.filter(r=>r._status==='not_started').length;}
+function renderBatchReports(){
+  const selected=$('batchFilter').value;
+  let names=[...new Set(allRows.map(batchName).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'}));
+  if(selected!=='all'&&selected!=='unassigned')names=names.filter(n=>n===selected);
+  const grid=$('batchReportGrid');
+  if(!names.length){grid.innerHTML='<div class="md:col-span-2 xl:col-span-3 text-center text-gray-400 font-bold py-6">Assign a batch before creating WhatsApp reports.</div>';return;}
+  grid.innerHTML=names.map(name=>{const rows=batchRows(name),done=completedRows(rows),progress=rows.filter(r=>r._status==='in_progress').length;const preview=done.slice(0,4).map(r=>escapeHtml(r.student_name)).join(', ');return `<article class="batch-report-card border border-gray-200 rounded-2xl p-4"><div class="flex items-start justify-between gap-3"><div><div class="text-xs text-gray-400 font-black uppercase">Batch</div><h3 class="text-2xl font-black text-indigo-700">${escapeHtml(name)}</h3></div><div class="text-right"><div class="text-2xl font-black text-green-700">${done.length}/${rows.length}</div><div class="text-xs font-bold text-gray-500">Completed</div></div></div><p class="text-sm text-gray-600 mt-3 min-h-[2.5rem]">${done.length?preview+(done.length>4?` +${done.length-4} more`:''):'No completed practice yet.'}</p><div class="text-xs font-bold text-amber-600 mt-2">${progress?`${progress} in progress`:'No practice in progress'}</div><div class="grid grid-cols-2 gap-2 mt-4"><button class="shareBatchBtn bg-green-600 hover:bg-green-700 text-white font-black px-3 py-2.5 rounded-xl" data-batch="${escapeHtml(name)}">Share</button><button class="downloadBatchBtn bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-black px-3 py-2.5 rounded-xl" data-batch="${escapeHtml(name)}">Download</button></div></article>`;}).join('');
+  document.querySelectorAll('.shareBatchBtn').forEach(btn=>btn.onclick=()=>shareBatchReport(btn.dataset.batch,btn));
+  document.querySelectorAll('.downloadBatchBtn').forEach(btn=>btn.onclick=()=>downloadBatchReport(btn.dataset.batch,btn));
+}
 function renderTable(){
   const body=$('statusBody');if(!filteredRows.length){body.innerHTML='<tr><td colspan="11" class="px-4 py-10 text-center text-gray-400 font-bold">No students match the selected filters.</td></tr>';return;}
   body.innerHTML=filteredRows.map((r,i)=>{const o=overall(r),ret=retryInfo(r),score=r._status==='completed'?`${o.correct}/${o.total}`:'—',time=r.practice_id?fmtTime(o.time):'—',correction=ret.completed?`${ret.completed}${ret.targeted?' ✅':''}`:'—',batch=batchName(r)||'<span class="text-amber-600">Not assigned</span>';
@@ -116,6 +147,40 @@ function renderTable(){
 function openDetail(row){const o=overall(row);$('modalName').textContent=row.student_name;$('modalMeta').textContent=`${batchName(row)||'Batch not assigned'} · Level ${row.level} · ${row._status==='completed'?'Completed':row._status==='in_progress'?'In Progress':'Not Started'} · ${$('dateFilter').value}`;$('modalSections').innerHTML=sectionsFor(row.level).map(s=>{const st=sectionStats(row,s);return `<div class="border rounded-xl p-4"><div class="flex justify-between gap-3"><div class="font-black text-lg">${sectionIcon(s)} ${sectionName(s)}</div><div class="font-black ${st.complete?'text-green-700':'text-gray-400'}">${st.complete?'Completed':'Pending'}</div></div><div class="grid grid-cols-4 gap-2 mt-3 text-center"><div><div class="text-xs text-gray-500">Correct</div><div class="font-black text-green-700">${st.correct}</div></div><div><div class="text-xs text-gray-500">Wrong</div><div class="font-black text-red-600">${st.wrong}</div></div><div><div class="text-xs text-gray-500">Skipped</div><div class="font-black text-amber-600">${st.skipped}</div></div><div><div class="text-xs text-gray-500">Time</div><div class="font-black text-indigo-700">${fmtTime(st.time)}</div></div></div></div>`;}).join('');const retries=Array.isArray(row.retry_summary)?row.retry_summary:[];$('modalRetries').innerHTML=retries.length?`<h4 class="font-black mb-2">Correction / Retry Activity</h4>${retries.map(x=>`<div class="text-sm border-t py-2"><b>${sectionName(x.section)}</b> · ${x.retry_type==='wrong'?'Wrong Sums':x.retry_type==='skipped'?'Skipped Sums':'Full Section'} · ${x.completed?'Completed':'Incomplete'} · ${x.correct_count||0} correct · ${fmtTime(x.duration_seconds||0)}</div>`).join('')}`:'<div class="text-sm text-gray-400">No correction/retry activity yet.</div>';$('detailModal').classList.remove('hidden');}
 async function copyReminder(row){const batch=batchName(row)?` (${batchName(row)})`:'';const msg=`Dear Parent, ${row.student_name}${batch} has not completed today’s Daily Practice on the Li’l Champs website yet. Please ask your child to complete it today. Thank you.`;try{await navigator.clipboard.writeText(msg);alert('Reminder message copied. You can paste it in WhatsApp.');}catch{prompt('Copy this WhatsApp reminder:',msg);}}
 function downloadPdf(){const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'landscape'});const batch=$('batchFilter').value;const batchText=batch==='all'?'All Batches':batch==='unassigned'?'Batch Not Assigned':batch;doc.setFontSize(16);doc.text("Li'l Champs Abacus Academy - Daily Practice Status",14,14);doc.setFontSize(10);doc.text(`${formatDate($('dateFilter').value)} | ${batchText}`,14,21);const rows=filteredRows.map(r=>{const o=overall(r),ret=retryInfo(r);return[r.student_name,batchName(r)||'Not assigned',`L${r.level}`,r._status==='completed'?'Completed':r._status==='in_progress'?'In Progress':'Not Started',`${o.done}/${o.required}`,r._status==='completed'?`${o.correct}/${o.total}`:'-',r.practice_id?o.wrong:'-',r.practice_id?o.skipped:'-',r.practice_id?fmtTime(o.time):'-',ret.completed||'-'];});doc.autoTable({startY:27,head:[['Student','Batch','Level','Status','Sections','Score','Wrong','Skipped','Time','Corrections']],body:rows,styles:{fontSize:8},headStyles:{fillColor:[79,70,229]}});doc.save(`daily-practice-${$('dateFilter').value}-${String(batchText).replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.pdf`);}
+
+function roundedRect(ctx,x,y,w,h,r){const radius=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+radius,y);ctx.arcTo(x+w,y,x+w,y+h,radius);ctx.arcTo(x+w,y+h,x,y+h,radius);ctx.arcTo(x,y+h,x,y,radius);ctx.arcTo(x,y,x+w,y,radius);ctx.closePath();}
+function fitText(ctx,text,maxWidth,startSize,minSize){let size=startSize;do{ctx.font=`800 ${size}px Nunito, Arial, sans-serif`;if(ctx.measureText(text).width<=maxWidth)return size;size-=2;}while(size>=minSize);return minSize;}
+function loadLogo(){return new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>resolve(null);img.src='lil-champs-logo.png';});}
+async function createBatchReportBlob(name){
+  if(document.fonts?.ready)await document.fonts.ready;
+  const rows=batchRows(name),done=completedRows(rows),date=$('dateFilter').value,canvas=document.createElement('canvas');
+  canvas.width=1080;canvas.height=1350;
+  const ctx=canvas.getContext('2d'),bg=ctx.createLinearGradient(0,0,1080,1350);
+  bg.addColorStop(0,'#eef2ff');bg.addColorStop(.55,'#f8fafc');bg.addColorStop(1,'#ecfdf5');ctx.fillStyle=bg;ctx.fillRect(0,0,1080,1350);
+  ctx.fillStyle='#312e81';ctx.fillRect(0,0,1080,250);ctx.fillStyle='#4f46e5';ctx.beginPath();ctx.arc(965,55,185,0,Math.PI*2);ctx.fill();ctx.fillStyle='#22c55e';ctx.beginPath();ctx.arc(85,260,95,0,Math.PI*2);ctx.fill();
+  const logo=await loadLogo();if(logo){ctx.fillStyle='#fff';roundedRect(ctx,56,42,150,150,28);ctx.fill();ctx.drawImage(logo,68,54,126,126);}
+  ctx.fillStyle='#fff';ctx.font='800 43px Nunito, Arial, sans-serif';ctx.fillText("Li'l Champs Abacus Academy",230,100);ctx.font='700 28px Nunito, Arial, sans-serif';ctx.fillStyle='#c7d2fe';ctx.fillText('AMBERNATH',230,145);ctx.font='900 55px Nunito, Arial, sans-serif';ctx.fillStyle='#fff';ctx.fillText('DAILY PRACTICE STARS',56,225);
+  ctx.fillStyle='#fff';roundedRect(ctx,56,300,968,170,32);ctx.fill();ctx.fillStyle='#111827';ctx.font='900 54px Nunito, Arial, sans-serif';ctx.fillText(`Batch ${name}`,92,370);ctx.fillStyle='#6b7280';ctx.font='700 27px Nunito, Arial, sans-serif';ctx.fillText(formatDate(date),92,418);ctx.textAlign='right';ctx.fillStyle='#15803d';ctx.font='900 64px Nunito, Arial, sans-serif';ctx.fillText(`${done.length}/${rows.length}`,980,377);ctx.font='800 23px Nunito, Arial, sans-serif';ctx.fillStyle='#6b7280';ctx.fillText('COMPLETED',980,419);ctx.textAlign='left';
+  ctx.fillStyle='#166534';ctx.font='900 34px Nunito, Arial, sans-serif';ctx.fillText(done.length?'Students who completed today’s practice':'Practice update',70,545);
+  ctx.fillStyle='#fff';roundedRect(ctx,56,575,968,585,34);ctx.fill();
+  if(done.length){const columns=done.length>8?2:1,perColumn=Math.ceil(done.length/columns),colWidth=columns===2?468:900;done.forEach((row,index)=>{const col=Math.floor(index/perColumn),pos=index%perColumn,x=88+col*colWidth,y=650+pos*62;ctx.fillStyle='#dcfce7';ctx.beginPath();ctx.arc(x+20,y-11,22,0,Math.PI*2);ctx.fill();ctx.fillStyle='#15803d';ctx.font='900 22px Nunito, Arial, sans-serif';ctx.textAlign='center';ctx.fillText('✓',x+20,y-3);ctx.textAlign='left';ctx.fillStyle='#1f2937';fitText(ctx,row.student_name,colWidth-80,32,23);ctx.fillText(row.student_name,x+58,y);});}
+  else{ctx.textAlign='center';ctx.fillStyle='#9ca3af';ctx.font='800 34px Nunito, Arial, sans-serif';ctx.fillText('No student has completed Daily Practice yet.',540,820);ctx.textAlign='left';}
+  ctx.fillStyle='#312e81';roundedRect(ctx,56,1195,968,105,28);ctx.fill();ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='900 30px Nunito, Arial, sans-serif';ctx.fillText('Consistency today builds speed tomorrow.',540,1242);ctx.font='700 20px Nunito, Arial, sans-serif';ctx.fillStyle='#c7d2fe';const timing=date===indiaDateISO()?`Updated ${currentIndiaTime()} IST`:'Final report';ctx.fillText(`${timing} • Generated from lilchampsabacus.co.in`,540,1278);ctx.textAlign='left';
+  return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Could not create report image.')),'image/png'));
+}
+function setButtonBusy(button,busy,label){if(!button)return;if(busy){button.dataset.originalLabel=button.textContent;button.textContent=label;button.disabled=true;button.classList.add('opacity-60','cursor-wait');}else{button.textContent=button.dataset.originalLabel||button.textContent;button.disabled=false;button.classList.remove('opacity-60','cursor-wait');}}
+function downloadBlob(blob,filename){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+async function downloadBatchReport(name,button){try{setButtonBusy(button,true,'Preparing…');const blob=await createBatchReportBlob(name);downloadBlob(blob,`daily-practice-${$('dateFilter').value}-${safeFilename(name)}.png`);showShareToast(`Batch ${name} image downloaded.`);}catch(error){alert(error.message||'Could not create the report image.');}finally{setButtonBusy(button,false);}}
+async function shareBatchReport(name,button){
+  try{
+    setButtonBusy(button,true,'Preparing…');
+    const blob=await createBatchReportBlob(name),filename=`daily-practice-${$('dateFilter').value}-${safeFilename(name)}.png`,file=new File([blob],filename,{type:'image/png'}),done=completedRows(batchRows(name));
+    const text=`Li'l Champs Abacus Academy\nDaily Practice Stars - ${formatDate($('dateFilter').value)}\nBatch ${name}: ${done.length} of ${batchRows(name).length} students completed.`;
+    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({title:`Daily Practice - Batch ${name}`,text,files:[file]});showShareToast(`Batch ${name} report shared.`);return;}
+    if(navigator.clipboard&&window.ClipboardItem){await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);showShareToast('Image copied. Open the WhatsApp group and paste it.');return;}
+    downloadBlob(blob,filename);showShareToast('Image downloaded. Attach it in the WhatsApp group.');
+  }catch(error){if(error?.name!=='AbortError')alert(error.message||'Could not share the report image.');}finally{setButtonBusy(button,false);}
+}
 
 $('closeModal').onclick=()=>$('detailModal').classList.add('hidden');$('detailModal').onclick=e=>{if(e.target===$('detailModal'))$('detailModal').classList.add('hidden');};$('dateFilter').onchange=loadData;$('batchFilter').onchange=applyFilters;$('levelFilter').onchange=applyFilters;$('statusFilter').onchange=applyFilters;$('searchFilter').oninput=applyFilters;$('todayBtn').onclick=()=>{$('dateFilter').value=indiaDateISO();loadData();};$('pdfBtn').onclick=downloadPdf;
 (async()=>{$('dateFilter').value=indiaDateISO();if(await verifyStaff())await loadData();})();
