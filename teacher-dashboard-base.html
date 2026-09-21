@@ -296,17 +296,22 @@
             }
 
             const requests = [
+                supabase.rpc('staff_practice_followup_overview'),
                 supabase.rpc('staff_active_student_practice_overview'),
                 supabase.rpc('staff_official_daily_practice_status')
             ];
             if (isOwner) requests.push(supabase.rpc('admin_list_student_levels'));
-            const [practiceResult, dailyResult, studentResult] = await Promise.all(requests);
+            const [followUpResult, practiceResult, dailyResult, studentResult] = await Promise.all(requests);
+            const { data: followUpRows, error: followUpError } = followUpResult;
             const { data: practiceOverview, error: overviewError } = practiceResult;
             const { data: dailyRows, error: dailyError } = dailyResult;
-            if (overviewError) console.error('Could not load missing-practice summary:', overviewError);
-            else processMissingPractice(practiceOverview || []);
-            if (dailyError) console.error('Could not load daily-practice summary:', dailyError);
-            else processDailyStatus(dailyRows || []);
+            if (followUpError) {
+                console.error('Could not load practice dashboard summary:', followUpError);
+                document.getElementById('inactive-count').innerText = '—';
+                document.getElementById('daily-stats').innerText = '—';
+            } else {
+                processPracticeDashboard(followUpRows || []);
+            }
 
             if (isOwner) {
                 await centrePromise;
@@ -603,18 +608,45 @@
 
         document.getElementById('ownerCentreFilter').addEventListener('change', renderOwnerOverview);
 
-        function processMissingPractice(students) {
-            const now = new Date();
-            const count = students.filter(student => {
-                if (!student.last_practice_at) return true;
-                return Math.floor(Math.max(0, now - new Date(student.last_practice_at)) / (1000 * 60 * 60 * 24)) > 3;
-            }).length;
-            document.getElementById('inactive-count').innerText = count;
-        }
+        function processPracticeDashboard(students) {
+            const today = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit'
+            }).format(new Date());
+            const parseDate = value => {
+                const [year, month, day] = value.split('-').map(Number);
+                return new Date(Date.UTC(year, month - 1, day));
+            };
+            const isoDate = value => value.toISOString().slice(0, 10);
+            const current = parseDate(today);
+            const weekday = current.getUTCDay();
+            const monday = new Date(current);
+            monday.setUTCDate(current.getUTCDate() - (weekday === 0 ? 6 : weekday - 1));
+            const requiredDays = weekday === 0 ? 6 : Math.min(weekday, 6);
+            const requiredDates = Array.from({ length: requiredDays }, (_, index) => {
+                const date = new Date(monday);
+                date.setUTCDate(monday.getUTCDate() + index);
+                return isoDate(date);
+            });
 
-        function processDailyStatus(students) {
-            const practiced = students.filter(student => Boolean(student.practice_id)).length;
-            document.getElementById('daily-stats').innerHTML = `${practiced} <span class="text-sm text-gray-400">/ ${students.length}</span>`;
+            let practisedToday = 0;
+            let followUpCount = 0;
+            students.forEach(student => {
+                const dates = new Set((student.practice_dates || []).map(String));
+                const todayDone = dates.has(today);
+                if (todayDone) practisedToday += 1;
+
+                const missed = requiredDates.filter(date => !dates.has(date)).length;
+                const priorMissed = requiredDates.filter(date => date !== today && !dates.has(date)).length;
+                const neverPractised = !student.last_practice_at;
+                const backOnTrack = todayDone && priorMissed >= 2;
+                const needsFollowUp = neverPractised || (!backOnTrack && (
+                    missed >= 2 || (weekday >= 1 && weekday <= 6 && !todayDone)
+                ));
+                if (needsFollowUp) followUpCount += 1;
+            });
+
+            document.getElementById('inactive-count').innerText = followUpCount;
+            document.getElementById('daily-stats').innerHTML = `${practisedToday} <span class="text-sm text-gray-400">/ ${students.length}</span>`;
         }
     </script>
 </body>
