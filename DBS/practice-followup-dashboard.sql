@@ -7,9 +7,11 @@ begin
   if not public.current_user_is_staff() then raise exception 'Staff access required'; end if;
   return query
   with regular_practice as (
-    select r.user_id,max(r.indian_time) last_at,
-      coalesce(array_agg(distinct (r.indian_time at time zone 'Asia/Kolkata')::date order by (r.indian_time at time zone 'Asia/Kolkata')::date) filter(where r.indian_time>=now()-interval '35 days'),'{}'::date[]) dates
-    from public.reports r group by r.user_id
+    select o.user_id,max(coalesce(o.completed_at,o.updated_at,o.created_at)) last_at,
+      coalesce(array_agg(distinct o.practice_date order by o.practice_date) filter(where o.practice_date>=(now() at time zone 'Asia/Kolkata')::date-34),'{}'::date[]) dates
+    from public.official_daily_practice o
+    where o.status='completed'
+    group by o.user_id
   ), formula_sessions as (
     select l.user_id,l.session_id,min(l.created_at) practised_at,(min(l.created_at) at time zone 'Asia/Kolkata')::date practice_date
     from public.level1and2_practice l where l.session_id is not null
