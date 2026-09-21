@@ -1,176 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inactive Students Report</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    <style>
-        body { font-family: 'Nunito', sans-serif; background-color: #f0f9ff; }
-        .modal-enter { animation: fadeIn 0.2s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-    </style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Practice Follow-up | Li'l Champs Abacus</title>
+<script>const e=sessionStorage.getItem('userEmail'),r=sessionStorage.getItem('userRole');if(!e||(r!=='admin'&&r!=='teacher'&&e!=='admin.ambernath@gmail.com'))location.replace('practice_options.html');</script>
+<script src="https://cdn.tailwindcss.com"></script><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>body{font-family:Nunito,sans-serif;background:#f0f9ff}.filter-btn[aria-pressed=true]{box-shadow:0 0 0 3px #4f46e529;border-color:#4f46e5}.modal-card{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}</style>
 </head>
-<body class="p-6 md:p-10">
-
-    <div class="max-w-5xl mx-auto flex justify-between items-center mb-8">
-        <div>
-            <h1 class="text-3xl font-extrabold text-red-600">Inactive Students</h1>
-            <p class="text-gray-600 font-semibold">Active enrolled students who haven't practiced in over 3 days.</p>
-        </div>
-        <a href="teacher-dashboard.html" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg">← Back</a>
-    </div>
-
-    <div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg border border-red-100 overflow-hidden relative">
-        
-        <div id="loading" class="p-10 text-center text-gray-500 font-bold">
-            Loading inactive list...
-        </div>
-
-        <table id="inactiveTable" class="min-w-full hidden">
-            <thead class="bg-red-50 border-b border-red-100">
-                <tr>
-                    <th class="px-6 py-4 text-left text-xs font-bold text-red-800 uppercase tracking-wider">Student Name</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold text-red-800 uppercase tracking-wider">Last Active</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold text-red-800 uppercase tracking-wider">Days Inactive</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold text-red-800 uppercase tracking-wider">Action</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody" class="divide-y divide-gray-100">
-                </tbody>
-        </table>
-    </div>
-
-    <div id="msgModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center z-50 backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4 modal-enter">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-800">Copy Reminder Message</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 font-bold text-xl">&times;</button>
-            </div>
-            
-            <textarea id="msgBox" class="w-full h-32 p-3 border border-gray-300 rounded-lg text-gray-700 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none" readonly></textarea>
-            
-            <div class="mt-4 flex justify-end gap-3">
-                <button onclick="closeModal()" class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg font-bold transition">Cancel</button>
-                <button onclick="copyText()" id="copyBtn" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold shadow-md transition flex items-center gap-2">
-                    📋 Copy Text
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const SUPABASE_URL = "https://portal-bridge.ucmas-ambernath-pg.workers.dev";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk";
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        function openPopup(name, days) {
-            const msg = `Hello! We noticed ${name} hasn't practiced on the website for ${days} days. Please encourage them to practice today!`;
-            
-            const modal = document.getElementById('msgModal');
-            const box = document.getElementById('msgBox');
-            
-            box.value = msg; // Fill text area
-            modal.classList.remove('hidden');
-            
-            document.getElementById('copyBtn').innerHTML = '📋 Copy Text';
-            document.getElementById('copyBtn').classList.remove('bg-gray-600');
-            document.getElementById('copyBtn').classList.add('bg-green-500');
-        }
-
-        function closeModal() {
-            document.getElementById('msgModal').classList.add('hidden');
-        }
-
-        function copyText() {
-            const box = document.getElementById('msgBox');
-            box.select();
-            box.setSelectionRange(0, 99999);
-            navigator.clipboard.writeText(box.value);
-
-            const btn = document.getElementById('copyBtn');
-            btn.innerHTML = '✅ Copied!';
-            btn.classList.remove('bg-green-500');
-            btn.classList.add('bg-gray-600');
-
-            setTimeout(() => { closeModal(); }, 1200);
-        }
-
-        window.onclick = function(event) {
-            const modal = document.getElementById('msgModal');
-            if (event.target == modal) {
-                closeModal();
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            const { data: students, error } = await supabase.rpc('staff_active_student_practice_overview');
-
-            if (error) {
-                document.getElementById('loading').innerText = "Error loading data.";
-                return;
-            }
-
-            const now = new Date();
-            const inactiveList = (students || []).map(student => {
-                const lastDate = student.last_practice_at ? new Date(student.last_practice_at) : null;
-                const diffDays = lastDate ? Math.floor(Math.max(0, now - lastDate) / (1000 * 60 * 60 * 24)) : null;
-                return { name: student.student_name, lastDate, diffDays };
-            }).filter(student => student.diffDays === null || student.diffDays > 3);
-
-            inactiveList.sort((a, b) => (b.diffDays ?? Number.MAX_SAFE_INTEGER) - (a.diffDays ?? Number.MAX_SAFE_INTEGER));
-            renderTable(inactiveList);
-        });
-
-        function escapeHtml(value) {
-            return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-        }
-
-        function renderTable(list) {
-            const loading = document.getElementById('loading');
-            const table = document.getElementById('inactiveTable');
-            const tbody = document.getElementById('tableBody');
-
-            loading.classList.add('hidden');
-            table.classList.remove('hidden');
-
-            if (list.length === 0) {
-                loading.classList.remove('hidden');
-                loading.innerText = "🎉 Amazing! Everyone is practicing regularly.";
-                table.classList.add('hidden');
-                return;
-            }
-
-            tbody.innerHTML = list.map((student, index) => {
-                const dateStr = student.lastDate ? student.lastDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Never';
-                const inactivityText = student.diffDays === null ? 'Never practised' : `${student.diffDays} Days`;
-                return `
-                    <tr class="hover:bg-red-50 transition">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-800">${escapeHtml(student.name)}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${dateStr}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <span class="px-2 py-1 text-xs font-bold text-red-700 bg-red-100 rounded-full">
-                                ${inactivityText}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button data-index="${index}" class="reminderBtn bg-white border border-green-500 text-green-600 hover:bg-green-50 px-3 py-1 rounded-lg flex items-center gap-1 font-bold text-xs transition shadow-sm">
-                                📝 Get Message
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-            document.querySelectorAll('.reminderBtn').forEach(button => {
-                button.onclick = () => {
-                    const student = list[Number(button.dataset.index)];
-                    openPopup(student.name, student.diffDays === null ? 'many' : student.diffDays);
-                };
-            });
-        }
-    </script>
-</body>
-</html>
+<body class="p-4 md:p-8"><main class="max-w-7xl mx-auto">
+<header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6"><div><h1 class="text-3xl font-extrabold text-indigo-700">Practice Follow-up</h1><p class="text-gray-600 font-semibold mt-1">Daily and weekly practice attention list · Target: 6 days per week</p></div><a href="teacher-dashboard.html" class="self-start bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded-lg shadow-sm">← Back</a></header>
+<section class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6" aria-label="Practice summary">
+<button data-filter="today_pending" class="filter-btn text-left bg-white border-2 border-transparent rounded-xl p-4 shadow-sm" aria-pressed="false"><span class="text-xs sm:text-sm font-bold text-gray-500">Today Pending</span><strong id="countToday" class="block text-3xl text-red-600 mt-1">—</strong></button>
+<button data-filter="missed_2" class="filter-btn text-left bg-white border-2 border-transparent rounded-xl p-4 shadow-sm" aria-pressed="false"><span class="text-xs sm:text-sm font-bold text-gray-500">2 Days Missed</span><strong id="countTwo" class="block text-3xl text-orange-600 mt-1">—</strong></button>
+<button data-filter="needs_attention" class="filter-btn text-left bg-white border-2 border-transparent rounded-xl p-4 shadow-sm" aria-pressed="false"><span class="text-xs sm:text-sm font-bold text-gray-500">Needs Attention</span><strong id="countAttention" class="block text-3xl text-rose-700 mt-1">—</strong></button>
+<button data-filter="never" class="filter-btn text-left bg-white border-2 border-transparent rounded-xl p-4 shadow-sm" aria-pressed="false"><span class="text-xs sm:text-sm font-bold text-gray-500">Never Practised</span><strong id="countNever" class="block text-3xl text-gray-700 mt-1">—</strong></button>
+<button data-filter="back_on_track" class="filter-btn col-span-2 lg:col-span-1 text-left bg-white border-2 border-transparent rounded-xl p-4 shadow-sm" aria-pressed="false"><span class="text-xs sm:text-sm font-bold text-gray-500">Back on Track</span><strong id="countBack" class="block text-3xl text-green-700 mt-1">—</strong></button>
+</section>
+<section class="bg-white rounded-2xl shadow-lg border border-indigo-100 overflow-hidden"><div class="p-4 border-b flex flex-col md:flex-row gap-3 md:items-center md:justify-between"><div><h2 id="listTitle" class="text-xl font-extrabold">Students needing follow-up</h2><p id="weekLabel" class="text-sm text-gray-500 font-semibold mt-1"></p></div><div class="flex flex-col sm:flex-row gap-2"><select id="centreFilter" class="border rounded-lg px-3 py-2 font-bold" aria-label="Filter by centre"><option value="all">All centres</option></select><select id="batchFilter" class="border rounded-lg px-3 py-2 font-bold" aria-label="Filter by batch"><option value="all">All batches</option></select><button id="clearFilter" class="hidden border border-indigo-200 text-indigo-700 rounded-lg px-3 py-2 font-bold">Show follow-up list</button></div></div>
+<div id="loading" class="p-12 text-center text-indigo-600 font-bold">Loading practice follow-up...</div><div id="errorBox" class="hidden p-10 text-center text-red-700 font-bold">Practice information could not be loaded. Please refresh the page.</div><div id="emptyBox" class="hidden p-12 text-center"><div class="text-4xl mb-3">🎉</div><p class="text-green-700 font-extrabold">No students in this list.</p></div>
+<div id="tableWrap" class="hidden overflow-x-auto"><table class="min-w-[1050px] w-full text-sm"><thead class="bg-indigo-50 text-indigo-900"><tr><th class="px-4 py-3 text-left">Student</th><th class="px-4 py-3 text-left">Centre / Batch</th><th class="px-4 py-3 text-center">Level</th><th class="px-4 py-3 text-left">Last Practice</th><th class="px-4 py-3 text-left">This Week</th><th class="px-4 py-3 text-center">Streak</th><th class="px-4 py-3 text-left">Status</th><th class="px-4 py-3 text-left">Action</th></tr></thead><tbody id="tableBody" class="divide-y"></tbody></table></div></section></main>
+<div id="historyModal" class="fixed inset-0 bg-gray-900/55 hidden items-center justify-center z-50 p-4" role="dialog" aria-modal="true"><div class="modal-card bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg"><div class="flex justify-between mb-4"><div><h3 class="text-xl font-extrabold">Practice History</h3><p id="historySubtitle" class="text-sm text-gray-500 font-semibold"></p></div><button id="closeModal" class="text-2xl font-bold" aria-label="Close">&times;</button></div><div id="historyGrid" class="grid grid-cols-7 gap-2"></div><p class="text-xs text-gray-500 font-semibold mt-4">Green dates show website practice. The latest 35 days are available.</p></div></div>
+<script>
+const URL='https://portal-bridge.ucmas-ambernath-pg.workers.dev',KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk',db=window.supabase.createClient(URL,KEY);let students=[],active='follow_up';
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const india=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+const parse=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(Date.UTC(y,m-1,d))},iso=d=>d.toISOString().slice(0,10),fmt=s=>s?parse(s).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}):'Never';
+function monday(s){const d=parse(s),w=d.getUTCDay();d.setUTCDate(d.getUTCDate()-(w===0?6:w-1));return d}
+function classify(s,today){const dates=new Set((s.practice_dates||[]).map(String)),start=monday(today),now=parse(today),w=now.getUTCDay(),n=w===0?6:Math.min(w,6),required=Array.from({length:n},(_,i)=>{const d=new Date(start);d.setUTCDate(d.getUTCDate()+i);return iso(d)}),done=required.filter(d=>dates.has(d)).length,missed=n-done,todayDone=dates.has(today),priorMissed=required.filter(d=>d!==today&&!dates.has(d)).length;let status='on_track';if(!s.last_practice_at)status='never';else if(todayDone&&priorMissed>=2)status='back_on_track';else if(missed>=3)status='needs_attention';else if(missed===2)status='missed_2';else if(w>=1&&w<=6&&!todayDone)status='today_pending';let streak=0,cursor=parse(todayDone?today:([...(s.practice_dates||[])].sort().at(-1)||today));while(dates.has(iso(cursor))){streak++;cursor.setUTCDate(cursor.getUTCDate()-1)}return{...s,status,done,missed,required:n,streak}}
+const meta={today_pending:['Today pending','bg-red-100 text-red-700'],missed_2:['2 days missed','bg-orange-100 text-orange-800'],needs_attention:['Needs attention','bg-rose-100 text-rose-800'],never:['Never practised','bg-gray-200 text-gray-800'],back_on_track:['Back on track','bg-green-100 text-green-800'],on_track:['On track','bg-teal-100 text-teal-800']};
+function message(s){if(s.status==='never')return`Hello! ${s.student_name} has not started website practice yet. Please help them complete today's practice.`;if(s.status==='today_pending')return`Hello! Today's website practice for ${s.student_name} is still pending. Please complete it before 11 PM.`;return`Hello! ${s.student_name} has practised on ${s.done} of ${s.required} practice days this week and missed ${s.missed} day${s.missed===1?'':'s'}. Please help them return to regular practice.`}
+function history(s){historySubtitle.textContent=s.student_name;const dates=new Set((s.practice_dates||[]).map(String)),today=parse(india());let out='';for(let i=27;i>=0;i--){const d=new Date(today);d.setUTCDate(d.getUTCDate()-i);const ok=dates.has(iso(d));out+=`<div class="rounded-lg border ${ok?'bg-green-100 border-green-300 text-green-800':'bg-gray-50 text-gray-400'} p-2 text-center"><div class="text-[11px] font-bold">${d.toLocaleDateString('en-IN',{weekday:'short',timeZone:'UTC'}).slice(0,2)}</div><div class="font-extrabold">${d.getUTCDate()}</div><div class="text-xs">${ok?'✓':'—'}</div></div>`}historyGrid.innerHTML=out;historyModal.classList.remove('hidden');historyModal.classList.add('flex')}
+function closeHistory(){historyModal.classList.add('hidden');historyModal.classList.remove('flex')}
+function counts(){const n=x=>students.filter(s=>s.status===x).length;countToday.textContent=n('today_pending');countTwo.textContent=n('missed_2');countAttention.textContent=n('needs_attention');countNever.textContent=n('never');countBack.textContent=n('back_on_track')}
+function render(){const c=centreFilter.value,b=batchFilter.value;let rows=students.filter(s=>(c==='all'||s.centre_name===c)&&(b==='all'||s.batch_name===b));rows=active==='follow_up'?rows.filter(s=>['today_pending','missed_2','needs_attention','never'].includes(s.status)):rows.filter(s=>s.status===active);const p={never:0,needs_attention:1,missed_2:2,today_pending:3,back_on_track:4};rows.sort((a,b)=>p[a.status]-p[b.status]||b.missed-a.missed||a.student_name.localeCompare(b.student_name));document.querySelectorAll('.filter-btn').forEach(x=>x.setAttribute('aria-pressed',x.dataset.filter===active));clearFilter.classList.toggle('hidden',active==='follow_up');listTitle.textContent=active==='follow_up'?'Students needing follow-up':meta[active][0];tableWrap.classList.toggle('hidden',!rows.length);emptyBox.classList.toggle('hidden',!!rows.length);tableBody.innerHTML=rows.map((s,i)=>`<tr class="hover:bg-indigo-50"><td class="px-4 py-4 font-extrabold">${esc(s.student_name)}</td><td class="px-4 py-4"><b class="text-cyan-800">${esc(s.centre_name||'Not assigned')}</b><small class="block text-gray-500 font-semibold">${esc(s.batch_name||'Batch not assigned')}</small></td><td class="px-4 py-4 text-center font-bold">${s.level?'L'+s.level:'—'}</td><td class="px-4 py-4 font-semibold text-gray-600">${fmt(s.last_practice_date)}</td><td class="px-4 py-4"><b>${s.done}/${s.required} days</b><small class="block text-gray-500">${s.missed} missed</small></td><td class="px-4 py-4 text-center font-extrabold text-indigo-700">${s.streak}</td><td class="px-4 py-4"><span class="px-2 py-1 rounded-full text-xs font-extrabold ${meta[s.status][1]}">${meta[s.status][0]}</span></td><td class="px-4 py-4"><div class="flex gap-2"><button data-a="wa" data-i="${i}" class="bg-green-600 text-white px-3 py-2 rounded-lg font-bold text-xs">WhatsApp</button><button data-a="history" data-i="${i}" class="border border-indigo-200 text-indigo-700 px-3 py-2 rounded-lg font-bold text-xs whitespace-nowrap">View History</button></div></td></tr>`).join('');tableBody.querySelectorAll('button').forEach(x=>x.onclick=()=>x.dataset.a==='wa'?open('https://wa.me/?text='+encodeURIComponent(message(rows[+x.dataset.i])),'_blank','noopener'):history(rows[+x.dataset.i]))}
+document.querySelectorAll('.filter-btn').forEach(x=>x.onclick=()=>{active=x.dataset.filter;render()});clearFilter.onclick=()=>{active='follow_up';render()};centreFilter.onchange=batchFilter.onchange=render;closeModal.onclick=closeHistory;historyModal.onclick=e=>{if(e.target===historyModal)closeHistory()};document.onkeydown=e=>{if(e.key==='Escape')closeHistory()};
+document.addEventListener('DOMContentLoaded',async()=>{const today=india(),start=monday(today),end=new Date(start);end.setUTCDate(end.getUTCDate()+5);weekLabel.textContent=`Week: ${fmt(iso(start))} to ${fmt(iso(end))}`;const{data,error}=await db.rpc('staff_practice_followup_overview');loading.classList.add('hidden');if(error){console.error(error);errorBox.classList.remove('hidden');return}students=(data||[]).map(s=>classify(s,today));const centres=[...new Set(students.map(s=>s.centre_name).filter(Boolean))].sort(),batches=[...new Set(students.map(s=>s.batch_name).filter(Boolean))].sort();centreFilter.innerHTML='<option value="all">All centres</option>'+centres.map(x=>`<option>${esc(x)}</option>`).join('');batchFilter.innerHTML='<option value="all">All batches</option>'+batches.map(x=>`<option>${esc(x)}</option>`).join('');counts();render()});
+</script></body></html>
