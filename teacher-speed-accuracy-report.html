@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Speed & Accuracy Reports | Li'l Champs</title>
+<script src="https://cdn.tailwindcss.com"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>body{font-family:Nunito,sans-serif;background:#f8fafc}.pill{display:inline-flex;border-radius:999px;padding:.25rem .65rem;font-size:.72rem;font-weight:900}</style>
+</head><body class="min-h-screen text-slate-800">
+<header class="bg-slate-900 text-white shadow"><div class="max-w-7xl mx-auto p-4 flex justify-between items-center gap-3"><div><h1 class="text-2xl font-black">Speed & Accuracy Reports</h1><p class="text-slate-300 text-sm font-bold">Root mistakes, minus weakness and time-pressure analysis</p></div><a href="teacher-dashboard.html" class="bg-white/10 px-4 py-2 rounded-xl font-black no-underline">Back</a></div></header>
+<main class="max-w-7xl mx-auto p-4 py-6">
+<div id="loading" class="bg-white rounded-2xl shadow p-8 text-center font-black text-indigo-700">Loading reports...</div>
+<div id="denied" class="hidden bg-white rounded-2xl shadow p-8 text-center"><div class="text-6xl">🔒</div><h2 class="text-2xl font-black mt-2">Staff access required</h2></div>
+<div id="app" class="hidden space-y-5">
+<section class="bg-white rounded-2xl shadow p-4 grid sm:grid-cols-2 lg:grid-cols-6 gap-3">
+<label><span class="text-xs uppercase font-black text-slate-400">From</span><input id="fromDate" type="date" class="w-full mt-1 border rounded-xl px-3 py-2 font-bold"></label>
+<label><span class="text-xs uppercase font-black text-slate-400">To</span><input id="toDate" type="date" class="w-full mt-1 border rounded-xl px-3 py-2 font-bold"></label>
+<label><span class="text-xs uppercase font-black text-slate-400">Centre</span><select id="centre" class="w-full mt-1 border rounded-xl px-3 py-2 font-bold"><option value="all">All Centres</option><option value="1">East - Near Station</option><option value="2">East - Nisarg Greens</option><option value="3">Father Agnel Side</option></select></label>
+<label><span class="text-xs uppercase font-black text-slate-400">Batch</span><select id="batch" class="w-full mt-1 border rounded-xl px-3 py-2 font-bold"><option value="all">All Batches</option></select></label>
+<label><span class="text-xs uppercase font-black text-slate-400">Student</span><select id="student" class="w-full mt-1 border rounded-xl px-3 py-2 font-bold"><option value="all">All Students</option></select></label>
+<label><span class="text-xs uppercase font-black text-slate-400">Mode</span><select id="mode" class="w-full mt-1 border rounded-xl px-3 py-2 font-bold"><option value="all">All Modes</option><option value="single_digit">Single Digit</option><option value="double_digit">Double Digit</option></select></label>
+</section>
+
+<section class="grid grid-cols-2 lg:grid-cols-6 gap-3">
+<div class="bg-white rounded-xl shadow p-4"><div class="text-xs font-black uppercase text-slate-400">Tests</div><div id="kTests" class="text-3xl font-black">0</div></div>
+<div class="bg-white rounded-xl shadow p-4"><div class="text-xs font-black uppercase text-slate-400">Students</div><div id="kStudents" class="text-3xl font-black">0</div></div>
+<div class="bg-white rounded-xl shadow p-4"><div class="text-xs font-black uppercase text-slate-400">Accuracy</div><div id="kAccuracy" class="text-3xl font-black text-emerald-700">0%</div></div>
+<div class="bg-white rounded-xl shadow p-4"><div class="text-xs font-black uppercase text-slate-400">Root mistakes</div><div id="kWrong" class="text-3xl font-black text-rose-700">0</div></div>
+<div class="bg-white rounded-xl shadow p-4"><div class="text-xs font-black uppercase text-slate-400">Timeouts</div><div id="kTimeout" class="text-3xl font-black text-amber-600">0</div></div>
+<div class="bg-white rounded-xl shadow p-4"><div class="text-xs font-black uppercase text-slate-400">Avg response</div><div id="kAvg" class="text-3xl font-black text-indigo-700">-</div></div>
+</section>
+
+<section class="grid lg:grid-cols-3 gap-5">
+<div class="bg-white rounded-2xl shadow p-5"><div class="text-xs uppercase tracking-widest text-rose-600 font-black">Top weak operations</div><h3 class="text-xl font-black mt-1">Errors + timeouts</h3><div id="weakOps" class="space-y-2 mt-4"></div></div>
+<div class="bg-white rounded-2xl shadow p-5"><div class="text-xs uppercase tracking-widest text-amber-600 font-black">Minus analysis</div><h3 class="text-xl font-black mt-1">Subtraction under pressure</h3><div id="minusStats" class="mt-4 space-y-3"></div></div>
+<div class="bg-white rounded-2xl shadow p-5"><div class="text-xs uppercase tracking-widest text-indigo-600 font-black">Teacher note</div><h3 class="text-xl font-black mt-1">How to read this</h3><div class="mt-4 text-sm font-bold text-slate-600 space-y-2"><p><b>Root mistake:</b> the child performed that operation incorrectly from the number actually on their abacus.</p><p><b>Carried correct:</b> the earlier total was wrong, but this operation was done correctly from that wrong total.</p><p><b>Timeout:</b> no answer within the set time. Remaining rows of that sum are not counted wrong.</p></div></div>
+</section>
+
+<section class="bg-white rounded-2xl shadow overflow-hidden">
+<div class="p-5 border-b"><h3 class="text-xl font-black">Student summary</h3><p class="text-sm font-bold text-slate-500">Use this to decide which child needs targeted correction.</p></div>
+<div class="overflow-x-auto"><table class="w-full min-w-[1050px] text-sm"><thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="p-3 text-left">Student</th><th class="p-3 text-left">Batch</th><th class="p-3">Level</th><th class="p-3">Tests</th><th class="p-3">Accuracy</th><th class="p-3">Root mistakes</th><th class="p-3">Timeouts</th><th class="p-3">Avg time</th><th class="p-3 text-left">Main weak area</th><th class="p-3">Latest</th></tr></thead><tbody id="studentRows" class="divide-y"></tbody></table></div>
+</section>
+
+<section class="bg-white rounded-2xl shadow overflow-hidden">
+<div class="p-5 border-b"><h3 class="text-xl font-black">Detailed test history</h3></div>
+<div class="overflow-x-auto"><table class="w-full min-w-[1100px] text-sm"><thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="p-3 text-left">Date</th><th class="p-3 text-left">Student</th><th class="p-3 text-left">Mode</th><th class="p-3">Correct</th><th class="p-3">Carried correct</th><th class="p-3">Root mistakes</th><th class="p-3">Timeout</th><th class="p-3">Not reached</th><th class="p-3">Avg time</th><th class="p-3 text-left">Weak operations</th></tr></thead><tbody id="testRows" class="divide-y"></tbody></table></div>
+</section>
+<section class="bg-white rounded-2xl shadow overflow-hidden">
+<div class="p-5 border-b"><h3 class="text-xl font-black">Problem step details</h3><p class="text-sm font-bold text-slate-500">Exact root mistakes and timeouts for the selected filters.</p></div>
+<div class="overflow-x-auto"><table class="w-full min-w-[1200px] text-sm"><thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="p-3 text-left">Date</th><th class="p-3 text-left">Student</th><th class="p-3">Sum / Step</th><th class="p-3">From</th><th class="p-3">Operation</th><th class="p-3">Student answer</th><th class="p-3">Expected from that point</th><th class="p-3 text-left">Formula / type</th><th class="p-3">Response</th></tr></thead><tbody id="problemRows" class="divide-y"></tbody></table></div>
+</section>
+</div></main>
+<script>
+const SUPABASE_URL='https://portal-bridge.ucmas-ambernath-pg.workers.dev';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYXNlIiwicmVmIjoiaXBha3dnemJianl3emNjb2FoaXciLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc2MjE5MDIyNCwiZXhwIjoyMDc3NzY2MjI0fQ.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY),$=id=>document.getElementById(id);let all=[];
+function signed(n){return n<0?'−'+Math.abs(n):'+'+n}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function dt(x){return new Date(x).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'})}
+function modeName(x){return x==='single_digit'?'Single Digit':'Double Digit'}
+function pct(a,b){return b?Math.round(a*100/b):0}
+function problems(rows){
+ const m=new Map();rows.forEach(t=>(t.steps||[]).filter(s=>s.result==='wrong'||s.result==='timeout').forEach(s=>{const k=signed(s.operation),v=m.get(k)||{issues:0,wrong:0,timeout:0,minus:s.operation<0};v.issues++;if(s.result==='wrong')v.wrong++;else v.timeout++;m.set(k,v)}));return [...m.entries()].sort((a,b)=>b[1].issues-a[1].issues);
+}
+function currentRows(){
+ const c=$('centre').value,b=$('batch').value,s=$('student').value,m=$('mode').value,from=$('fromDate').value,to=$('toDate').value;
+ return all.filter(r=>(c==='all'||String(r.centre_id)===c)&&(b==='all'||r.batch_name===b)&&(s==='all'||r.user_id===s)&&(m==='all'||r.mode===m)&&(!from||r.practice_date>=from)&&(!to||r.practice_date<=to));
+}
+function refill(){
+ const c=$('centre').value;const base=all.filter(r=>c==='all'||String(r.centre_id)===c);
+ const oldB=$('batch').value,batches=[...new Set(base.map(r=>r.batch_name).filter(Boolean))].sort();$('batch').innerHTML='<option value="all">All Batches</option>'+batches.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');if(batches.includes(oldB))$('batch').value=oldB;
+ const b=$('batch').value;const st=[...new Map(base.filter(r=>b==='all'||r.batch_name===b).map(r=>[r.user_id,r.student_name])).entries()].sort((a,b)=>a[1].localeCompare(b[1]));$('student').innerHTML='<option value="all">All Students</option>'+st.map(([id,n])=>`<option value="${id}">${esc(n)}</option>`).join('');
+}
+function render(){
+ const rows=currentRows(),ans=rows.reduce((a,r)=>a+Number(r.correct_steps||0)+Number(r.wrong_steps||0),0),cor=rows.reduce((a,r)=>a+Number(r.correct_steps||0),0),wr=rows.reduce((a,r)=>a+Number(r.root_mistakes||0),0),to=rows.reduce((a,r)=>a+Number(r.timeout_steps||0),0);
+ $('kTests').textContent=rows.length;$('kStudents').textContent=new Set(rows.map(r=>r.user_id)).size;$('kAccuracy').textContent=pct(cor,ans)+'%';$('kWrong').textContent=wr;$('kTimeout').textContent=to;
+ const av=rows.map(r=>Number(r.avg_response_ms)).filter(Number.isFinite);$('kAvg').textContent=av.length?(av.reduce((a,b)=>a+b,0)/av.length/1000).toFixed(2)+'s':'-';
+ const probs=problems(rows).slice(0,8);$('weakOps').innerHTML=probs.length?probs.map(([k,v],i)=>`<div class="rounded-xl border p-3 flex justify-between gap-3"><div class="font-black text-lg">${i+1}. ${esc(k)}</div><div class="text-right text-sm font-bold text-slate-600">${v.wrong} wrong · ${v.timeout} timeout</div></div>`).join(''):'<div class="font-black text-emerald-700">No issues in selected records.</div>';
+ const minusSteps=rows.flatMap(r=>r.steps||[]).filter(s=>s.operation_type==='minus'&&s.result!=='cancelled'),minusWrong=minusSteps.filter(s=>s.result==='wrong').length,minusTimeout=minusSteps.filter(s=>s.result==='timeout').length,minusAnswered=minusSteps.filter(s=>['correct','carried_correct','wrong'].includes(s.result)).length,minusCorrect=minusSteps.filter(s=>['correct','carried_correct'].includes(s.result)).length;
+ $('minusStats').innerHTML=`<div class="flex justify-between font-bold"><span>Minus analysed</span><b>${minusSteps.length}</b></div><div class="flex justify-between font-bold"><span>Minus accuracy</span><b class="text-emerald-700">${pct(minusCorrect,minusAnswered)}%</b></div><div class="flex justify-between font-bold"><span>Minus root mistakes</span><b class="text-rose-700">${minusWrong}</b></div><div class="flex justify-between font-bold"><span>Minus timeouts</span><b class="text-amber-700">${minusTimeout}</b></div>`;
+ const by=new Map();rows.forEach(r=>{if(!by.has(r.user_id))by.set(r.user_id,[]);by.get(r.user_id).push(r)});
+ const sums=[...by.values()].sort((a,b)=>String(a[0].student_name).localeCompare(String(b[0].student_name)));
+ $('studentRows').innerHTML=sums.length?sums.map(rs=>{const latest=rs.slice().sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0],a=rs.reduce((x,r)=>x+Number(r.correct_steps||0)+Number(r.wrong_steps||0),0),c=rs.reduce((x,r)=>x+Number(r.correct_steps||0),0),w=rs.reduce((x,r)=>x+Number(r.root_mistakes||0),0),t=rs.reduce((x,r)=>x+Number(r.timeout_steps||0),0),av=rs.map(r=>Number(r.avg_response_ms)).filter(Number.isFinite),weak=problems(rs)[0]?.[0]||'—';return `<tr><td class="p-3 font-black">${esc(latest.student_name)}</td><td class="p-3 font-bold">${esc(latest.batch_name||'-')}</td><td class="p-3 text-center font-bold">${latest.level}</td><td class="p-3 text-center font-bold">${rs.length}</td><td class="p-3 text-center font-black text-emerald-700">${pct(c,a)}%</td><td class="p-3 text-center font-black text-rose-700">${w}</td><td class="p-3 text-center font-black text-amber-700">${t}</td><td class="p-3 text-center font-bold">${av.length?(av.reduce((x,y)=>x+y,0)/av.length/1000).toFixed(2)+'s':'-'}</td><td class="p-3 font-black">${esc(weak)}</td><td class="p-3 text-center text-xs font-bold">${dt(latest.created_at)}</td></tr>`}).join(''):'<tr><td colspan="10" class="p-6 text-center font-bold text-slate-400">No records found.</td></tr>';
+ $('testRows').innerHTML=rows.slice().sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,200).map(r=>{const weak=problems([r]).slice(0,3).map(x=>x[0]).join(', ')||'—';return `<tr><td class="p-3 font-bold">${dt(r.created_at)}</td><td class="p-3 font-black">${esc(r.student_name)}</td><td class="p-3"><span class="pill bg-indigo-50 text-indigo-700">${modeName(r.mode)}</span></td><td class="p-3 text-center font-black text-emerald-700">${r.correct_steps}</td><td class="p-3 text-center font-bold text-sky-700">${r.carried_correct_steps}</td><td class="p-3 text-center font-black text-rose-700">${r.root_mistakes}</td><td class="p-3 text-center font-black text-amber-700">${r.timeout_steps}</td><td class="p-3 text-center font-bold">${r.cancelled_steps}</td><td class="p-3 text-center font-bold">${r.avg_response_ms?(r.avg_response_ms/1000).toFixed(2)+'s':'-'}</td><td class="p-3 font-black">${esc(weak)}</td></tr>`}).join('');
+ const problemDetails=rows.flatMap(r=>(r.steps||[]).filter(s=>s.result==='wrong'||s.result==='timeout').map(s=>({test:r,step:s}))).sort((a,b)=>new Date(b.test.created_at)-new Date(a.test.created_at)).slice(0,300);
+ $('problemRows').innerHTML=problemDetails.length?problemDetails.map(x=>{const r=x.test,s=x.step;return `<tr><td class="p-3 font-bold">${dt(r.created_at)}</td><td class="p-3 font-black">${esc(r.student_name)}</td><td class="p-3 text-center font-bold">${s.sum_number} / ${s.step_number}</td><td class="p-3 text-center font-bold">${s.student_before??'-'}</td><td class="p-3 text-center font-black">${signed(s.operation)}</td><td class="p-3 text-center font-black ${s.result==='timeout'?'text-amber-700':'text-rose-700'}">${s.result==='timeout'?'TIMEOUT':s.student_total}</td><td class="p-3 text-center font-black">${s.expected_from_student??'-'}</td><td class="p-3 font-bold">${esc(s.formula_label||'')}</td><td class="p-3 text-center font-bold">${s.response_ms? (s.response_ms/1000).toFixed(2)+'s':'-'}</td></tr>`}).join(''):'<tr><td colspan="9" class="p-6 text-center font-black text-emerald-700">No root mistakes or timeouts in the selected records.</td></tr>';
+}
+['fromDate','toDate','mode','student'].forEach(id=>$(id).onchange=render);$('centre').onchange=()=>{refill();render()};$('batch').onchange=()=>{refill();render()};
+(async()=>{
+ try{
+  const {data:{session}}=await db.auth.getSession();if(!session){location.href='login.html';return}
+  const {data:p,error:pe}=await db.from('profiles').select('role,is_active').eq('id',session.user.id).single();if(pe)throw pe;
+  if(p.is_active===false||!['admin','teacher'].includes(p.role)){$('loading').classList.add('hidden');$('denied').classList.remove('hidden');return}
+  const d=new Date(),to=d.toISOString().slice(0,10);d.setDate(d.getDate()-30);$('fromDate').value=d.toISOString().slice(0,10);$('toDate').value=to;
+  const {data,error}=await db.from('speed_accuracy_tests').select('*').order('created_at',{ascending:false}).limit(3000);if(error)throw error;all=data||[];
+  refill();$('loading').classList.add('hidden');$('app').classList.remove('hidden');render();
+ }catch(e){console.error(e);$('loading').textContent='Unable to load Speed & Accuracy reports.'}
+})();
+</script></body></html>
