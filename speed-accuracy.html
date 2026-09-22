@@ -99,7 +99,7 @@
       <div id="weakBox" class="mt-5 bg-indigo-50 border border-indigo-200 rounded-xl p-4 font-bold text-indigo-900"></div>
       <div class="grid sm:grid-cols-2 gap-3 mt-5">
         <button id="againBtn" class="bg-indigo-600 text-white rounded-xl py-3 font-black">Try Again</button>
-        <a href="speed-accuracy-progress.html" class="text-center bg-emerald-600 text-white rounded-xl py-3 font-black no-underline">My Speed Report</a>
+        <a href="speed-accuracy-progress.html?v=20260922-3" class="text-center bg-emerald-600 text-white rounded-xl py-3 font-black no-underline">My Speed Report</a>
       </div>
     </div>
   </section>
@@ -112,10 +112,10 @@
 
 <script>
 const AUTH_URL='https://portal-bridge.ucmas-ambernath-pg.workers.dev';
-const API_URL='https://ipakwgzbbjywzccoahiw.supabase.co';
+const FUNCTION_URL='https://ipakwgzbbjywzccoahiw.supabase.co/functions/v1/speed-accuracy-api';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYXNlIiwicmVmIjoiaXBha3dnemJianl3emNjb2FoaXciLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc2MjE5MDIyNCwiZXhwIjoyMDc3NzY2MjI0fQ.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
 const authDb=supabase.createClient(AUTH_URL,SUPABASE_ANON_KEY);
-let db=null;
+let authSession=null;
 const $=id=>document.getElementById(id);
 let profile=null,mode='single_digit',questions=[],sumIndex=0,stepIndex=0,studentRunning=0,answer='',records=[];
 let timerInterval=null,timerTimeout=null,stepStarted=0,testStarted=0,locked=false;
@@ -252,16 +252,25 @@ async function finishTest(){
   $('rCorrect').textContent=correct;$('rWrong').textContent=wrong;$('rTimeout').textContent=timeout;$('rCancelled').textContent=cancelled;
   $('weakBox').textContent=weakSummary()+(carried?' · '+carried+' later step'+(carried===1?' was':'s were')+' calculated correctly from an earlier wrong total.':'');
   const payload={
-    user_id:profile.id,student_name:profile.full_name||'Student',level:Number(profile.current_level),
-    batch_name:profile.batch_name||null,centre_id:profile.centre_id||null,mode,step_limit_ms:stepLimit(),
-    sum_count:SUMS,steps_per_sum:STEPS,total_possible_steps:SUMS*STEPS,analysed_steps:analysed,
+    mode,step_limit_ms:stepLimit(),sum_count:SUMS,steps_per_sum:STEPS,
+    total_possible_steps:SUMS*STEPS,analysed_steps:analysed,
     correct_steps:correct,carried_correct_steps:carried,wrong_steps:wrong,timeout_steps:timeout,
     cancelled_steps:cancelled,root_mistakes:wrong,avg_response_ms:avg,
     duration_seconds:Math.max(1,Math.round((performance.now()-testStarted)/1000)),steps:records
   };
-  const {error}=await db.from('speed_accuracy_tests').insert(payload);
-  $('saveStatus').textContent=error?'Test finished, but the report could not be saved. Please tell your teacher.':'Report saved for you, your parent and teacher.';
-  if(error)console.error(error);
+  try{
+    const res=await fetch(FUNCTION_URL+'?action=save',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+authSession.access_token,'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(data.error||'Unable to save report');
+    $('saveStatus').textContent='Report saved for you, your parent and teacher.';
+  }catch(e){
+    console.error(e);
+    $('saveStatus').textContent='Test finished, but the report could not be saved. Please tell your teacher.';
+  }
 }
 function startTest(){
   buildQuestions();sumIndex=0;stepIndex=0;records=[];testStarted=performance.now();show('test');renderStep();
@@ -283,15 +292,16 @@ document.addEventListener('keydown',e=>{if($('test').classList.contains('hidden'
   try{
     const {data:{session}}=await authDb.auth.getSession();
     if(!session){location.href='login.html';return}
-    db=supabase.createClient(API_URL,SUPABASE_ANON_KEY,{global:{headers:{Authorization:'Bearer '+session.access_token}},auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
-    const {data,error}=await db.rpc('student_speed_accuracy_context');
-    if(error)throw error;
-    profile=data;
-    if(!profile||profile.role!=='student'||profile.is_active===false||profile.student_status!=='active'||Number(profile.current_level)<2||Number(profile.current_level)>8){
-      $('deniedText').textContent='Speed & Accuracy Check is available to active Level 2 to Level 8 students.';show('denied');return;
+    authSession=session;
+    const level=Number(sessionStorage.getItem('currentLevel'));
+    const name=sessionStorage.getItem('studentIdentifier')||session.user.email?.split('@')[0]||'Student';
+    const id=sessionStorage.getItem('userId')||session.user.id;
+    if(!Number.isInteger(level)||level<2||level>8){
+      $('deniedText').textContent='Speed & Accuracy Check is available only to Level 2 to Level 8 students.';show('denied');return;
     }
+    profile={id,full_name:name,current_level:level};
     show('setup');
-  }catch(e){console.error(e);$('deniedText').textContent=e?.message||'Unable to load your student profile. Please refresh.';show('denied')}
+  }catch(e){console.error(e);$('deniedText').textContent='Unable to load your login session. Please log in again.';show('denied')}
 })();
 </script>
 </body></html>
