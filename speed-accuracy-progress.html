@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Speed & Accuracy Report | Li'l Champs</title>
+<script src="https://cdn.tailwindcss.com"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>body{font-family:Nunito,sans-serif;background:#f8fafc}.pill{display:inline-flex;border-radius:999px;padding:.25rem .65rem;font-size:.72rem;font-weight:900}</style>
+</head><body class="min-h-screen text-slate-800">
+<header class="bg-emerald-700 text-white shadow"><div class="max-w-6xl mx-auto p-4 flex justify-between items-center gap-3"><div><h1 class="text-2xl font-black">My Speed & Accuracy Report</h1><p class="text-emerald-100 font-bold text-sm">For student & parent</p></div><a href="practice_options.html" class="bg-white/15 px-4 py-2 rounded-xl font-black no-underline">Dashboard</a></div></header>
+<main class="max-w-6xl mx-auto p-4 py-6">
+<div id="loading" class="bg-white shadow rounded-2xl p-8 text-center font-black text-emerald-700">Loading report...</div>
+<div id="app" class="hidden space-y-5">
+  <section class="bg-white rounded-2xl shadow p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div><div class="text-xs uppercase tracking-widest text-emerald-600 font-black">Student</div><h2 id="studentName" class="text-3xl font-black"></h2><div id="studentMeta" class="text-slate-500 font-bold mt-1"></div></div>
+    <a href="speed-accuracy.html" class="bg-indigo-600 text-white px-5 py-3 rounded-xl font-black text-center no-underline">Start New Check</a>
+  </section>
+  <section id="empty" class="hidden bg-white rounded-2xl shadow p-10 text-center"><div class="text-6xl">🎯</div><h3 class="text-2xl font-black mt-2">No checks yet</h3><p class="text-slate-500 font-bold mt-2">Complete your first Speed & Accuracy Check to see the report.</p></section>
+  <div id="reportArea" class="hidden space-y-5">
+    <section class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <div class="bg-white rounded-xl shadow p-4"><div class="text-xs font-black uppercase text-slate-400">Tests</div><div id="tests" class="text-3xl font-black">0</div></div>
+      <div class="bg-white rounded-xl shadow p-4"><div class="text-xs font-black uppercase text-slate-400">Calculation accuracy</div><div id="accuracy" class="text-3xl font-black text-emerald-700">0%</div></div>
+      <div class="bg-white rounded-xl shadow p-4"><div class="text-xs font-black uppercase text-slate-400">Root mistakes</div><div id="mistakes" class="text-3xl font-black text-rose-700">0</div></div>
+      <div class="bg-white rounded-xl shadow p-4"><div class="text-xs font-black uppercase text-slate-400">Timeouts</div><div id="timeouts" class="text-3xl font-black text-amber-600">0</div></div>
+      <div class="bg-white rounded-xl shadow p-4 col-span-2 lg:col-span-1"><div class="text-xs font-black uppercase text-slate-400">Avg response</div><div id="avg" class="text-3xl font-black text-indigo-700">-</div></div>
+    </section>
+
+    <section class="grid lg:grid-cols-2 gap-5">
+      <div class="bg-white rounded-2xl shadow p-5"><div class="text-xs uppercase tracking-widest text-rose-600 font-black">Weak operations</div><h3 class="text-xl font-black mt-1">Where mistakes happen</h3><div id="weakList" class="mt-4 space-y-2"></div></div>
+      <div class="bg-white rounded-2xl shadow p-5"><div class="text-xs uppercase tracking-widest text-indigo-600 font-black">Latest check</div><h3 id="latestTitle" class="text-xl font-black mt-1"></h3><div id="latestStats" class="mt-4 grid grid-cols-2 gap-3"></div><div id="latestNote" class="mt-4 rounded-xl bg-indigo-50 p-3 font-bold text-indigo-900"></div></div>
+    </section>
+
+    <section class="bg-white rounded-2xl shadow overflow-hidden">
+      <div class="p-5 border-b"><h3 class="text-xl font-black">Recent checks</h3><p class="text-sm text-slate-500 font-bold">Calculation mistakes and timeouts are kept separate.</p></div>
+      <div class="overflow-x-auto"><table class="w-full min-w-[760px] text-sm"><thead class="bg-slate-50 text-slate-500 uppercase text-xs"><tr><th class="p-3 text-left">Date</th><th class="p-3 text-left">Mode</th><th class="p-3 text-center">Correct</th><th class="p-3 text-center">Root mistakes</th><th class="p-3 text-center">Timeout</th><th class="p-3 text-center">Not reached</th><th class="p-3 text-center">Avg time</th></tr></thead><tbody id="history" class="divide-y"></tbody></table></div>
+    </section>
+
+    <section class="bg-white rounded-2xl shadow overflow-hidden">
+      <div class="p-5 border-b"><h3 class="text-xl font-black">Latest mistake details</h3><p class="text-sm text-slate-500 font-bold">Only genuine calculation mistakes and timeouts are shown.</p></div>
+      <div class="overflow-x-auto"><table class="w-full min-w-[850px] text-sm"><thead class="bg-slate-50 text-slate-500 uppercase text-xs"><tr><th class="p-3">Sum</th><th class="p-3">Step</th><th class="p-3 text-left">Operation</th><th class="p-3">From</th><th class="p-3">Student</th><th class="p-3">Correct from that point</th><th class="p-3 text-left">Type</th></tr></thead><tbody id="details" class="divide-y"></tbody></table></div>
+    </section>
+  </div>
+</div>
+<div id="denied" class="hidden bg-white rounded-2xl shadow p-8 text-center"><div class="text-6xl">🔒</div><h2 class="text-2xl font-black mt-2">Student access required</h2></div>
+</main>
+<script>
+const SUPABASE_URL='https://portal-bridge.ucmas-ambernath-pg.workers.dev';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYXNlIiwicmVmIjoiaXBha3dnemJianl3emNjb2FoaXciLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc2MjE5MDIyNCwiZXhwIjoyMDc3NzY2MjI0fQ.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY),$=id=>document.getElementById(id);
+function signed(n){return n<0?'−'+Math.abs(n):'+'+n}
+function dt(x){return new Date(x).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'})}
+function modeName(x){return x==='single_digit'?'Single Digit':'Double Digit'}
+function pct(a,b){return b?Math.round(a*100/b):0}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function weak(rows){
+ const map=new Map();
+ rows.forEach(t=>(t.steps||[]).filter(s=>s.result==='wrong'||s.result==='timeout').forEach(s=>{const k=signed(s.operation),v=map.get(k)||{issues:0,wrong:0,timeout:0};v.issues++;if(s.result==='wrong')v.wrong++;else v.timeout++;map.set(k,v)}));
+ return [...map.entries()].sort((a,b)=>b[1].issues-a[1].issues).slice(0,8);
+}
+function render(rows){
+ $('tests').textContent=rows.length;
+ const answered=rows.reduce((a,r)=>a+Number(r.correct_steps||0)+Number(r.wrong_steps||0),0),correct=rows.reduce((a,r)=>a+Number(r.correct_steps||0),0);
+ $('accuracy').textContent=pct(correct,answered)+'%';
+ $('mistakes').textContent=rows.reduce((a,r)=>a+Number(r.root_mistakes||0),0);
+ $('timeouts').textContent=rows.reduce((a,r)=>a+Number(r.timeout_steps||0),0);
+ const avgs=rows.map(r=>Number(r.avg_response_ms)).filter(Number.isFinite);$('avg').textContent=avgs.length?(Math.round(avgs.reduce((a,b)=>a+b,0)/avgs.length)/1000).toFixed(2)+'s':'-';
+ const w=weak(rows.slice(0,10));$('weakList').innerHTML=w.length?w.map(([k,v],i)=>`<div class="flex justify-between gap-3 rounded-xl border p-3"><div><span class="font-black text-lg">${esc(k)}</span><span class="ml-2 text-xs font-black text-slate-400">#${i+1}</span></div><div class="text-right font-bold text-slate-600">${v.wrong} wrong · ${v.timeout} timeout</div></div>`).join(''):'<div class="text-emerald-700 font-black">No repeated weak operation found.</div>';
+ const latest=rows[0];$('latestTitle').textContent=modeName(latest.mode)+' · '+dt(latest.created_at);
+ $('latestStats').innerHTML=`<div class="rounded-xl bg-emerald-50 p-3"><div class="text-2xl font-black text-emerald-700">${latest.correct_steps}</div><div class="text-xs font-black uppercase">Correct</div></div><div class="rounded-xl bg-rose-50 p-3"><div class="text-2xl font-black text-rose-700">${latest.root_mistakes}</div><div class="text-xs font-black uppercase">Root mistakes</div></div><div class="rounded-xl bg-amber-50 p-3"><div class="text-2xl font-black text-amber-700">${latest.timeout_steps}</div><div class="text-xs font-black uppercase">Timeouts</div></div><div class="rounded-xl bg-slate-100 p-3"><div class="text-2xl font-black">${latest.cancelled_steps}</div><div class="text-xs font-black uppercase">Not reached</div></div>`;
+ const latestWeak=weak([latest]).slice(0,3);$('latestNote').textContent=latestWeak.length?'Needs attention: '+latestWeak.map(x=>x[0]).join(', '):'No weak operation detected in the latest check.';
+ $('history').innerHTML=rows.slice(0,20).map(r=>`<tr><td class="p-3 font-bold">${dt(r.created_at)}</td><td class="p-3"><span class="pill bg-indigo-50 text-indigo-700">${modeName(r.mode)}</span></td><td class="p-3 text-center font-black text-emerald-700">${r.correct_steps}</td><td class="p-3 text-center font-black text-rose-700">${r.root_mistakes}</td><td class="p-3 text-center font-black text-amber-700">${r.timeout_steps}</td><td class="p-3 text-center font-bold">${r.cancelled_steps}</td><td class="p-3 text-center font-bold">${r.avg_response_ms? (r.avg_response_ms/1000).toFixed(2)+'s':'-'}</td></tr>`).join('');
+ const probs=(latest.steps||[]).filter(s=>s.result==='wrong'||s.result==='timeout');
+ $('details').innerHTML=probs.length?probs.map(s=>`<tr><td class="p-3 text-center font-bold">${s.sum_number}</td><td class="p-3 text-center font-bold">${s.step_number}</td><td class="p-3 font-black">${signed(s.operation)}</td><td class="p-3 text-center">${s.student_before??'-'}</td><td class="p-3 text-center font-black ${s.result==='timeout'?'text-amber-700':'text-rose-700'}">${s.result==='timeout'?'TIMEOUT':s.student_total}</td><td class="p-3 text-center font-black">${s.expected_from_student??'-'}</td><td class="p-3 font-bold">${esc(s.formula_label||'')}</td></tr>`).join(''):'<tr><td colspan="7" class="p-6 text-center font-black text-emerald-700">No genuine mistakes or timeouts in the latest check.</td></tr>';
+}
+(async()=>{
+ try{
+  const {data:{session}}=await db.auth.getSession();if(!session){location.href='login.html';return}
+  const {data:p,error:pe}=await db.from('profiles').select('full_name,role,is_active,current_level,batch_name,student_status').eq('id',session.user.id).single();if(pe)throw pe;
+  if(p.role!=='student'||p.is_active===false){$('loading').classList.add('hidden');$('denied').classList.remove('hidden');return}
+  $('studentName').textContent=p.full_name||'Student';$('studentMeta').textContent='Level '+p.current_level+(p.batch_name?' · Batch '+p.batch_name:'');
+  const {data:rows,error}=await db.from('speed_accuracy_tests').select('*').eq('user_id',session.user.id).order('created_at',{ascending:false}).limit(100);if(error)throw error;
+  $('loading').classList.add('hidden');$('app').classList.remove('hidden');
+  if(!rows?.length){$('empty').classList.remove('hidden');return}
+  $('reportArea').classList.remove('hidden');render(rows);
+ }catch(e){console.error(e);$('loading').textContent='Unable to load report. Please refresh.'}
+})();
+</script></body></html>
