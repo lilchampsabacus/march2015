@@ -88,7 +88,8 @@ function render(){
 ['fromDate','toDate','mode','student'].forEach(id=>$(id).onchange=render);$('centre').onchange=()=>{refill();render()};$('batch').onchange=()=>{refill();render()};
 (async()=>{
  try{
-  const {data:{session}}=await authDb.auth.getSession();if(!session){location.href='login.html';return}\n  db=supabase.createClient(API_URL,SUPABASE_ANON_KEY,{global:{headers:{Authorization:'Bearer '+session.access_token}},auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+  const {data:{session}}=await authDb.auth.getSession();if(!session){location.href='login.html';return}
+  db=supabase.createClient(API_URL,SUPABASE_ANON_KEY,{global:{headers:{Authorization:'Bearer '+session.access_token}},auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
   const {data:p,error:pe}=await db.from('profiles').select('role,is_active').eq('id',session.user.id).single();if(pe)throw pe;
   if(p.is_active===false||!['admin','teacher'].includes(p.role)){$('loading').classList.add('hidden');$('denied').classList.remove('hidden');return}
   const d=new Date(),to=d.toISOString().slice(0,10);d.setDate(d.getDate()-30);$('fromDate').value=d.toISOString().slice(0,10);$('toDate').value=to;
