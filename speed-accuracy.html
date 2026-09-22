@@ -281,14 +281,14 @@ document.addEventListener('keydown',e=>{if($('test').classList.contains('hidden'
   try{
     const {data:{session}}=await db.auth.getSession();
     if(!session){location.href='login.html';return}
-    const {data,error}=await db.from('profiles').select('id,full_name,role,is_active,current_level,batch_name,centre_id,student_status').eq('id',session.user.id).single();
+    const {data,error}=await db.rpc('student_speed_accuracy_context');
     if(error)throw error;
     profile=data;
-    if(profile.role!=='student'||profile.is_active===false||profile.student_status!=='active'||Number(profile.current_level)<2||Number(profile.current_level)>8){
+    if(!profile||profile.role!=='student'||profile.is_active===false||profile.student_status!=='active'||Number(profile.current_level)<2||Number(profile.current_level)>8){
       $('deniedText').textContent='Speed & Accuracy Check is available to active Level 2 to Level 8 students.';show('denied');return;
     }
     show('setup');
-  }catch(e){console.error(e);$('deniedText').textContent='Unable to load your student profile. Please refresh.';show('denied')}
+  }catch(e){console.error(e);$('deniedText').textContent=e?.message||'Unable to load your student profile. Please refresh.';show('denied')}
 })();
 </script>
 </body></html>
