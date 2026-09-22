@@ -336,8 +336,9 @@ function renderAdaptive(source,summaryId,actionsId){
 function serverActionButton(target,primary=false){
   const isAccuracy=target.kind==='accuracy',place=target.target_place==='tens'?'tens rod':'units rod';
   const note=isAccuracy?'Untimed correction · '+place:'Personal limit: '+((target.start_limit_ms||8000)/1000)+' sec · '+place;
+  if(!primary)return `<button type="button" disabled aria-disabled="true" class="text-left rounded-xl p-4 font-black bg-slate-50 border-2 border-slate-200 text-slate-400 cursor-not-allowed opacity-80"><span class="block text-sm uppercase tracking-wide">Next: ${isAccuracy?'Formula Correction':'Recall Speed Drill'}</span><span class="block text-lg mt-1">${escHtml(target.target_label)}</span><span class="block text-xs mt-1">${escHtml(note)}</span><span class="block text-xs mt-3 text-slate-500">🔒 Complete the active practice first</span></button>`;
   const alert=target.teacher_alert?'<span class="block text-xs mt-2 text-rose-600">Teacher help is recommended.</span>':'';
-  return `<button data-plan-target="${encodeURIComponent(JSON.stringify(target))}" class="text-left rounded-xl p-4 font-black ${primary?'bg-violet-700 text-white':'bg-white border-2 border-violet-200 text-violet-900'}"><span class="block text-sm uppercase tracking-wide ${primary?'text-violet-100':'text-violet-600'}">${isAccuracy?'Formula Correction':'Recall Speed Drill'}</span><span class="block text-lg mt-1">${escHtml(target.target_label)}</span><span class="block text-xs mt-1 opacity-80">${escHtml(note)} · ${escHtml(target.mastery_status||'new')}</span>${alert}</button>`;
+  return `<button type="button" data-plan-target="${encodeURIComponent(JSON.stringify(target))}" class="text-left rounded-xl p-4 font-black bg-violet-700 text-white"><span class="block text-sm uppercase tracking-wide text-violet-100">${isAccuracy?'Formula Correction':'Recall Speed Drill'}</span><span class="block text-lg mt-1">${escHtml(target.target_label)}</span><span class="block text-xs mt-1 opacity-80">${escHtml(note)} · ${escHtml(target.mastery_status||'new')}</span>${alert}</button>`;
 }
 function renderServerPlan(plan,summaryId,actionsId){
   adaptiveState=plan||null;
