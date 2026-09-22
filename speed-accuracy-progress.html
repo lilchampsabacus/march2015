@@ -12,7 +12,7 @@
 <div id="app" class="hidden space-y-5">
   <section class="bg-white rounded-2xl shadow p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
     <div><div class="text-xs uppercase tracking-widest text-emerald-600 font-black">Student</div><h2 id="studentName" class="text-3xl font-black"></h2><div id="studentMeta" class="text-slate-500 font-bold mt-1"></div></div>
-    <a href="speed-accuracy.html" class="bg-indigo-600 text-white px-5 py-3 rounded-xl font-black text-center no-underline">Start New Check</a>
+    <a href="speed-accuracy.html?v=20260922-adaptive" class="bg-indigo-600 text-white px-5 py-3 rounded-xl font-black text-center no-underline">Start New Check</a>
   </section>
   <section id="empty" class="hidden bg-white rounded-2xl shadow p-10 text-center"><div class="text-6xl">🎯</div><h3 class="text-2xl font-black mt-2">No checks yet</h3><p class="text-slate-500 font-bold mt-2">Complete your first Speed & Accuracy Check to see the report.</p></section>
   <div id="reportArea" class="hidden space-y-5">
@@ -57,6 +57,16 @@ function weak(rows){
  rows.forEach(t=>(t.steps||[]).filter(s=>s.result==='wrong'||s.result==='timeout').forEach(s=>{const k=signed(s.operation),v=map.get(k)||{issues:0,wrong:0,timeout:0};v.issues++;if(s.result==='wrong')v.wrong++;else v.timeout++;map.set(k,v)}));
  return [...map.entries()].sort((a,b)=>b[1].issues-a[1].issues).slice(0,8);
 }
+function issueGroups(test,result){
+ const map=new Map();(test.steps||[]).filter(s=>s.result===result).forEach(s=>{const raw=String(s.formula_label||'').trim(),k=raw&&raw!=='Not analysed'&&!raw.includes('Direct ')?raw:signed(s.operation),v=map.get(k)||{label:k,count:0};v.count++;map.set(k,v)});
+ return [...map.values()].sort((a,b)=>b.count-a.count||a.label.localeCompare(b.label));
+}
+function recommendation(test){
+ const wrong=issueGroups(test,'wrong'),timeouts=issueGroups(test,'timeout'),wc=wrong.reduce((a,x)=>a+x.count,0),tc=timeouts.reduce((a,x)=>a+x.count,0),items=[];
+ if(wrong.length)items.push({type:'Formula Correction',label:wrong[0].label,count:wc,first:wc>=tc});
+ if(timeouts.length)items.push({type:'Recall Speed Drill',label:timeouts[0].label,count:tc,first:tc>wc});
+ items.sort((a,b)=>Number(b.first)-Number(a.first));return items;
+}
 function render(rows){
  $('tests').textContent=rows.length;
  const answered=rows.reduce((a,r)=>a+Number(r.correct_steps||0)+Number(r.wrong_steps||0),0),correct=rows.reduce((a,r)=>a+Number(r.correct_steps||0),0);
@@ -67,7 +77,7 @@ function render(rows){
  const w=weak(rows.slice(0,10));$('weakList').innerHTML=w.length?w.map(([k,v],i)=>`<div class="flex justify-between gap-3 rounded-xl border p-3"><div><span class="font-black text-lg">${esc(k)}</span><span class="ml-2 text-xs font-black text-slate-400">#${i+1}</span></div><div class="text-right font-bold text-slate-600">${v.wrong} wrong · ${v.timeout} timeout</div></div>`).join(''):'<div class="text-emerald-700 font-black">No repeated weak operation found.</div>';
  const latest=rows[0];$('latestTitle').textContent=modeName(latest.mode)+' · '+dt(latest.created_at);
  $('latestStats').innerHTML=`<div class="rounded-xl bg-emerald-50 p-3"><div class="text-2xl font-black text-emerald-700">${latest.correct_steps}</div><div class="text-xs font-black uppercase">Correct</div></div><div class="rounded-xl bg-rose-50 p-3"><div class="text-2xl font-black text-rose-700">${latest.root_mistakes}</div><div class="text-xs font-black uppercase">Root mistakes</div></div><div class="rounded-xl bg-amber-50 p-3"><div class="text-2xl font-black text-amber-700">${latest.timeout_steps}</div><div class="text-xs font-black uppercase">Timeouts</div></div><div class="rounded-xl bg-slate-100 p-3"><div class="text-2xl font-black">${latest.cancelled_steps}</div><div class="text-xs font-black uppercase">Not reached</div></div>`;
- const latestWeak=weak([latest]).slice(0,3);$('latestNote').textContent=latestWeak.length?'Needs attention: '+latestWeak.map(x=>x[0]).join(', '):'No weak operation detected in the latest check.';
+ const next=recommendation(latest);$('latestNote').innerHTML=next.length?`<div class="font-black">Next practice: ${next.map((x,i)=>(i?'Then ':'')+esc(x.type)+' for '+esc(x.label)).join(' · ')}</div><a href="speed-accuracy.html?v=20260922-adaptive" class="inline-block mt-3 bg-violet-700 text-white rounded-lg px-4 py-2 font-black no-underline">Start Recommended Practice</a>`:'No correction drill is needed after the latest check.';
  $('history').innerHTML=rows.slice(0,20).map(r=>`<tr><td class="p-3 font-bold">${dt(r.created_at)}</td><td class="p-3"><span class="pill bg-indigo-50 text-indigo-700">${modeName(r.mode)}</span></td><td class="p-3 text-center font-black text-emerald-700">${r.correct_steps}</td><td class="p-3 text-center font-black text-rose-700">${r.root_mistakes}</td><td class="p-3 text-center font-black text-amber-700">${r.timeout_steps}</td><td class="p-3 text-center font-bold">${r.cancelled_steps}</td><td class="p-3 text-center font-bold">${r.avg_response_ms? (r.avg_response_ms/1000).toFixed(2)+'s':'-'}</td></tr>`).join('');
  const probs=(latest.steps||[]).filter(s=>s.result==='wrong'||s.result==='timeout');
  $('details').innerHTML=probs.length?probs.map(s=>`<tr><td class="p-3 text-center font-bold">${s.sum_number}</td><td class="p-3 text-center font-bold">${s.step_number}</td><td class="p-3 font-black">${signed(s.operation)}</td><td class="p-3 text-center">${s.student_before??'-'}</td><td class="p-3 text-center font-black ${s.result==='timeout'?'text-amber-700':'text-rose-700'}">${s.result==='timeout'?'TIMEOUT':s.student_total}</td><td class="p-3 text-center font-black">${s.expected_from_student??'-'}</td><td class="p-3 font-bold">${esc(s.formula_label||'')}</td></tr>`).join(''):'<tr><td colspan="7" class="p-6 text-center font-black text-emerald-700">No genuine mistakes or timeouts in the latest check.</td></tr>';
