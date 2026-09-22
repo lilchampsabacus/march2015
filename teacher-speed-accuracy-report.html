@@ -50,9 +50,10 @@
 </section>
 </div></main>
 <script>
-const SUPABASE_URL='https://portal-bridge.ucmas-ambernath-pg.workers.dev';
+const AUTH_URL='https://portal-bridge.ucmas-ambernath-pg.workers.dev';
+const API_URL='https://ipakwgzbbjywzccoahiw.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYXNlIiwicmVmIjoiaXBha3dnemJianl3emNjb2FoaXciLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc2MjE5MDIyNCwiZXhwIjoyMDc3NzY2MjI0fQ.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
-const db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY),$=id=>document.getElementById(id);let all=[];
+const authDb=supabase.createClient(AUTH_URL,SUPABASE_ANON_KEY);let db=null;const $=id=>document.getElementById(id);let all=[];
 function signed(n){return n<0?'−'+Math.abs(n):'+'+n}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function dt(x){return new Date(x).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'})}
@@ -87,7 +88,8 @@ function render(){
 ['fromDate','toDate','mode','student'].forEach(id=>$(id).onchange=render);$('centre').onchange=()=>{refill();render()};$('batch').onchange=()=>{refill();render()};
 (async()=>{
  try{
-  const {data:{session}}=await db.auth.getSession();if(!session){location.href='login.html';return}
+  const {data:{session}}=await authDb.auth.getSession();if(!session){location.href='login.html';return}
+  db=supabase.createClient(API_URL,SUPABASE_ANON_KEY,{global:{headers:{Authorization:'Bearer '+session.access_token}},auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
   const {data:p,error:pe}=await db.from('profiles').select('role,is_active').eq('id',session.user.id).single();if(pe)throw pe;
   if(p.is_active===false||!['admin','teacher'].includes(p.role)){$('loading').classList.add('hidden');$('denied').classList.remove('hidden');return}
   const d=new Date(),to=d.toISOString().slice(0,10);d.setDate(d.getDate()-30);$('fromDate').value=d.toISOString().slice(0,10);$('toDate').value=to;

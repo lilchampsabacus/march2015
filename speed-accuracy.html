@@ -111,9 +111,11 @@
 </main>
 
 <script>
-const SUPABASE_URL='https://portal-bridge.ucmas-ambernath-pg.workers.dev';
+const AUTH_URL='https://portal-bridge.ucmas-ambernath-pg.workers.dev';
+const API_URL='https://ipakwgzbbjywzccoahiw.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYXNlIiwicmVmIjoiaXBha3dnemJianl3emNjb2FoaXciLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc2MjE5MDIyNCwiZXhwIjoyMDc3NzY2MjI0fQ.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
-const db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const authDb=supabase.createClient(AUTH_URL,SUPABASE_ANON_KEY);
+let db=null;
 const $=id=>document.getElementById(id);
 let profile=null,mode='single_digit',questions=[],sumIndex=0,stepIndex=0,studentRunning=0,answer='',records=[];
 let timerInterval=null,timerTimeout=null,stepStarted=0,testStarted=0,locked=false;
@@ -279,8 +281,9 @@ document.addEventListener('keydown',e=>{if($('test').classList.contains('hidden'
 
 (async()=>{
   try{
-    const {data:{session}}=await db.auth.getSession();
+    const {data:{session}}=await authDb.auth.getSession();
     if(!session){location.href='login.html';return}
+    db=supabase.createClient(API_URL,SUPABASE_ANON_KEY,{global:{headers:{Authorization:'Bearer '+session.access_token}},auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
     const {data,error}=await db.rpc('student_speed_accuracy_context');
     if(error)throw error;
     profile=data;
