@@ -64,15 +64,15 @@
       <div class="p-5 sm:p-7">
         <div class="timer-track"><div id="timerBar" class="timer-bar" style="width:100%"></div></div>
         <div class="mt-7 text-center">
-          <div class="text-sm uppercase tracking-widest text-slate-400 font-black">Current abacus total</div>
+          <div id="totalLabel" class="text-sm uppercase tracking-widest text-slate-400 font-black">Current abacus total</div>
           <div id="currentTotal" class="text-6xl sm:text-7xl font-black text-slate-900 mt-1">25</div>
-          <div class="text-sm text-slate-400 font-bold mt-4">Now do</div>
+          <div id="actionLabel" class="text-sm text-slate-400 font-bold mt-4">Now do</div>
           <div id="operation" class="text-7xl sm:text-8xl font-black text-indigo-700 mt-1">−8</div>
         </div>
 
         <div id="timeUp" class="hidden mt-5 bg-amber-100 border border-amber-300 text-amber-900 rounded-xl p-3 text-center font-black text-lg">⏱ TIME UP — Next sum</div>
 
-        <div class="mt-7">
+        <div id="answerArea" class="mt-7">
           <div id="answerDisplay" class="h-16 border-2 border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center text-4xl font-black text-slate-900"></div>
           <div class="grid grid-cols-3 gap-2 mt-3">
             <button class="key rounded-xl bg-slate-100" data-key="1">1</button><button class="key rounded-xl bg-slate-100" data-key="2">2</button><button class="key rounded-xl bg-slate-100" data-key="3">3</button>
@@ -119,7 +119,7 @@ let authSession=null;
 const $=id=>document.getElementById(id);
 let profile=null,mode='single_digit',questions=[],sumIndex=0,stepIndex=0,studentRunning=0,answer='',records=[];
 let timerInterval=null,timerTimeout=null,stepStarted=0,testStarted=0,locked=false;
-const SUMS=10,STEPS=5;
+const SUMS=10,STEPS=5,PREP_MS=5000;
 
 function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min}
 function show(id){['loading','setup','test','result','denied'].forEach(x=>$(x).classList.toggle('hidden',x!==id))}
@@ -184,6 +184,39 @@ function startTimer(){
   timerInterval=setInterval(()=>{const left=Math.max(0,limit-(performance.now()-stepStarted));$('timerBar').style.width=(left/limit*100)+'%'},50);
   timerTimeout=setTimeout(()=>handleTimeout(),limit);
 }
+function prepareSum(){
+  if(sumIndex>=SUMS){finishTest();return}
+  clearTimer();locked=true;answer='';
+  const q=questions[sumIndex];
+  studentRunning=q.start;
+  $('answerDisplay').textContent='';
+  $('answerArea').classList.add('hidden');
+  $('timeUp').classList.add('hidden');
+  $('sumLabel').textContent='Sum '+(sumIndex+1)+' of '+SUMS;
+  $('stepLabel').textContent='Prepare abacus';
+  $('modeLabel').textContent=mode==='single_digit'?'Single Digit':'Double Digit';
+  $('timeLabel').textContent='5 sec preparation';
+  $('totalLabel').textContent='Starting number';
+  $('currentTotal').textContent=q.start;
+  $('actionLabel').textContent='Clear abacus and set this number';
+  let left=5;
+  $('operation').textContent=left;
+  $('timerBar').style.width='100%';
+  const started=performance.now();
+  timerInterval=setInterval(()=>{
+    const elapsed=performance.now()-started;
+    const remaining=Math.max(0,PREP_MS-elapsed);
+    $('timerBar').style.width=(remaining/PREP_MS*100)+'%';
+    const sec=Math.max(1,Math.ceil(remaining/1000));
+    if(sec!==left){left=sec;$('operation').textContent=left}
+  },50);
+  timerTimeout=setTimeout(()=>{
+    clearTimer();
+    $('answerArea').classList.remove('hidden');
+    renderStep();
+  },PREP_MS);
+}
+
 function renderStep(){
   if(sumIndex>=SUMS){finishTest();return}
   const q=questions[sumIndex];
@@ -197,11 +230,14 @@ function renderStep(){
     nextSum();return;
   }
   answer='';$('answerDisplay').textContent='';
+  $('answerArea').classList.remove('hidden');
   $('sumLabel').textContent='Sum '+(sumIndex+1)+' of '+SUMS;
   $('stepLabel').textContent='Step '+(stepIndex+1)+' of '+STEPS;
   $('modeLabel').textContent=mode==='single_digit'?'Single Digit':'Double Digit';
   $('timeLabel').textContent=(stepLimit()/1000)+' sec per step';
+  $('totalLabel').textContent='Current abacus total';
   $('currentTotal').textContent=studentRunning;
+  $('actionLabel').textContent='Now do';
   $('operation').textContent=signed(s.op);
   $('timeUp').classList.add('hidden');
   locked=false;startTimer();
@@ -227,7 +263,7 @@ function handleTimeout(){
   $('timeUp').classList.remove('hidden');
   setTimeout(()=>nextSum(),500);
 }
-function nextSum(){clearTimer();sumIndex++;stepIndex=0;if(sumIndex>=SUMS)finishTest();else renderStep()}
+function nextSum(){clearTimer();sumIndex++;stepIndex=0;if(sumIndex>=SUMS)finishTest();else prepareSum()}
 
 function weakSummary(){
   const map=new Map();
@@ -273,7 +309,7 @@ async function finishTest(){
   }
 }
 function startTest(){
-  buildQuestions();sumIndex=0;stepIndex=0;records=[];testStarted=performance.now();show('test');renderStep();
+  buildQuestions();sumIndex=0;stepIndex=0;records=[];testStarted=performance.now();show('test');prepareSum();
 }
 function key(k){
   if(locked)return;
