@@ -112,7 +112,7 @@
       </div>
       <div class="grid sm:grid-cols-2 gap-3 mt-5">
         <button id="againBtn" class="bg-indigo-600 text-white rounded-xl py-3 font-black">Try Again</button>
-        <a href="speed-check-progress.html?v=20260922-adaptive" class="text-center bg-emerald-600 text-white rounded-xl py-3 font-black no-underline">My Speed Report</a>
+        <a href="speed-check-progress.html?v=20260922-learning" class="text-center bg-emerald-600 text-white rounded-xl py-3 font-black no-underline">My Speed Report</a>
       </div>
     </div>
   </section>
@@ -169,7 +169,7 @@ let authSession=null;
 const $=id=>document.getElementById(id);
 let profile=null,mode='single_digit',questions=[],sumIndex=0,stepIndex=0,studentRunning=0,answer='',records=[];
 let timerInterval=null,timerTimeout=null,stepStarted=0,testStarted=0,locked=false;
-let latestSavedTest=null,drillKind='',drillMode='single_digit',drillSource=[],drillTarget=null,drillQuestions=[],drillIndex=0,drillAnswer='',drillLocked=false,drillAwaitingNext=false,drillScore=0,drillWrong=0,drillTimeouts=0,drillStreak=0,drillLimitMs=8000,drillTimerInterval=null,drillTimerTimeout=null,drillStarted=0;
+let latestSavedTest=null,adaptiveState=null,drillKind='',drillMode='single_digit',drillSource=[],drillTarget=null,drillQuestions=[],drillResults=[],drillIndex=0,drillAnswer='',drillLocked=false,drillAwaitingNext=false,drillScore=0,drillWrong=0,drillTimeouts=0,drillStreak=0,drillStartLimitMs=8000,drillLimitMs=8000,drillTimerInterval=null,drillTimerTimeout=null,drillStarted=0;
 const SUMS=10,STEPS=5,PREP_MS=5000;
 
 function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min}
@@ -324,6 +324,41 @@ function renderAdaptive(source,summaryId,actionsId){
   $(actionsId).querySelectorAll('[data-adaptive-kind]').forEach(b=>b.onclick=()=>startAdaptive(b.dataset.adaptiveKind,{label:decodeURIComponent(b.dataset.adaptiveLabel),operation:Number(b.dataset.adaptiveOp)},source));
   return true;
 }
+function serverActionButton(target,primary=false){
+  const isAccuracy=target.kind==='accuracy',place=target.target_place==='tens'?'tens rod':'units rod';
+  const note=isAccuracy?'Untimed correction · '+place:'Personal limit: '+((target.start_limit_ms||8000)/1000)+' sec · '+place;
+  const alert=target.teacher_alert?'<span class="block text-xs mt-2 text-rose-600">Teacher help is recommended.</span>':'';
+  return `<button data-plan-target="${encodeURIComponent(JSON.stringify(target))}" class="text-left rounded-xl p-4 font-black ${primary?'bg-violet-700 text-white':'bg-white border-2 border-violet-200 text-violet-900'}"><span class="block text-sm uppercase tracking-wide ${primary?'text-violet-100':'text-violet-600'}">${isAccuracy?'Formula Correction':'Recall Speed Drill'}</span><span class="block text-lg mt-1">${escHtml(target.target_label)}</span><span class="block text-xs mt-1 opacity-80">${escHtml(note)} · ${escHtml(target.mastery_status||'new')}</span>${alert}</button>`;
+}
+function renderServerPlan(plan,summaryId,actionsId){
+  adaptiveState=plan||null;
+  if(!plan||!Number(plan.checks_used)){
+    $(summaryId).textContent='Complete a Speed & Accuracy Check to create your personal practice plan.';
+    $(actionsId).innerHTML='';
+    return false;
+  }
+  const learned='Learning from '+plan.checks_used+' recent check'+(plan.checks_used===1?'':'s')+' and '+plan.practices_used+' practice session'+(plan.practices_used===1?'':'s')+'.';
+  if(plan.status==='on_track'){
+    $(summaryId).textContent='All recent work is correct and within time. '+learned;
+    $(actionsId).innerHTML='<div class="sm:col-span-2 rounded-xl bg-emerald-100 text-emerald-800 p-4 font-black">Continue normal practice.</div>';
+    return true;
+  }
+  if(plan.retest_ready){
+    $(summaryId).textContent='The required practice is complete. '+learned;
+    $(actionsId).innerHTML='<button data-start-retest class="sm:col-span-2 rounded-xl bg-emerald-600 text-white p-4 font-black text-left"><span class="block text-sm uppercase">Ready now</span><span class="block text-lg">Take a new Speed & Accuracy Check</span></button>';
+    $(actionsId).querySelector('[data-start-retest]').onclick=startTest;
+    return true;
+  }
+  const targets=(plan.targets||[]).slice(0,3);
+  const alertCount=(plan.teacher_alerts||[]).length;
+  $(summaryId).textContent=(alertCount?'Teacher guidance is needed for a repeated difficulty. ':'Your next practice is selected from recent mistakes and completed drills. ')+learned;
+  $(actionsId).innerHTML=targets.map((target,index)=>serverActionButton(target,index===0)).join('');
+  $(actionsId).querySelectorAll('[data-plan-target]').forEach(button=>button.onclick=()=>{
+    const target=JSON.parse(decodeURIComponent(button.dataset.planTarget));
+    startAdaptive(target.kind,target,[]);
+  });
+  return targets.length>0;
+}
 function candidateMatches(total,op,target){
   if(total+op<0||total+op>99)return false;
   if(target.label.startsWith('+')||target.label.startsWith('−'))return op===target.operation;
@@ -338,9 +373,18 @@ function formulaMove(label){
 }
 function buildTargetQuestions(target){
   const pool=[];
-  const minOp=drillMode==='single_digit'?1:10,maxOp=drillMode==='single_digit'?9:49;
-  for(let total=drillMode==='single_digit'?10:20;total<=89;total++){
-    for(const sign of [-1,1])for(let mag=minOp;mag<=maxOp;mag++){
+  const match=String(target.target_label||target.label||'').match(/^(Small Friend|Big Friend|Mix Friend) ([+−])(\d)$/);
+  if(match){
+    const sign=match[2]==='−'?-1:1,mag=Number(match[3]),opDigit=sign*mag;
+    const place=target.target_place||target.place||'units',op=opDigit*(place==='tens'?10:1);
+    for(let total=10;total<=89;total++){
+      const digit=place==='tens'?Math.floor(total/10)%10:total%10;
+      const rule=formulaRuleForDigit(digit,opDigit);
+      if(rule&&ruleLabel(rule)===target.target_label&&total+op>=0&&total+op<=99)pool.push({start:total,op,answer:total+op});
+    }
+  }else{
+    const minOp=drillMode==='single_digit'?1:10,maxOp=drillMode==='single_digit'?9:49;
+    for(let total=drillMode==='single_digit'?10:20;total<=89;total++)for(const sign of [-1,1])for(let mag=minOp;mag<=maxOp;mag++){
       const op=sign*mag;if(candidateMatches(total,op,target))pool.push({start:total,op,answer:total+op});
     }
   }
@@ -353,9 +397,9 @@ function buildTargetQuestions(target){
 function clearDrillTimer(){clearInterval(drillTimerInterval);clearTimeout(drillTimerTimeout);drillTimerInterval=drillTimerTimeout=null}
 function startAdaptive(kind,target,source){
   clearTimer();clearDrillTimer();drillKind=kind;drillSource=source||[];drillTarget=target;
-  const sourceMode=latestSavedTest&&source===latestSavedTest.steps?latestSavedTest.mode:null;drillMode=sourceMode||mode;
-  drillQuestions=buildTargetQuestions(target);drillIndex=0;drillAnswer='';drillLocked=true;drillScore=0;drillWrong=0;drillTimeouts=0;drillStreak=0;drillLimitMs=8000;
-  $('drillTitle').textContent=kind==='accuracy'?'Formula Correction · '+target.label:'Recall Speed Drill · '+target.label;
+  const sourceMode=latestSavedTest&&source===latestSavedTest.steps?latestSavedTest.mode:null;drillMode=target.mode||sourceMode||mode;
+  drillQuestions=buildTargetQuestions(target);drillResults=[];drillIndex=0;drillAnswer='';drillLocked=true;drillScore=0;drillWrong=0;drillTimeouts=0;drillStreak=0;drillStartLimitMs=kind==='recall'?Number(target.start_limit_ms||8000):8000;drillLimitMs=drillStartLimitMs;
+  const targetLabel=target.target_label||target.label;$('drillTitle').textContent=kind==='accuracy'?'Formula Correction · '+targetLabel:'Recall Speed Drill · '+targetLabel;
   $('drillComplete').classList.add('hidden');$('drillWork').classList.remove('hidden');show('drill');prepareDrill();
 }
 function prepareDrill(){
@@ -370,8 +414,9 @@ function prepareDrill(){
 }
 function showDrillOperation(){
   const q=drillQuestions[drillIndex];drillLocked=false;drillAnswer='';$('drillInstruction').textContent=drillKind==='accuracy'?'Work carefully':'Recall and move the formula';$('drillOperation').textContent=signed(q.op);$('drillAnswerArea').classList.remove('hidden');$('drillAnswer').textContent='';
+  drillStarted=performance.now();
   if(drillKind==='recall'){
-    drillStarted=performance.now();const limit=drillLimitMs;
+    const limit=drillLimitMs;
     drillTimerInterval=setInterval(()=>{$('drillTimerBar').style.width=(Math.max(0,limit-(performance.now()-drillStarted))/limit*100)+'%'},50);
     drillTimerTimeout=setTimeout(()=>finishDrillQuestion('timeout'),limit);
   }else $('drillTimerBar').style.width='100%';
@@ -379,7 +424,7 @@ function showDrillOperation(){
 function drillKey(k){if(drillLocked)return;if(k==='clear')drillAnswer='';else if(k==='back')drillAnswer=drillAnswer.slice(0,-1);else if(drillAnswer.length<4)drillAnswer+=k;$('drillAnswer').textContent=drillAnswer}
 function submitDrill(){if(drillLocked||drillAnswer==='')return;const q=drillQuestions[drillIndex];finishDrillQuestion(Number(drillAnswer)===q.answer?'correct':'wrong')}
 function finishDrillQuestion(result){
-  if(drillLocked)return;drillLocked=true;clearDrillTimer();const q=drillQuestions[drillIndex],box=$('drillFeedback');$('drillAnswerArea').classList.add('hidden');box.classList.remove('hidden');
+  if(drillLocked)return;drillLocked=true;const usedLimit=drillLimitMs,response=Math.min(8000,Math.max(0,Math.round(performance.now()-drillStarted)));clearDrillTimer();const q=drillQuestions[drillIndex],box=$('drillFeedback');drillResults.push({result,start:q.start,operation:q.op,answer:result==='timeout'?null:Number(drillAnswer),response_ms:result==='timeout'?usedLimit:response,limit_ms:drillKind==='recall'?usedLimit:null});$('drillAnswerArea').classList.add('hidden');box.classList.remove('hidden');
   if(result==='correct'){
     drillScore++;drillStreak++;box.className='mt-5 rounded-xl p-4 text-center font-black bg-emerald-100 text-emerald-800';box.textContent='Correct ✓';
     if(drillKind==='recall'&&drillStreak%3===0)drillLimitMs=Math.max(5000,drillLimitMs-1000);
@@ -388,12 +433,21 @@ function finishDrillQuestion(result){
   }
   drillStreak=0;if(result==='timeout'){drillTimeouts++;drillLimitMs=Math.min(8000,drillLimitMs+1000)}else drillWrong++;
   box.className='mt-5 rounded-xl p-4 text-center font-black '+(result==='timeout'?'bg-amber-100 text-amber-900':'bg-rose-100 text-rose-800');
-  drillAwaitingNext=true;box.textContent=(result==='timeout'?'Recall delay. ':'Correct answer: '+q.answer+'. ')+'Use '+formulaMove(drillTarget.label)+'.';$('drillNext').classList.remove('hidden');
+  drillAwaitingNext=true;box.textContent=(result==='timeout'?'Recall delay. ':'Correct answer: '+q.answer+'. ')+'Use '+formulaMove(drillTarget.target_label||drillTarget.label)+'.';$('drillNext').classList.remove('hidden');
 }
 function nextDrillQuestion(){if(!drillAwaitingNext)return;drillAwaitingNext=false;drillIndex++;if(drillIndex>=drillQuestions.length){completeDrill();return}prepareDrill()}
-function completeDrill(){
+async function completeDrill(){
   clearDrillTimer();$('drillWork').classList.add('hidden');$('drillComplete').classList.remove('hidden');
-  $('drillCompleteText').textContent=drillKind==='accuracy'?`${drillScore}/10 correct in focused ${drillTarget.label} practice.`:`${drillScore}/10 completed within time. Final limit: ${drillLimitMs/1000} seconds.`;
+  const targetLabel=drillTarget.target_label||drillTarget.label;
+  $('drillCompleteText').textContent=(drillKind==='accuracy'?`${drillScore}/10 correct in focused ${targetLabel} practice.`:`${drillScore}/10 completed within time. Final limit: ${drillLimitMs/1000} seconds.`)+' Saving progress...';
+  try{
+    const payload={source_test_id:latestSavedTest?.id||null,mode:drillMode,drill_kind:drillKind,target_key:drillTarget.target_key||((drillTarget.target_place||'units')+'|'+targetLabel),target_label:targetLabel,target_place:drillTarget.target_place||'units',start_limit_ms:drillKind==='recall'?drillStartLimitMs:null,end_limit_ms:drillKind==='recall'?drillLimitMs:null,results:drillResults};
+    const res=await fetch(FUNCTION_URL+'?action=save-drill',{method:'POST',headers:{'Authorization':'Bearer '+authSession.access_token,'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||'Unable to save practice');
+    adaptiveState=data.adaptive_plan||adaptiveState;renderServerPlan(adaptiveState,'adaptiveSummary','adaptiveActions');
+    const status=adaptiveState?.retest_ready?' You are ready for a new Speed & Accuracy Check.':adaptiveState?.status==='teacher_help'?' Your teacher will help with this formula.':' Your next practice has been adjusted.';
+    $('drillCompleteText').textContent=(drillKind==='accuracy'?`${drillScore}/10 correct in focused ${targetLabel} practice.`:`${drillScore}/10 completed within time. Final limit: ${drillLimitMs/1000} seconds.`)+status;
+  }catch(error){console.error(error);$('drillCompleteText').textContent+=' Progress could not be saved. Please tell your teacher.'}
 }
 
 function stepLimit(){return 5000}
@@ -469,7 +523,7 @@ function submitAnswer(){
   locked=true;clearTimer();
   const q=questions[sumIndex],s=q.steps[stepIndex],studentBefore=studentRunning,expected=studentBefore+s.op,response=Math.min(stepLimit(),Math.round(performance.now()-stepStarted));
   const result=n===expected?(n===s.correct_total?'correct':'carried_correct'):'wrong';
-  records.push({sum_number:sumIndex+1,step_number:stepIndex+1,operation:s.op,operation_type:s.op<0?'minus':'plus',correct_before:s.correct_before,correct_total:s.correct_total,student_before:studentBefore,expected_from_student:expected,student_total:n,response_ms:response,result,is_root_mistake:result==='wrong',error_delta:n-s.correct_total,formula_label:formulaFor(studentBefore,s.op),reason:null});
+  records.push({sum_number:sumIndex+1,step_number:stepIndex+1,operation:s.op,operation_type:s.op<0?'minus':'plus',correct_before:s.correct_before,correct_total:s.correct_total,student_before:studentBefore,expected_from_student:expected,student_total:n,response_ms:response,result,is_root_mistake:result==='wrong',error_delta:n-s.correct_total,local_error_delta:n-expected,formula_label:formulaFor(studentBefore,s.op),reason:null});
   studentRunning=n;stepIndex++;
   if(stepIndex>=STEPS) nextSum(); else renderStep();
 }
@@ -508,7 +562,7 @@ async function finishTest(){
   const avg=answered.length?Math.round(answered.reduce((a,r)=>a+r.response_ms,0)/answered.length):null;
   $('rCorrect').textContent=correct;$('rWrong').textContent=wrong;$('rTimeout').textContent=timeout;$('rCancelled').textContent=cancelled;
   $('weakBox').textContent=weakSummary()+(carried?' · '+carried+' later step'+(carried===1?' was':'s were')+' calculated correctly from an earlier wrong total.':'');
-  renderAdaptive(records,'nextPracticeText','nextPracticeActions');
+  $('nextPracticeText').textContent='Building a personal practice plan from this check and earlier practice...';$('nextPracticeActions').innerHTML='';
   const payload={
     mode,step_limit_ms:stepLimit(),sum_count:SUMS,steps_per_sum:STEPS,
     total_possible_steps:SUMS*STEPS,analysed_steps:analysed,
@@ -524,8 +578,9 @@ async function finishTest(){
     });
     const data=await res.json().catch(()=>({}));
     if(!res.ok) throw new Error(data.error||'Unable to save report');
-    latestSavedTest={...payload,mode,steps:records};
-    const hasPlan=renderAdaptive(records,'adaptiveSummary','adaptiveActions');$('adaptiveCard').classList.toggle('hidden',!hasPlan);
+    latestSavedTest=data.test||{...payload,mode,steps:records};
+    const hasPlan=renderServerPlan(data.adaptive_plan,'adaptiveSummary','adaptiveActions');$('adaptiveCard').classList.toggle('hidden',!hasPlan);
+    renderServerPlan(data.adaptive_plan,'nextPracticeText','nextPracticeActions');
     $('saveStatus').textContent='Report saved for you, your parent and teacher.';
   }catch(e){
     console.error(e);
@@ -569,7 +624,7 @@ document.addEventListener('keydown',e=>{if($('drill').classList.contains('hidden
       const data=await res.json().catch(()=>({}));
       if(res.ok&&Array.isArray(data.rows)&&data.rows.length){
         latestSavedTest=data.rows[0];
-        const hasPlan=renderAdaptive(latestSavedTest.steps||[],'adaptiveSummary','adaptiveActions');
+        const hasPlan=renderServerPlan(data.adaptive_plan,'adaptiveSummary','adaptiveActions');
         $('adaptiveCard').classList.toggle('hidden',!hasPlan);
       }
     }catch(e){console.warn('Previous adaptive recommendation unavailable',e)}
