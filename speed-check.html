@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>Speed & Accuracy Check | Li'l Champs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:Nunito,sans-serif;background:#f8fafc}
+    .mode-card{transition:.2s}.mode-card.selected{border-color:#4f46e5;background:#eef2ff;box-shadow:0 0 0 3px #c7d2fe}
+    .key{min-height:58px;font-size:1.4rem;font-weight:900}
+    .timer-track{height:10px;background:#e2e8f0;border-radius:999px;overflow:hidden}
+    .timer-bar{height:100%;background:#4f46e5;transform-origin:left;transition:width .05s linear}
+    .shake{animation:shake .2s linear 2}
+    @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+  </style>
+</head>
+<body class="min-h-screen text-slate-800">
+<header class="bg-indigo-700 text-white shadow">
+  <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
+    <div><div class="text-xl sm:text-2xl font-black">Speed & Accuracy Check</div><div class="text-indigo-100 text-sm font-bold">Level 2 onwards · Physical abacus only</div></div>
+    <a href="practice_options.html" class="bg-white/15 px-4 py-2 rounded-xl font-black no-underline">Dashboard</a>
+  </div>
+</header>
+
+<main class="max-w-4xl mx-auto p-4 py-6">
+  <section id="loading" class="bg-white rounded-2xl shadow p-8 text-center font-black text-indigo-600">Checking your level...</section>
+
+  <section id="setup" class="hidden space-y-5">
+    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-amber-900 font-bold">
+      🧮 Use your physical abacus. The website will not tell you whether an answer is wrong during the test. This helps us find mistakes made under time pressure.
+    </div>
+    <div class="bg-white rounded-2xl shadow p-5">
+      <div class="text-xs uppercase tracking-widest text-indigo-600 font-black">Choose test</div>
+      <h1 class="text-3xl font-black mt-1">10 sums · 5 timed steps each</h1>
+      <p class="text-slate-500 font-bold mt-2">Subtraction is used more often because minus operations cause more mistakes.</p>
+      <div class="grid sm:grid-cols-2 gap-4 mt-5">
+        <button class="mode-card selected text-left border-2 border-indigo-500 rounded-2xl p-5" data-mode="single_digit">
+          <div class="text-4xl">1️⃣</div><div class="text-xl font-black mt-2">Single Digit</div>
+          <div class="text-slate-500 font-bold">±1 to ±9 · 3 seconds per step</div>
+        </button>
+        <button class="mode-card text-left border-2 border-slate-200 rounded-2xl p-5" data-mode="double_digit">
+          <div class="text-4xl">2️⃣</div><div class="text-xl font-black mt-2">Double Digit</div>
+          <div class="text-slate-500 font-bold">±10 to ±49 · 4 seconds per step</div>
+        </button>
+      </div>
+      <button id="startBtn" class="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-4 text-xl font-black">Start Test</button>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-5 grid sm:grid-cols-3 gap-3 text-center">
+      <div><div class="text-2xl font-black text-indigo-700">No instant ❌</div><div class="text-sm text-slate-500 font-bold">Wrong answers stay hidden until finish.</div></div>
+      <div><div class="text-2xl font-black text-amber-600">Timeout stops sum</div><div class="text-sm text-slate-500 font-bold">Remaining rows are not counted wrong.</div></div>
+      <div><div class="text-2xl font-black text-emerald-600">Root mistakes</div><div class="text-sm text-slate-500 font-bold">Carried-forward answers are separated.</div></div>
+    </div>
+  </section>
+
+  <section id="test" class="hidden">
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between gap-3">
+        <div><div id="sumLabel" class="font-black">Sum 1 of 10</div><div id="stepLabel" class="text-slate-300 text-sm font-bold">Step 1 of 5</div></div>
+        <div class="text-right"><div id="modeLabel" class="font-black"></div><div id="timeLabel" class="text-slate-300 text-sm font-bold"></div></div>
+      </div>
+      <div class="p-5 sm:p-7">
+        <div class="timer-track"><div id="timerBar" class="timer-bar" style="width:100%"></div></div>
+        <div class="mt-7 text-center">
+          <div class="text-sm uppercase tracking-widest text-slate-400 font-black">Current abacus total</div>
+          <div id="currentTotal" class="text-6xl sm:text-7xl font-black text-slate-900 mt-1">25</div>
+          <div class="text-sm text-slate-400 font-bold mt-4">Now do</div>
+          <div id="operation" class="text-7xl sm:text-8xl font-black text-indigo-700 mt-1">−8</div>
+        </div>
+
+        <div id="timeUp" class="hidden mt-5 bg-amber-100 border border-amber-300 text-amber-900 rounded-xl p-3 text-center font-black text-lg">⏱ TIME UP — Next sum</div>
+
+        <div class="mt-7">
+          <div id="answerDisplay" class="h-16 border-2 border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center text-4xl font-black text-slate-900"></div>
+          <div class="grid grid-cols-3 gap-2 mt-3">
+            <button class="key rounded-xl bg-slate-100" data-key="1">1</button><button class="key rounded-xl bg-slate-100" data-key="2">2</button><button class="key rounded-xl bg-slate-100" data-key="3">3</button>
+            <button class="key rounded-xl bg-slate-100" data-key="4">4</button><button class="key rounded-xl bg-slate-100" data-key="5">5</button><button class="key rounded-xl bg-slate-100" data-key="6">6</button>
+            <button class="key rounded-xl bg-slate-100" data-key="7">7</button><button class="key rounded-xl bg-slate-100" data-key="8">8</button><button class="key rounded-xl bg-slate-100" data-key="9">9</button>
+            <button class="key rounded-xl bg-rose-50 text-rose-600" data-key="clear">C</button><button class="key rounded-xl bg-slate-100" data-key="0">0</button><button class="key rounded-xl bg-amber-50 text-amber-700" data-key="back">⌫</button>
+          </div>
+          <button id="submitBtn" class="w-full mt-3 bg-emerald-600 text-white rounded-xl py-4 text-xl font-black">ENTER</button>
+        </div>
+      </div>
+    </div>
+    <p class="text-center text-slate-400 font-bold text-sm mt-3">No correct/wrong feedback is shown during the test.</p>
+  </section>
+
+  <section id="result" class="hidden space-y-5">
+    <div class="bg-white rounded-2xl shadow-xl p-6">
+      <div class="text-center"><div class="text-6xl">🎯</div><h2 class="text-3xl font-black mt-2">Check Completed</h2><p id="saveStatus" class="text-slate-500 font-bold mt-1">Saving report...</p></div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+        <div class="bg-emerald-50 rounded-xl p-4 text-center"><div id="rCorrect" class="text-3xl font-black text-emerald-700">0</div><div class="text-xs font-black uppercase text-emerald-700">Correct steps</div></div>
+        <div class="bg-rose-50 rounded-xl p-4 text-center"><div id="rWrong" class="text-3xl font-black text-rose-700">0</div><div class="text-xs font-black uppercase text-rose-700">Root mistakes</div></div>
+        <div class="bg-amber-50 rounded-xl p-4 text-center"><div id="rTimeout" class="text-3xl font-black text-amber-700">0</div><div class="text-xs font-black uppercase text-amber-700">Timeouts</div></div>
+        <div class="bg-slate-100 rounded-xl p-4 text-center"><div id="rCancelled" class="text-3xl font-black text-slate-700">0</div><div class="text-xs font-black uppercase text-slate-600">Not reached</div></div>
+      </div>
+      <div id="weakBox" class="mt-5 bg-indigo-50 border border-indigo-200 rounded-xl p-4 font-bold text-indigo-900"></div>
+      <div class="grid sm:grid-cols-2 gap-3 mt-5">
+        <button id="againBtn" class="bg-indigo-600 text-white rounded-xl py-3 font-black">Try Again</button>
+        <a href="speed-check-progress.html" class="text-center bg-emerald-600 text-white rounded-xl py-3 font-black no-underline">My Speed Report</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="denied" class="hidden bg-white rounded-2xl shadow p-8 text-center">
+    <div class="text-6xl">🔒</div><h2 class="text-2xl font-black mt-2">Not Available</h2><p id="deniedText" class="text-slate-500 font-bold mt-2"></p>
+    <a href="practice_options.html" class="inline-block mt-5 bg-indigo-600 text-white rounded-xl px-5 py-3 font-black no-underline">Back</a>
+  </section>
+</main>
+
+<script>
+const AUTH_URL='https://portal-bridge.ucmas-ambernath-pg.workers.dev';
+const FUNCTION_URL='https://ipakwgzbbjywzccoahiw.supabase.co/functions/v1/speed-accuracy-api';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYXNlIiwicmVmIjoiaXBha3dnemJianl3emNjb2FoaXciLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc2MjE5MDIyNCwiZXhwIjoyMDc3NzY2MjI0fQ.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
+const authDb=supabase.createClient(AUTH_URL,SUPABASE_ANON_KEY);
+let authSession=null;
+const $=id=>document.getElementById(id);
+let profile=null,mode='single_digit',questions=[],sumIndex=0,stepIndex=0,studentRunning=0,answer='',records=[];
+let timerInterval=null,timerTimeout=null,stepStarted=0,testStarted=0,locked=false;
+const SUMS=10,STEPS=5;
+
+function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+function show(id){['loading','setup','test','result','denied'].forEach(x=>$(x).classList.toggle('hidden',x!==id))}
+function signed(n){return n<0?'−'+Math.abs(n):'+'+n}
+
+function generateSingle(){
+  let cur=rand(14,35),start=cur,steps=[];
+  for(let i=0;i<STEPS;i++){
+    let wantMinus=Math.random()<0.78;
+    let op;
+    if(wantMinus && cur>=2){
+      op=-rand(1,Math.min(9,cur));
+    }else{
+      op=rand(1,9);
+      if(cur+op>55 && cur>=2) op=-rand(1,Math.min(9,cur));
+    }
+    const before=cur;cur+=op;
+    steps.push({op,correct_before:before,correct_total:cur});
+  }
+  return {start,steps};
+}
+function generateDouble(){
+  let cur=rand(45,90),start=cur,steps=[];
+  for(let i=0;i<STEPS;i++){
+    let op=null;
+    if(Math.random()<0.78){
+      const maxMinus=Math.min(49,cur-10);
+      if(maxMinus>=10) op=-rand(10,maxMinus);
+    }
+    if(op===null){
+      const maxPlus=Math.min(49,99-cur);
+      if(maxPlus>=10) op=rand(10,maxPlus);
+      else{
+        const maxMinus=Math.min(49,cur-10);
+        op=-rand(10,Math.max(10,maxMinus));
+      }
+    }
+    const before=cur;cur+=op;
+    steps.push({op,correct_before:before,correct_total:cur});
+  }
+  return {start,steps};
+}
+function buildQuestions(){questions=Array.from({length:SUMS},()=>mode==='single_digit'?generateSingle():generateDouble())}
+
+function formulaFor(total,op){
+  if(mode==='double_digit') return op<0?'Double-digit subtraction':'Double-digit addition';
+  const n=Math.abs(op),u=((total%10)+10)%10;
+  if(op<0){
+    if(u<n) return 'Big Friend −'+n;
+    if(n<=4 && u>=5 && (u-5)<n) return 'Small Friend −'+n;
+    return 'Direct −'+n;
+  }
+  if(u+n>=10) return 'Big Friend +'+n;
+  if(n<=4 && u<5 && u+n>=5) return 'Small Friend +'+n;
+  return 'Direct +'+n;
+}
+
+function stepLimit(){return mode==='single_digit'?3000:4000}
+function clearTimer(){clearInterval(timerInterval);clearTimeout(timerTimeout);timerInterval=timerTimeout=null}
+function startTimer(){
+  clearTimer();stepStarted=performance.now();const limit=stepLimit();$('timerBar').style.width='100%';
+  timerInterval=setInterval(()=>{const left=Math.max(0,limit-(performance.now()-stepStarted));$('timerBar').style.width=(left/limit*100)+'%'},50);
+  timerTimeout=setTimeout(()=>handleTimeout(),limit);
+}
+function renderStep(){
+  if(sumIndex>=SUMS){finishTest();return}
+  const q=questions[sumIndex];
+  if(stepIndex===0) studentRunning=q.start;
+  const s=q.steps[stepIndex];
+  if(studentRunning+s.op<0){
+    for(let i=stepIndex;i<STEPS;i++){
+      const z=q.steps[i];
+      records.push({sum_number:sumIndex+1,step_number:i+1,operation:z.op,operation_type:z.op<0?'minus':'plus',correct_before:z.correct_before,correct_total:z.correct_total,student_before:null,expected_from_student:null,student_total:null,response_ms:null,result:'cancelled',is_root_mistake:false,error_delta:null,formula_label:'Not analysed',reason:'invalid_after_previous_error'});
+    }
+    nextSum();return;
+  }
+  answer='';$('answerDisplay').textContent='';
+  $('sumLabel').textContent='Sum '+(sumIndex+1)+' of '+SUMS;
+  $('stepLabel').textContent='Step '+(stepIndex+1)+' of '+STEPS;
+  $('modeLabel').textContent=mode==='single_digit'?'Single Digit':'Double Digit';
+  $('timeLabel').textContent=(stepLimit()/1000)+' sec per step';
+  $('currentTotal').textContent=studentRunning;
+  $('operation').textContent=signed(s.op);
+  $('timeUp').classList.add('hidden');
+  locked=false;startTimer();
+}
+function submitAnswer(){
+  if(locked||answer==='') return;
+  const n=Number(answer);if(!Number.isInteger(n)||n<0||n>9999){$('answerDisplay').classList.add('shake');setTimeout(()=>$('answerDisplay').classList.remove('shake'),400);return}
+  locked=true;clearTimer();
+  const q=questions[sumIndex],s=q.steps[stepIndex],studentBefore=studentRunning,expected=studentBefore+s.op,response=Math.min(stepLimit(),Math.round(performance.now()-stepStarted));
+  const result=n===expected?(n===s.correct_total?'correct':'carried_correct'):'wrong';
+  records.push({sum_number:sumIndex+1,step_number:stepIndex+1,operation:s.op,operation_type:s.op<0?'minus':'plus',correct_before:s.correct_before,correct_total:s.correct_total,student_before:studentBefore,expected_from_student:expected,student_total:n,response_ms:response,result,is_root_mistake:result==='wrong',error_delta:n-s.correct_total,formula_label:formulaFor(studentBefore,s.op),reason:null});
+  studentRunning=n;stepIndex++;
+  if(stepIndex>=STEPS) nextSum(); else renderStep();
+}
+function handleTimeout(){
+  if(locked)return;locked=true;clearTimer();
+  const q=questions[sumIndex],s=q.steps[stepIndex],studentBefore=studentRunning;
+  records.push({sum_number:sumIndex+1,step_number:stepIndex+1,operation:s.op,operation_type:s.op<0?'minus':'plus',correct_before:s.correct_before,correct_total:s.correct_total,student_before:studentBefore,expected_from_student:studentBefore+s.op,student_total:null,response_ms:stepLimit(),result:'timeout',is_root_mistake:false,error_delta:null,formula_label:formulaFor(studentBefore,s.op),reason:'time_limit'});
+  for(let i=stepIndex+1;i<STEPS;i++){
+    const z=q.steps[i];
+    records.push({sum_number:sumIndex+1,step_number:i+1,operation:z.op,operation_type:z.op<0?'minus':'plus',correct_before:z.correct_before,correct_total:z.correct_total,student_before:null,expected_from_student:null,student_total:null,response_ms:null,result:'cancelled',is_root_mistake:false,error_delta:null,formula_label:'Not analysed',reason:'after_timeout'});
+  }
+  $('timeUp').classList.remove('hidden');
+  setTimeout(()=>nextSum(),500);
+}
+function nextSum(){clearTimer();sumIndex++;stepIndex=0;if(sumIndex>=SUMS)finishTest();else renderStep()}
+
+function weakSummary(){
+  const map=new Map();
+  records.filter(r=>r.result==='wrong'||r.result==='timeout').forEach(r=>{
+    const key=signed(r.operation),v=map.get(key)||{e:0,w:0,t:0};
+    v.e++;if(r.result==='wrong')v.w++;else v.t++;map.set(key,v);
+  });
+  const arr=[...map.entries()].sort((a,b)=>b[1].e-a[1].e).slice(0,3);
+  if(!arr.length)return 'No repeated weak operation found in this test.';
+  return 'Needs attention: '+arr.map(([k,v])=>k+' ('+v.e+' issue'+(v.e===1?'':'s')+')').join(' · ');
+}
+async function finishTest(){
+  clearTimer();show('result');
+  const correct=records.filter(r=>r.result==='correct'||r.result==='carried_correct').length;
+  const carried=records.filter(r=>r.result==='carried_correct').length;
+  const wrong=records.filter(r=>r.result==='wrong').length;
+  const timeout=records.filter(r=>r.result==='timeout').length;
+  const cancelled=records.filter(r=>r.result==='cancelled').length;
+  const analysed=correct+wrong+timeout;
+  const answered=records.filter(r=>['correct','carried_correct','wrong'].includes(r.result)&&Number.isFinite(r.response_ms));
+  const avg=answered.length?Math.round(answered.reduce((a,r)=>a+r.response_ms,0)/answered.length):null;
+  $('rCorrect').textContent=correct;$('rWrong').textContent=wrong;$('rTimeout').textContent=timeout;$('rCancelled').textContent=cancelled;
+  $('weakBox').textContent=weakSummary()+(carried?' · '+carried+' later step'+(carried===1?' was':'s were')+' calculated correctly from an earlier wrong total.':'');
+  const payload={
+    mode,step_limit_ms:stepLimit(),sum_count:SUMS,steps_per_sum:STEPS,
+    total_possible_steps:SUMS*STEPS,analysed_steps:analysed,
+    correct_steps:correct,carried_correct_steps:carried,wrong_steps:wrong,timeout_steps:timeout,
+    cancelled_steps:cancelled,root_mistakes:wrong,avg_response_ms:avg,
+    duration_seconds:Math.max(1,Math.round((performance.now()-testStarted)/1000)),steps:records
+  };
+  try{
+    const res=await fetch(FUNCTION_URL+'?action=save',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+authSession.access_token,'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(data.error||'Unable to save report');
+    $('saveStatus').textContent='Report saved for you, your parent and teacher.';
+  }catch(e){
+    console.error(e);
+    $('saveStatus').textContent='Test finished, but the report could not be saved. Please tell your teacher.';
+  }
+}
+function startTest(){
+  buildQuestions();sumIndex=0;stepIndex=0;records=[];testStarted=performance.now();show('test');renderStep();
+}
+function key(k){
+  if(locked)return;
+  if(k==='clear')answer='';
+  else if(k==='back')answer=answer.slice(0,-1);
+  else if(answer.length<4)answer+=k;
+  $('answerDisplay').textContent=answer;
+}
+
+document.querySelectorAll('.mode-card').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;document.querySelectorAll('.mode-card').forEach(x=>x.classList.toggle('selected',x===b))});
+document.querySelectorAll('[data-key]').forEach(b=>b.onclick=()=>key(b.dataset.key));
+$('submitBtn').onclick=submitAnswer;$('startBtn').onclick=startTest;$('againBtn').onclick=()=>{show('setup');$('saveStatus').textContent='Saving report...'};
+document.addEventListener('keydown',e=>{if($('test').classList.contains('hidden'))return;if(/^[0-9]$/.test(e.key))key(e.key);else if(e.key==='Backspace')key('back');else if(e.key==='Escape')key('clear');else if(e.key==='Enter')submitAnswer()});
+
+(async()=>{
+  try{
+    const {data:{session}}=await authDb.auth.getSession();
+    if(!session){location.href='login.html';return}
+    authSession=session;
+    const level=Number(sessionStorage.getItem('currentLevel'));
+    const name=sessionStorage.getItem('studentIdentifier')||session.user.email?.split('@')[0]||'Student';
+    const id=sessionStorage.getItem('userId')||session.user.id;
+    if(!Number.isInteger(level)||level<2||level>8){
+      $('deniedText').textContent='Speed & Accuracy Check is available only to Level 2 to Level 8 students.';show('denied');return;
+    }
+    profile={id,full_name:name,current_level:level};
+    show('setup');
+  }catch(e){console.error(e);$('deniedText').textContent='Unable to load your login session. Please log in again.';show('denied')}
+})();
+</script>
+</body></html>
