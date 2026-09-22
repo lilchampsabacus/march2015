@@ -34,6 +34,12 @@
     <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-amber-900 font-bold">
       🧮 Use your physical abacus. The website will not tell you whether an answer is wrong during the test. This helps us find mistakes made under time pressure.
     </div>
+    <div id="adaptiveCard" class="hidden bg-white rounded-2xl shadow p-5 border-2 border-violet-200">
+      <div class="text-xs uppercase tracking-widest text-violet-600 font-black">Recommended from your latest check</div>
+      <h2 class="text-2xl font-black mt-1">Complete the right practice first</h2>
+      <p id="adaptiveSummary" class="text-slate-600 font-bold mt-2"></p>
+      <div id="adaptiveActions" class="grid sm:grid-cols-2 gap-3 mt-4"></div>
+    </div>
     <div class="bg-white rounded-2xl shadow p-5">
       <div class="text-xs uppercase tracking-widest text-indigo-600 font-black">Choose test</div>
       <h1 class="text-3xl font-black mt-1">10 sums · 5 timed steps each</h1>
@@ -99,9 +105,51 @@
         <div class="bg-slate-100 rounded-xl p-4 text-center"><div id="rCancelled" class="text-3xl font-black text-slate-700">0</div><div class="text-xs font-black uppercase text-slate-600">Not reached</div></div>
       </div>
       <div id="weakBox" class="mt-5 bg-indigo-50 border border-indigo-200 rounded-xl p-4 font-bold text-indigo-900"></div>
+      <div id="nextPracticeBox" class="mt-4 rounded-2xl border-2 border-violet-200 bg-violet-50 p-4">
+        <div class="text-xs uppercase tracking-widest text-violet-600 font-black">Adaptive next practice</div>
+        <div id="nextPracticeText" class="font-black text-slate-800 mt-1"></div>
+        <div id="nextPracticeActions" class="grid sm:grid-cols-2 gap-3 mt-4"></div>
+      </div>
       <div class="grid sm:grid-cols-2 gap-3 mt-5">
         <button id="againBtn" class="bg-indigo-600 text-white rounded-xl py-3 font-black">Try Again</button>
-        <a href="speed-check-progress.html" class="text-center bg-emerald-600 text-white rounded-xl py-3 font-black no-underline">My Speed Report</a>
+        <a href="speed-check-progress.html?v=20260922-adaptive" class="text-center bg-emerald-600 text-white rounded-xl py-3 font-black no-underline">My Speed Report</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="drill" class="hidden">
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+      <div class="bg-violet-700 text-white px-5 py-4 flex items-center justify-between gap-3">
+        <div><div id="drillTitle" class="text-xl font-black">Formula Practice</div><div id="drillProgress" class="text-violet-100 text-sm font-bold">Question 1 of 10</div></div>
+        <div id="drillLimitLabel" class="text-right text-sm font-black"></div>
+      </div>
+      <div class="p-5 sm:p-7">
+        <div class="timer-track"><div id="drillTimerBar" class="timer-bar bg-violet-600" style="width:100%"></div></div>
+        <div id="drillWork">
+          <div class="mt-7 text-center">
+            <div id="drillInstruction" class="text-sm uppercase tracking-widest text-slate-400 font-black">Set on abacus</div>
+            <div id="drillStart" class="text-6xl sm:text-7xl font-black text-slate-900 mt-1">25</div>
+            <div class="text-sm text-slate-400 font-bold mt-4">Now do</div>
+            <div id="drillOperation" class="text-7xl sm:text-8xl font-black text-violet-700 mt-1">−8</div>
+          </div>
+          <div id="drillFeedback" class="hidden mt-5 rounded-xl p-4 text-center font-black"></div>
+          <div id="drillAnswerArea" class="mt-7">
+            <div id="drillAnswer" class="h-16 border-2 border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center text-4xl font-black text-slate-900"></div>
+            <div class="grid grid-cols-3 gap-2 mt-3">
+              <button class="key rounded-xl bg-slate-100" data-dkey="1">1</button><button class="key rounded-xl bg-slate-100" data-dkey="2">2</button><button class="key rounded-xl bg-slate-100" data-dkey="3">3</button>
+              <button class="key rounded-xl bg-slate-100" data-dkey="4">4</button><button class="key rounded-xl bg-slate-100" data-dkey="5">5</button><button class="key rounded-xl bg-slate-100" data-dkey="6">6</button>
+              <button class="key rounded-xl bg-slate-100" data-dkey="7">7</button><button class="key rounded-xl bg-slate-100" data-dkey="8">8</button><button class="key rounded-xl bg-slate-100" data-dkey="9">9</button>
+              <button class="key rounded-xl bg-rose-50 text-rose-600" data-dkey="clear">C</button><button class="key rounded-xl bg-slate-100" data-dkey="0">0</button><button class="key rounded-xl bg-amber-50 text-amber-700" data-dkey="back">⌫</button>
+            </div>
+            <button id="drillSubmit" class="w-full mt-3 bg-violet-600 text-white rounded-xl py-4 text-xl font-black">ENTER</button>
+          </div>
+          <button id="drillNext" class="hidden w-full mt-4 bg-slate-900 text-white rounded-xl py-4 text-lg font-black">Next Question</button>
+        </div>
+        <div id="drillComplete" class="hidden text-center py-5">
+          <div class="text-6xl">✅</div><h2 class="text-3xl font-black mt-2">Practice Completed</h2>
+          <p id="drillCompleteText" class="text-slate-600 font-bold mt-2"></p>
+          <div class="grid sm:grid-cols-2 gap-3 mt-5"><button id="repeatDrill" class="bg-violet-600 text-white rounded-xl py-3 font-black">Repeat Practice</button><button id="backToSetup" class="bg-slate-200 text-slate-800 rounded-xl py-3 font-black">Back to Speed Check</button></div>
+        </div>
       </div>
     </div>
   </section>
@@ -121,11 +169,13 @@ let authSession=null;
 const $=id=>document.getElementById(id);
 let profile=null,mode='single_digit',questions=[],sumIndex=0,stepIndex=0,studentRunning=0,answer='',records=[];
 let timerInterval=null,timerTimeout=null,stepStarted=0,testStarted=0,locked=false;
+let latestSavedTest=null,drillKind='',drillMode='single_digit',drillSource=[],drillTarget=null,drillQuestions=[],drillIndex=0,drillAnswer='',drillLocked=false,drillAwaitingNext=false,drillScore=0,drillWrong=0,drillTimeouts=0,drillStreak=0,drillLimitMs=8000,drillTimerInterval=null,drillTimerTimeout=null,drillStarted=0;
 const SUMS=10,STEPS=5,PREP_MS=5000;
 
 function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min}
-function show(id){['loading','setup','test','result','denied'].forEach(x=>$(x).classList.toggle('hidden',x!==id))}
+function show(id){['loading','setup','test','result','drill','denied'].forEach(x=>$(x).classList.toggle('hidden',x!==id))}
 function signed(n){return n<0?'−'+Math.abs(n):'+'+n}
+function escHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 
 const FORMULA_RULES=[];
 function addRules(kind,sign,map){
@@ -232,6 +282,118 @@ function formulaFor(total,op){
   const tl=tr?ruleLabel(tr):'Direct '+signed(sign*t)+'0';
   const ul=ur?ruleLabel(ur):'Direct '+signed(sign*u);
   return 'Tens: '+tl+' · Units: '+ul;
+}
+
+function issueLabel(r){
+  const label=String(r.formula_label||'').trim();
+  return label&&label!=='Not analysed'&&!label.includes('Direct ')?label:signed(Number(r.operation)||0);
+}
+function issueGroups(source,result){
+  const map=new Map();
+  (source||[]).filter(r=>r.result===result).forEach(r=>{
+    const key=issueLabel(r),v=map.get(key)||{label:key,count:0,operation:Number(r.operation)||0};v.count++;map.set(key,v);
+  });
+  return [...map.values()].sort((a,b)=>b.count-a.count||a.label.localeCompare(b.label));
+}
+function adaptivePlan(source){
+  const wrong=issueGroups(source,'wrong'),timeouts=issueGroups(source,'timeout');
+  return {wrong,timeouts,wrongCount:wrong.reduce((a,x)=>a+x.count,0),timeoutCount:timeouts.reduce((a,x)=>a+x.count,0)};
+}
+function actionButton(kind,item,primary=false){
+  const isAccuracy=kind==='accuracy';
+  const label=isAccuracy?'Fix '+item.label:'Build recall for '+item.label;
+  const note=isAccuracy?'Untimed · immediate correction':'Starts at 8 sec · moves towards 5 sec';
+  return `<button data-adaptive-kind="${kind}" data-adaptive-label="${encodeURIComponent(item.label)}" data-adaptive-op="${item.operation}" class="text-left rounded-xl p-4 font-black ${primary?'bg-violet-700 text-white':'bg-white border-2 border-violet-200 text-violet-900'}"><span class="block text-sm uppercase tracking-wide ${primary?'text-violet-100':'text-violet-600'}">${isAccuracy?'Formula Correction':'Recall Speed Drill'}</span><span class="block text-lg mt-1">${escHtml(label)}</span><span class="block text-xs mt-1 opacity-80">${note}</span></button>`;
+}
+function renderAdaptive(source,summaryId,actionsId){
+  const plan=adaptivePlan(source),actions=[];
+  const recallFirst=plan.timeoutCount>plan.wrongCount;
+  if(plan.wrong.length)actions.push({kind:'accuracy',item:plan.wrong[0],primary:!recallFirst});
+  if(plan.timeouts.length)actions.push({kind:'recall',item:plan.timeouts[0],primary:recallFirst});
+  if(!actions.length){
+    $(summaryId).textContent='No correction drill is needed. Continue normal Speed & Accuracy practice.';
+    $(actionsId).innerHTML='<div class="sm:col-span-2 rounded-xl bg-emerald-100 text-emerald-800 p-4 font-black">All analysed steps were completed correctly and within time.</div>';
+    return false;
+  }
+  const parts=[];
+  if(plan.wrongCount)parts.push(plan.wrongCount+' wrong answer'+(plan.wrongCount===1?'':'s')+' need formula correction');
+  if(plan.timeoutCount)parts.push(plan.timeoutCount+' timeout'+(plan.timeoutCount===1?'':'s')+' need recall-speed practice');
+  $(summaryId).textContent=parts.join('. ')+'.';
+  actions.sort((a,b)=>Number(b.primary)-Number(a.primary));
+  $(actionsId).innerHTML=actions.map(x=>actionButton(x.kind,x.item,x.primary)).join('');
+  $(actionsId).querySelectorAll('[data-adaptive-kind]').forEach(b=>b.onclick=()=>startAdaptive(b.dataset.adaptiveKind,{label:decodeURIComponent(b.dataset.adaptiveLabel),operation:Number(b.dataset.adaptiveOp)},source));
+  return true;
+}
+function candidateMatches(total,op,target){
+  if(total+op<0||total+op>99)return false;
+  if(target.label.startsWith('+')||target.label.startsWith('−'))return op===target.operation;
+  return formulaFor(total,op)===target.label;
+}
+function formulaMove(label){
+  const m=String(label).match(/^(Small Friend|Big Friend|Mix Friend) ([+−])(\d)$/);if(!m)return label;
+  const kind=m[1],sign=m[2],n=Number(m[3]);
+  if(kind==='Small Friend')return sign==='+'?`+${n} = +5 −${5-n}`:`−${n} = +${5-n} −5`;
+  if(kind==='Big Friend')return sign==='+'?`+${n} = −${10-n} +10`:`−${n} = −10 +${10-n}`;
+  return sign==='+'?`+${n} = +${n-5} −5 +10`:`−${n} = −10 +5 −${n-5}`;
+}
+function buildTargetQuestions(target){
+  const pool=[];
+  const minOp=drillMode==='single_digit'?1:10,maxOp=drillMode==='single_digit'?9:49;
+  for(let total=drillMode==='single_digit'?10:20;total<=89;total++){
+    for(const sign of [-1,1])for(let mag=minOp;mag<=maxOp;mag++){
+      const op=sign*mag;if(candidateMatches(total,op,target))pool.push({start:total,op,answer:total+op});
+    }
+  }
+  if(!pool.length){
+    const op=target.operation||-8;
+    for(let total=Math.max(10,-op);total<=89;total++)if(total+op>=0&&total+op<=99)pool.push({start:total,op,answer:total+op});
+  }
+  const out=[];for(let i=0;i<10;i++)out.push({...pool[rand(0,pool.length-1)]});return out;
+}
+function clearDrillTimer(){clearInterval(drillTimerInterval);clearTimeout(drillTimerTimeout);drillTimerInterval=drillTimerTimeout=null}
+function startAdaptive(kind,target,source){
+  clearTimer();clearDrillTimer();drillKind=kind;drillSource=source||[];drillTarget=target;
+  const sourceMode=latestSavedTest&&source===latestSavedTest.steps?latestSavedTest.mode:null;drillMode=sourceMode||mode;
+  drillQuestions=buildTargetQuestions(target);drillIndex=0;drillAnswer='';drillLocked=true;drillScore=0;drillWrong=0;drillTimeouts=0;drillStreak=0;drillLimitMs=8000;
+  $('drillTitle').textContent=kind==='accuracy'?'Formula Correction · '+target.label:'Recall Speed Drill · '+target.label;
+  $('drillComplete').classList.add('hidden');$('drillWork').classList.remove('hidden');show('drill');prepareDrill();
+}
+function prepareDrill(){
+  clearDrillTimer();drillLocked=true;drillAwaitingNext=false;drillAnswer='';const q=drillQuestions[drillIndex];
+  $('drillProgress').textContent='Question '+(drillIndex+1)+' of '+drillQuestions.length;
+  $('drillLimitLabel').textContent=drillKind==='accuracy'?'Untimed correction':(drillLimitMs/1000)+' sec recall';
+  $('drillInstruction').textContent='Set this number on abacus';$('drillStart').textContent=q.start;$('drillOperation').textContent='READY';
+  $('drillAnswer').textContent='';$('drillAnswerArea').classList.add('hidden');$('drillFeedback').classList.add('hidden');$('drillNext').classList.add('hidden');$('drillTimerBar').style.width='100%';
+  const prep=3000,started=performance.now();
+  drillTimerInterval=setInterval(()=>{$('drillTimerBar').style.width=(Math.max(0,prep-(performance.now()-started))/prep*100)+'%'},50);
+  drillTimerTimeout=setTimeout(()=>{clearDrillTimer();showDrillOperation()},prep);
+}
+function showDrillOperation(){
+  const q=drillQuestions[drillIndex];drillLocked=false;drillAnswer='';$('drillInstruction').textContent=drillKind==='accuracy'?'Work carefully':'Recall and move the formula';$('drillOperation').textContent=signed(q.op);$('drillAnswerArea').classList.remove('hidden');$('drillAnswer').textContent='';
+  if(drillKind==='recall'){
+    drillStarted=performance.now();const limit=drillLimitMs;
+    drillTimerInterval=setInterval(()=>{$('drillTimerBar').style.width=(Math.max(0,limit-(performance.now()-drillStarted))/limit*100)+'%'},50);
+    drillTimerTimeout=setTimeout(()=>finishDrillQuestion('timeout'),limit);
+  }else $('drillTimerBar').style.width='100%';
+}
+function drillKey(k){if(drillLocked)return;if(k==='clear')drillAnswer='';else if(k==='back')drillAnswer=drillAnswer.slice(0,-1);else if(drillAnswer.length<4)drillAnswer+=k;$('drillAnswer').textContent=drillAnswer}
+function submitDrill(){if(drillLocked||drillAnswer==='')return;const q=drillQuestions[drillIndex];finishDrillQuestion(Number(drillAnswer)===q.answer?'correct':'wrong')}
+function finishDrillQuestion(result){
+  if(drillLocked)return;drillLocked=true;clearDrillTimer();const q=drillQuestions[drillIndex],box=$('drillFeedback');$('drillAnswerArea').classList.add('hidden');box.classList.remove('hidden');
+  if(result==='correct'){
+    drillScore++;drillStreak++;box.className='mt-5 rounded-xl p-4 text-center font-black bg-emerald-100 text-emerald-800';box.textContent='Correct ✓';
+    if(drillKind==='recall'&&drillStreak%3===0)drillLimitMs=Math.max(5000,drillLimitMs-1000);
+    drillAwaitingNext=true;
+    setTimeout(nextDrillQuestion,550);return;
+  }
+  drillStreak=0;if(result==='timeout'){drillTimeouts++;drillLimitMs=Math.min(8000,drillLimitMs+1000)}else drillWrong++;
+  box.className='mt-5 rounded-xl p-4 text-center font-black '+(result==='timeout'?'bg-amber-100 text-amber-900':'bg-rose-100 text-rose-800');
+  drillAwaitingNext=true;box.textContent=(result==='timeout'?'Recall delay. ':'Correct answer: '+q.answer+'. ')+'Use '+formulaMove(drillTarget.label)+'.';$('drillNext').classList.remove('hidden');
+}
+function nextDrillQuestion(){if(!drillAwaitingNext)return;drillAwaitingNext=false;drillIndex++;if(drillIndex>=drillQuestions.length){completeDrill();return}prepareDrill()}
+function completeDrill(){
+  clearDrillTimer();$('drillWork').classList.add('hidden');$('drillComplete').classList.remove('hidden');
+  $('drillCompleteText').textContent=drillKind==='accuracy'?`${drillScore}/10 correct in focused ${drillTarget.label} practice.`:`${drillScore}/10 completed within time. Final limit: ${drillLimitMs/1000} seconds.`;
 }
 
 function stepLimit(){return 5000}
@@ -346,6 +508,7 @@ async function finishTest(){
   const avg=answered.length?Math.round(answered.reduce((a,r)=>a+r.response_ms,0)/answered.length):null;
   $('rCorrect').textContent=correct;$('rWrong').textContent=wrong;$('rTimeout').textContent=timeout;$('rCancelled').textContent=cancelled;
   $('weakBox').textContent=weakSummary()+(carried?' · '+carried+' later step'+(carried===1?' was':'s were')+' calculated correctly from an earlier wrong total.':'');
+  renderAdaptive(records,'nextPracticeText','nextPracticeActions');
   const payload={
     mode,step_limit_ms:stepLimit(),sum_count:SUMS,steps_per_sum:STEPS,
     total_possible_steps:SUMS*STEPS,analysed_steps:analysed,
@@ -361,6 +524,8 @@ async function finishTest(){
     });
     const data=await res.json().catch(()=>({}));
     if(!res.ok) throw new Error(data.error||'Unable to save report');
+    latestSavedTest={...payload,mode,steps:records};
+    const hasPlan=renderAdaptive(records,'adaptiveSummary','adaptiveActions');$('adaptiveCard').classList.toggle('hidden',!hasPlan);
     $('saveStatus').textContent='Report saved for you, your parent and teacher.';
   }catch(e){
     console.error(e);
@@ -380,8 +545,11 @@ function key(k){
 
 document.querySelectorAll('.mode-card').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;document.querySelectorAll('.mode-card').forEach(x=>x.classList.toggle('selected',x===b))});
 document.querySelectorAll('[data-key]').forEach(b=>b.onclick=()=>key(b.dataset.key));
+document.querySelectorAll('[data-dkey]').forEach(b=>b.onclick=()=>drillKey(b.dataset.dkey));
 $('submitBtn').onclick=submitAnswer;$('startBtn').onclick=startTest;$('againBtn').onclick=()=>{show('setup');$('saveStatus').textContent='Saving report...'};
+$('drillSubmit').onclick=submitDrill;$('drillNext').onclick=nextDrillQuestion;$('repeatDrill').onclick=()=>startAdaptive(drillKind,drillTarget,drillSource);$('backToSetup').onclick=()=>{clearDrillTimer();show('setup')};
 document.addEventListener('keydown',e=>{if($('test').classList.contains('hidden'))return;if(/^[0-9]$/.test(e.key))key(e.key);else if(e.key==='Backspace')key('back');else if(e.key==='Escape')key('clear');else if(e.key==='Enter')submitAnswer()});
+document.addEventListener('keydown',e=>{if($('drill').classList.contains('hidden'))return;if(/^[0-9]$/.test(e.key))drillKey(e.key);else if(e.key==='Backspace')drillKey('back');else if(e.key==='Escape')drillKey('clear');else if(e.key==='Enter'){if(!$('drillNext').classList.contains('hidden'))nextDrillQuestion();else submitDrill()}});
 
 (async()=>{
   try{
@@ -396,6 +564,15 @@ document.addEventListener('keydown',e=>{if($('test').classList.contains('hidden'
     }
     profile={id,full_name:name,current_level:level};
     show('setup');
+    try{
+      const res=await fetch(FUNCTION_URL+'?action=own-tests',{headers:{'Authorization':'Bearer '+session.access_token}});
+      const data=await res.json().catch(()=>({}));
+      if(res.ok&&Array.isArray(data.rows)&&data.rows.length){
+        latestSavedTest=data.rows[0];
+        const hasPlan=renderAdaptive(latestSavedTest.steps||[],'adaptiveSummary','adaptiveActions');
+        $('adaptiveCard').classList.toggle('hidden',!hasPlan);
+      }
+    }catch(e){console.warn('Previous adaptive recommendation unavailable',e)}
   }catch(e){console.error(e);$('deniedText').textContent='Unable to load your login session. Please log in again.';show('denied')}
 })();
 </script>

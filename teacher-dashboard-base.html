@@ -607,6 +607,8 @@
         }
 
         document.getElementById('ownerCentreFilter').addEventListener('change', renderOwnerOverview);
+        const speedReportLink = document.querySelector('a[href="teacher-speed-check-report.html"]');
+        if (speedReportLink) speedReportLink.href = 'teacher-speed-check-report.html?v=20260922-adaptive';
 
         function processPracticeDashboard(students) {
             const today = new Intl.DateTimeFormat('en-CA', {
