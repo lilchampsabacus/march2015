@@ -1,12 +1,15 @@
 (async function(){
 'use strict';
 const SUPABASE_URL='https://portal-bridge.ucmas-ambernath-pg.workers.dev';
+const SPEED_CONTEXT_URL='https://ipakwgzbbjywzccoahiw.supabase.co/functions/v1/speed-accuracy-api?action=context';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYXNlIiwicmVmIjoiaXBha3dnemJianl3emNjb2FoaXciLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc2MjE5MDIyNCwiZXhwIjoyMDc3NzY2MjI0fQ.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
 function indiaDateISO(){const p={};new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).forEach(x=>p[x.type]=x.value);return `${p.year}-${p.month}-${p.day}`}
 function requiredCount(level){return level>=5?3:2}
 function waitReady(){return new Promise(r=>document.readyState==='loading'?document.addEventListener('DOMContentLoaded',r,{once:true}):r())}
 function validLevel(level){return Number.isInteger(level)&&level>=2&&level<=8}
 function dashboardGrid(){return document.querySelector('main > .grid')||document.querySelector('main .grid')}
+function warmSpeedPage(){if(!document.querySelector('link[data-speed-preconnect]')){const connection=document.createElement('link');connection.rel='preconnect';connection.href='https://ipakwgzbbjywzccoahiw.supabase.co';connection.crossOrigin='anonymous';connection.dataset.speedPreconnect='1';document.head.appendChild(connection)}if(!document.querySelector('link[data-speed-prefetch]')){const page=document.createElement('link');page.rel='prefetch';page.href='speed-check.html?v=20260923-fast';page.dataset.speedPrefetch='1';document.head.appendChild(page)}}
+async function prefetchSpeedPlan(session){try{const key='speedAccuracyPlan:v2:'+session.user.id,old=JSON.parse(localStorage.getItem(key)||'null');if(old&&Date.now()-Number(old.saved_at)<5*60*1000)return;const res=await fetch(SPEED_CONTEXT_URL,{headers:{Authorization:'Bearer '+session.access_token}}),data=await res.json().catch(()=>({}));if(!res.ok||!data.adaptive_plan)return;localStorage.setItem(key,JSON.stringify({saved_at:Date.now(),plan:data.adaptive_plan,latest_test:data.latest_test||null}))}catch{}}
 function renderCards(level){
   if(!validLevel(level))return null;
   const grid=dashboardGrid();if(!grid)return null;
@@ -35,8 +38,9 @@ function renderCards(level){
     </div>
     <div class="mt-7 flex items-center gap-2"><span class="text-xs font-black uppercase tracking-widest text-rose-600">Speed & Accuracy</span><span class="h-px flex-1 bg-rose-100"></span></div>\n    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">\n      <a href="speed-check.html?v=20260922-formula" class="block no-underline rounded-2xl shadow-xl overflow-hidden border-2 border-rose-200 bg-gradient-to-r from-rose-600 to-orange-500 text-white p-5 md:p-6 hover:shadow-2xl transition-all">\n        <div class="flex gap-4 items-center justify-between"><div class="flex items-center gap-4"><div class="text-5xl">🎯</div><div><div class="text-xs font-black uppercase tracking-widest text-rose-100">Timed Mistake Detector</div><h3 class="text-2xl font-black mt-1">Speed & Accuracy Check</h3><p class="text-rose-50 mt-1">Find root mistakes and timeouts under pressure.</p></div></div><div class="hidden sm:block bg-white text-rose-700 font-black rounded-xl px-4 py-3 text-center whitespace-nowrap">Start Check →</div></div>\n        <div class="sm:hidden mt-4 bg-white text-rose-700 font-black rounded-xl px-4 py-3 text-center">Start Check →</div>\n      </a>\n      <a href="speed-check-progress.html" class="block no-underline rounded-2xl shadow-xl overflow-hidden border-2 border-sky-200 bg-white p-5 md:p-6 hover:shadow-2xl transition-all">\n        <div class="flex gap-4 items-center justify-between"><div class="flex items-center gap-4"><div class="text-5xl">📈</div><div><div class="text-xs font-black uppercase tracking-widest text-sky-600">For Students & Parents</div><h3 class="text-2xl font-black mt-1 text-slate-900">My Speed Report</h3><p class="text-slate-500 mt-1">See weak minus operations, mistakes and response time.</p></div></div><div class="hidden sm:block bg-sky-600 text-white font-black rounded-xl px-4 py-3 text-center whitespace-nowrap">View Report →</div></div>\n        <div class="sm:hidden mt-4 bg-sky-600 text-white font-black rounded-xl px-4 py-3 text-center">View Report →</div>\n      </a>\n    </div>\n    <div class="mt-7 flex items-center gap-2"><span class="text-xs font-black uppercase tracking-widest text-slate-500">Other Practice</span><span class="h-px flex-1 bg-slate-200"></span></div>`;
   grid.parentElement.insertBefore(wrap,grid);
-  const speedLink=wrap.querySelector('a[href^="speed-check.html"]');if(speedLink)speedLink.href='speed-check.html?v=20260922-adaptive';
-  const speedReportLink=wrap.querySelector('a[href^="speed-check-progress.html"]');if(speedReportLink)speedReportLink.href='speed-check-progress.html?v=20260922-adaptive';
+  const speedLink=wrap.querySelector('a[href^="speed-check.html"]');if(speedLink)speedLink.href='speed-check.html?v=20260923-fast';
+  const speedReportLink=wrap.querySelector('a[href^="speed-check-progress.html"]');if(speedReportLink)speedReportLink.href='speed-check-progress.html?v=20260923-fast';
+  warmSpeedPage();
   return wrap;
 }
 function updateLevelText(level){const el=document.getElementById('daily-level-copy');if(el)el.textContent=`Level ${level} · Complete your required sections.`}
@@ -57,6 +61,7 @@ try{
   if(!window.supabase)return;
   const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
   const auth=await client.auth.getSession(),session=auth.data.session;if(!session)return;
+  prefetchSpeedPlan(session);
   const p=await client.from('profiles').select('current_level,role,is_active').eq('id',session.user.id).single();
   if(p.error||!p.data||p.data.is_active===false||p.data.role!=='student')return;
   level=Number(p.data.current_level);

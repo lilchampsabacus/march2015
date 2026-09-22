@@ -219,6 +219,26 @@ async function loadOwnData(admin: ReturnType<typeof createClient>, userId: strin
   }
 }
 
+async function loadAdaptiveData(admin: ReturnType<typeof createClient>, userId: string) {
+  const [testsResult, drillsResult] = await Promise.all([
+    admin.from("speed_accuracy_tests")
+      .select("id,user_id,mode,created_at,steps")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(5),
+    admin.from("speed_accuracy_drills")
+      .select("id,user_id,drill_kind,target_key,end_limit_ms,passed,practice_date,created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(200),
+  ])
+  if (testsResult.error || drillsResult.error) throw new Error("Unable to load adaptive history")
+  return {
+    tests: (testsResult.data || []) as RecordRow[],
+    drills: (drillsResult.data || []) as RecordRow[],
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors(req) })
 
@@ -239,17 +259,24 @@ Deno.serve(async (req: Request) => {
     const user = userData?.user
     if (userError || !user) return json(req, { error: "Invalid login session" }, 401)
 
-    const { data: profile, error: profileError } = await admin
+    const action = new URL(req.url).searchParams.get("action") || "context"
+    const profileQuery = admin
       .from("profiles")
       .select("id,full_name,role,is_active,current_level,batch_name,centre_id,student_status")
       .eq("id", user.id)
       .single()
+    const contextDataQuery = action === "context"
+      ? loadAdaptiveData(admin, user.id)
+      : Promise.resolve(null)
+    const [{ data: profile, error: profileError }, contextData] = await Promise.all([
+      profileQuery,
+      contextDataQuery,
+    ])
 
     if (profileError || !profile || profile.is_active === false) {
       return json(req, { error: "Active profile required" }, 403)
     }
 
-    const action = new URL(req.url).searchParams.get("action") || "context"
     const isActiveStudent = profile.role === "student" &&
       profile.student_status === "active" &&
       profile.current_level >= 2 && profile.current_level <= 8
@@ -260,8 +287,15 @@ Deno.serve(async (req: Request) => {
           error: "Speed & Accuracy Check is available only to active Level 2 to Level 8 students",
         }, 403)
       }
-      const own = await loadOwnData(admin, profile.id)
-      return json(req, { profile, adaptive_plan: buildAdaptivePlan(own.tests, own.drills) })
+      const own = contextData!
+      const latest = own.tests[0]
+      return json(req, {
+        profile,
+        latest_test: latest
+          ? { id: latest.id, mode: latest.mode, created_at: latest.created_at }
+          : null,
+        adaptive_plan: buildAdaptivePlan(own.tests, own.drills),
+      })
     }
 
     if (action === "save") {
@@ -305,7 +339,7 @@ Deno.serve(async (req: Request) => {
       if (error) {
         return json(req, { error: "Unable to save report", detail: error.message }, 500)
       }
-      const own = await loadOwnData(admin, profile.id)
+      const own = await loadAdaptiveData(admin, profile.id)
       return json(req, {
         ok: true,
         test: data,
@@ -401,7 +435,7 @@ Deno.serve(async (req: Request) => {
       if (error) {
         return json(req, { error: "Unable to save practice", detail: error.message }, 500)
       }
-      const own = await loadOwnData(admin, profile.id)
+      const own = await loadAdaptiveData(admin, profile.id)
       const adaptivePlan = buildAdaptivePlan(own.tests, own.drills)
       const current = [
         ...(adaptivePlan.targets as RecordRow[]),
