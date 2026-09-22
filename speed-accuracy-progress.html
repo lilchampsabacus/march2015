@@ -74,7 +74,8 @@ function render(rows){
 }
 (async()=>{
  try{
-  const {data:{session}}=await authDb.auth.getSession();if(!session){location.href='login.html';return}\n  db=supabase.createClient(API_URL,SUPABASE_ANON_KEY,{global:{headers:{Authorization:'Bearer '+session.access_token}},auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+  const {data:{session}}=await authDb.auth.getSession();if(!session){location.href='login.html';return}
+  db=supabase.createClient(API_URL,SUPABASE_ANON_KEY,{global:{headers:{Authorization:'Bearer '+session.access_token}},auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
   const {data:p,error:pe}=await db.from('profiles').select('full_name,role,is_active,current_level,batch_name,student_status').eq('id',session.user.id).single();if(pe)throw pe;
   if(p.role!=='student'||p.is_active===false){$('loading').classList.add('hidden');$('denied').classList.remove('hidden');return}
   $('studentName').textContent=p.full_name||'Student';$('studentMeta').textContent='Level '+p.current_level+(p.batch_name?' · Batch '+p.batch_name:'');
