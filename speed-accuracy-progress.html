@@ -44,9 +44,9 @@
 </main>
 <script>
 const AUTH_URL='https://portal-bridge.ucmas-ambernath-pg.workers.dev';
-const API_URL='https://ipakwgzbbjywzccoahiw.supabase.co';
+const FUNCTION_URL='https://ipakwgzbbjywzccoahiw.supabase.co/functions/v1/speed-accuracy-api';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYXNlIiwicmVmIjoiaXBha3dnemJianl3emNjb2FoaXciLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc2MjE5MDIyNCwiZXhwIjoyMDc3NzY2MjI0fQ.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
-const authDb=supabase.createClient(AUTH_URL,SUPABASE_ANON_KEY);let db=null;const $=id=>document.getElementById(id);
+const authDb=supabase.createClient(AUTH_URL,SUPABASE_ANON_KEY);const $=id=>document.getElementById(id);
 function signed(n){return n<0?'−'+Math.abs(n):'+'+n}
 function dt(x){return new Date(x).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'})}
 function modeName(x){return x==='single_digit'?'Single Digit':'Double Digit'}
@@ -75,14 +75,15 @@ function render(rows){
 (async()=>{
  try{
   const {data:{session}}=await authDb.auth.getSession();if(!session){location.href='login.html';return}
-  db=supabase.createClient(API_URL,SUPABASE_ANON_KEY,{global:{headers:{Authorization:'Bearer '+session.access_token}},auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
-  const {data:p,error:pe}=await db.from('profiles').select('full_name,role,is_active,current_level,batch_name,student_status').eq('id',session.user.id).single();if(pe)throw pe;
-  if(p.role!=='student'||p.is_active===false){$('loading').classList.add('hidden');$('denied').classList.remove('hidden');return}
-  $('studentName').textContent=p.full_name||'Student';$('studentMeta').textContent='Level '+p.current_level+(p.batch_name?' · Batch '+p.batch_name:'');
-  const {data:rows,error}=await db.from('speed_accuracy_tests').select('*').eq('user_id',session.user.id).order('created_at',{ascending:false}).limit(100);if(error)throw error;
+  const res=await fetch(FUNCTION_URL+'?action=own-tests',{headers:{'Authorization':'Bearer '+session.access_token}});
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(data.error||'Unable to load report');
+  const p=data.profile||{},rows=data.rows||[];
+  $('studentName').textContent=p.full_name||sessionStorage.getItem('studentIdentifier')||'Student';
+  $('studentMeta').textContent='Level '+(p.current_level||sessionStorage.getItem('currentLevel')||'-')+(p.batch_name?' · Batch '+p.batch_name:'');
   $('loading').classList.add('hidden');$('app').classList.remove('hidden');
-  if(!rows?.length){$('empty').classList.remove('hidden');return}
+  if(!rows.length){$('empty').classList.remove('hidden');return}
   $('reportArea').classList.remove('hidden');render(rows);
- }catch(e){console.error(e);$('loading').textContent='Unable to load report. Please refresh.'}
+ }catch(e){console.error(e);$('loading').textContent=e?.message||'Unable to load report. Please refresh.'}
 })();
 </script></body></html>
