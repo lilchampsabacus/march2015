@@ -95,7 +95,7 @@
           '\n<style id="reportAccessHide">html{visibility:hidden!important}</style>' +
           '\n<script src="low-level-access.js?v=1" data-page="practice-options"></script>' +
           '\n<script src="report-access.js?v=1"></script>' +
-          '\n<script src="daily-card.js?v=16-single-back"></script>';
+          '\n<script src="daily-card.js?v=17-clear-3s"></script>';
       }
     }
 
