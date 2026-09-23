@@ -241,7 +241,21 @@
         });
         document.getElementById('printParentReport').addEventListener('click', async () => {
             const name = document.getElementById('studentDropdown').value;
-            await html2pdf().set({margin:0.35,filename:`${name}_${parentMonthInput.value}_Monthly_Practice.pdf`,html2canvas:{scale:2},jsPDF:{unit:'in',format:'a4',orientation:'portrait'}}).from(parentPanel).save();
+            // Leave space inside the capture so html2canvas cannot crop the panel border.
+            const sheet = document.createElement('div');
+            sheet.style.cssText = 'width:940px;box-sizing:border-box;padding:16px;background:#fff;';
+            const report = parentPanel.cloneNode(true);
+            report.classList.remove('hidden');
+            report.style.cssText = 'width:100%;max-width:none;margin:0;box-sizing:border-box;border:2px solid #cbd5e1;';
+            sheet.appendChild(report);
+            await html2pdf().set({
+                margin: 0.35,
+                filename: `${name}_${parentMonthInput.value}_Monthly_Practice.pdf`,
+                image: {type:'jpeg', quality:0.98},
+                html2canvas: {scale:2, backgroundColor:'#ffffff', scrollX:0, scrollY:0},
+                jsPDF: {unit:'in', format:'a4', orientation:'landscape'},
+                pagebreak: {mode:['avoid-all','css']}
+            }).from(sheet).save();
         });
 
         async function loadParentReport() {
