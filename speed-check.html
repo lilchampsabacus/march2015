@@ -18,6 +18,22 @@
     .shake{animation:shake .2s linear 2}
     .new-sum-blink{font-size:1.2rem;font-weight:900;color:#fde047;letter-spacing:.06em;animation:newSumBlink .7s ease-in-out infinite}
     button:disabled{cursor:not-allowed;opacity:.65}
+    body.session-active{overflow:hidden}
+    body.session-active header{display:none}
+    body.session-active main{height:100dvh;padding:.5rem;display:flex;align-items:center}
+    body.session-active #test,body.session-active #drill{width:100%}
+    body.session-active .session-head{padding:.55rem 1rem}
+    body.session-active .session-body{padding:clamp(.45rem,1.4vh,1rem)}
+    body.session-active .session-display{margin-top:clamp(.4rem,1.4vh,.9rem)}
+    body.session-active .session-display #currentTotal,body.session-active .session-display #drillStart{font-size:clamp(2rem,10vw,4.5rem);line-height:1;white-space:nowrap}
+    body.session-active .session-display #operation,body.session-active .session-display #drillOperation{font-size:clamp(3rem,10vh,5rem);line-height:1}
+    body.session-active #actionLabel,body.session-active #drillNowDo{margin-top:clamp(.2rem,.8vh,.6rem)}
+    body.session-active #answerArea,body.session-active #drillAnswerArea{margin-top:clamp(.35rem,1vh,.7rem)}
+    body.session-active #answerDisplay,body.session-active #drillAnswer{height:clamp(2.5rem,6vh,3.5rem);font-size:clamp(1.5rem,4vh,2.25rem)}
+    body.session-active .key{min-height:clamp(2.15rem,5.4vh,3rem);font-size:clamp(1rem,2.8vh,1.25rem)}
+    body.session-active .key-grid{gap:.3rem;margin-top:.35rem}
+    body.session-active .session-submit{margin-top:.35rem;padding:.55rem 0;font-size:1.05rem}
+    body.session-active .session-note{display:none}
     @keyframes newSumBlink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(1.06)}}
     @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
   </style>
@@ -45,8 +61,8 @@
     </div>
     <div class="bg-white rounded-2xl shadow p-5">
       <div class="text-xs uppercase tracking-widest text-indigo-600 font-black">Choose test</div>
-      <h1 class="text-3xl font-black mt-1">10 sums · 5 timed steps each</h1>
-      <p class="text-slate-500 font-bold mt-2">You get 5 seconds before every new sum to clear the abacus and set the starting number. Only Small Friend, Big Friend and Mix Friend operations are used; direct operations are excluded.</p>
+      <h1 class="text-3xl font-black mt-1">2 sums · 5 timed steps each</h1>
+      <p class="text-slate-500 font-bold mt-2">READY appears for 5 seconds before the first sum. Between sums, SOROBAN CLEAR appears for 5 seconds. The starting number and first operation then appear together. Only Small Friend, Big Friend and Mix Friend operations are used; direct operations are excluded.</p>
       <div class="grid sm:grid-cols-2 gap-4 mt-5">
         <button class="mode-card selected text-left border-2 border-indigo-500 rounded-2xl p-5" data-mode="single_digit">
           <div class="text-4xl">1️⃣</div><div class="text-xl font-black mt-2">Single Digit</div>
@@ -68,13 +84,13 @@
 
   <section id="test" class="hidden">
     <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-      <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between gap-3">
-        <div><div id="sumLabel" class="font-black">Sum 1 of 10</div><div id="stepLabel" class="text-slate-300 text-sm font-bold">Step 1 of 5</div></div>
+      <div class="session-head bg-slate-900 text-white px-5 py-4 flex items-center justify-between gap-3">
+        <div><div id="sumLabel" class="font-black">Sum 1 of 2</div><div id="stepLabel" class="text-slate-300 text-sm font-bold">Step 1 of 5</div></div>
         <div class="text-right"><div id="modeLabel" class="font-black"></div><div id="timeLabel" class="text-slate-300 text-sm font-bold"></div></div>
       </div>
-      <div class="p-5 sm:p-7">
+      <div class="session-body p-5 sm:p-7">
         <div class="timer-track"><div id="timerBar" class="timer-bar" style="width:100%"></div></div>
-        <div class="mt-7 text-center">
+        <div class="session-display mt-7 text-center">
           <div id="totalLabel" class="text-sm uppercase tracking-widest text-slate-400 font-black">Current abacus total</div>
           <div id="currentTotal" class="text-6xl sm:text-7xl font-black text-slate-900 mt-1">25</div>
           <div id="actionLabel" class="text-sm text-slate-400 font-bold mt-4">Now do</div>
@@ -85,17 +101,17 @@
 
         <div id="answerArea" class="mt-7">
           <div id="answerDisplay" class="h-16 border-2 border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center text-4xl font-black text-slate-900"></div>
-          <div class="grid grid-cols-3 gap-2 mt-3">
+          <div class="key-grid grid grid-cols-3 gap-2 mt-3">
             <button class="key rounded-xl bg-slate-100" data-key="1">1</button><button class="key rounded-xl bg-slate-100" data-key="2">2</button><button class="key rounded-xl bg-slate-100" data-key="3">3</button>
             <button class="key rounded-xl bg-slate-100" data-key="4">4</button><button class="key rounded-xl bg-slate-100" data-key="5">5</button><button class="key rounded-xl bg-slate-100" data-key="6">6</button>
             <button class="key rounded-xl bg-slate-100" data-key="7">7</button><button class="key rounded-xl bg-slate-100" data-key="8">8</button><button class="key rounded-xl bg-slate-100" data-key="9">9</button>
             <button class="key rounded-xl bg-rose-50 text-rose-600" data-key="clear">C</button><button class="key rounded-xl bg-slate-100" data-key="0">0</button><button class="key rounded-xl bg-amber-50 text-amber-700" data-key="back">⌫</button>
           </div>
-          <button id="submitBtn" class="w-full mt-3 bg-emerald-600 text-white rounded-xl py-4 text-xl font-black">ENTER</button>
+          <button id="submitBtn" class="session-submit w-full mt-3 bg-emerald-600 text-white rounded-xl py-4 text-xl font-black">ENTER</button>
         </div>
       </div>
     </div>
-    <p class="text-center text-slate-400 font-bold text-sm mt-3">No correct/wrong feedback is shown during the test.</p>
+    <p class="session-note text-center text-slate-400 font-bold text-sm mt-3">No correct/wrong feedback is shown during the test.</p>
   </section>
 
   <section id="result" class="hidden space-y-5">
@@ -122,29 +138,29 @@
 
   <section id="drill" class="hidden">
     <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-      <div class="bg-violet-700 text-white px-5 py-4 flex items-center justify-between gap-3">
+      <div class="session-head bg-violet-700 text-white px-5 py-4 flex items-center justify-between gap-3">
         <div><div id="drillTitle" class="text-xl font-black">Formula Practice</div><div id="drillProgress" class="text-violet-100 text-sm font-bold">Question 1 of 10</div></div>
         <div id="drillLimitLabel" class="text-right text-sm font-black"></div>
       </div>
-      <div class="p-5 sm:p-7">
+      <div class="session-body p-5 sm:p-7">
         <div class="timer-track"><div id="drillTimerBar" class="timer-bar bg-violet-600" style="width:100%"></div></div>
         <div id="drillWork">
-          <div class="mt-7 text-center">
+          <div class="session-display mt-7 text-center">
             <div id="drillInstruction" class="text-sm uppercase tracking-widest text-slate-400 font-black">Set on abacus</div>
             <div id="drillStart" class="text-6xl sm:text-7xl font-black text-slate-900 mt-1">25</div>
-            <div class="text-sm text-slate-400 font-bold mt-4">Now do</div>
+            <div id="drillNowDo" class="text-sm text-slate-400 font-bold mt-4">Now do</div>
             <div id="drillOperation" class="text-7xl sm:text-8xl font-black text-violet-700 mt-1">−8</div>
           </div>
           <div id="drillFeedback" class="hidden mt-5 rounded-xl p-4 text-center font-black"></div>
           <div id="drillAnswerArea" class="mt-7">
             <div id="drillAnswer" class="h-16 border-2 border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center text-4xl font-black text-slate-900"></div>
-            <div class="grid grid-cols-3 gap-2 mt-3">
+            <div class="key-grid grid grid-cols-3 gap-2 mt-3">
               <button class="key rounded-xl bg-slate-100" data-dkey="1">1</button><button class="key rounded-xl bg-slate-100" data-dkey="2">2</button><button class="key rounded-xl bg-slate-100" data-dkey="3">3</button>
               <button class="key rounded-xl bg-slate-100" data-dkey="4">4</button><button class="key rounded-xl bg-slate-100" data-dkey="5">5</button><button class="key rounded-xl bg-slate-100" data-dkey="6">6</button>
               <button class="key rounded-xl bg-slate-100" data-dkey="7">7</button><button class="key rounded-xl bg-slate-100" data-dkey="8">8</button><button class="key rounded-xl bg-slate-100" data-dkey="9">9</button>
               <button class="key rounded-xl bg-rose-50 text-rose-600" data-dkey="clear">C</button><button class="key rounded-xl bg-slate-100" data-dkey="0">0</button><button class="key rounded-xl bg-amber-50 text-amber-700" data-dkey="back">⌫</button>
             </div>
-            <button id="drillSubmit" class="w-full mt-3 bg-violet-600 text-white rounded-xl py-4 text-xl font-black">ENTER</button>
+            <button id="drillSubmit" class="session-submit w-full mt-3 bg-violet-600 text-white rounded-xl py-4 text-xl font-black">ENTER</button>
           </div>
           <button id="drillNext" class="hidden w-full mt-4 bg-slate-900 text-white rounded-xl py-4 text-lg font-black">Next Question</button>
         </div>
@@ -173,11 +189,11 @@ const $=id=>document.getElementById(id);
 let profile=null,mode='single_digit',questions=[],sumIndex=0,stepIndex=0,studentRunning=0,answer='',records=[];
 let timerInterval=null,timerTimeout=null,stepStarted=0,testStarted=0,locked=false;
 let latestSavedTest=null,adaptiveState=null,testGateOpen=false,planRefreshPromise=null,drillKind='',drillMode='single_digit',drillSource=[],drillTarget=null,drillQuestions=[],drillResults=[],drillIndex=0,drillAnswer='',drillLocked=false,drillAwaitingNext=false,drillScore=0,drillWrong=0,drillTimeouts=0,drillStreak=0,drillStartLimitMs=8000,drillLimitMs=8000,drillTimerInterval=null,drillTimerTimeout=null,drillStarted=0;
-const SUMS=10,STEPS=5,PREP_MS=5000;
+const SUMS=2,STEPS=5,PREP_MS=5000;
 const PLAN_CACHE_MS=7*24*60*60*1000;
 
 function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min}
-function show(id){['loading','setup','test','result','drill','denied'].forEach(x=>$(x).classList.toggle('hidden',x!==id))}
+function show(id){['loading','setup','test','result','drill','denied'].forEach(x=>$(x).classList.toggle('hidden',x!==id));document.body.classList.toggle('session-active',id==='test'||id==='drill')}
 function signed(n){return n<0?'−'+Math.abs(n):'+'+n}
 function escHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function cacheKey(){return profile?.id?'speedAccuracyPlan:v2:'+profile.id:null}
@@ -417,14 +433,14 @@ function prepareDrill(){
   clearDrillTimer();drillLocked=true;drillAwaitingNext=false;drillAnswer='';const q=drillQuestions[drillIndex];
   $('drillProgress').textContent='Question '+(drillIndex+1)+' of '+drillQuestions.length;
   $('drillLimitLabel').textContent=drillKind==='accuracy'?'Untimed correction':(drillLimitMs/1000)+' sec recall';
-  $('drillInstruction').textContent='Set this number on abacus';$('drillStart').textContent=q.start;$('drillOperation').textContent='READY';
+  $('drillInstruction').textContent='';$('drillStart').textContent='SOROBAN CLEAR';$('drillOperation').textContent='';$('drillNowDo').textContent='';
   $('drillAnswer').textContent='';$('drillAnswerArea').classList.add('hidden');$('drillFeedback').classList.add('hidden');$('drillNext').classList.add('hidden');$('drillTimerBar').style.width='100%';
-  const prep=3000,started=performance.now();
+  const prep=5000,started=performance.now();
   drillTimerInterval=setInterval(()=>{$('drillTimerBar').style.width=(Math.max(0,prep-(performance.now()-started))/prep*100)+'%'},50);
   drillTimerTimeout=setTimeout(()=>{clearDrillTimer();showDrillOperation()},prep);
 }
 function showDrillOperation(){
-  const q=drillQuestions[drillIndex];drillLocked=false;drillAnswer='';$('drillInstruction').textContent=drillKind==='accuracy'?'Work carefully':'Recall and move the formula';$('drillOperation').textContent=signed(q.op);$('drillAnswerArea').classList.remove('hidden');$('drillAnswer').textContent='';
+  const q=drillQuestions[drillIndex];drillLocked=false;drillAnswer='';$('drillInstruction').textContent=drillKind==='accuracy'?'Work carefully':'Recall and move the formula';$('drillStart').textContent=q.start;$('drillNowDo').textContent='Now do';$('drillOperation').textContent=signed(q.op);$('drillAnswerArea').classList.remove('hidden');$('drillAnswer').textContent='';
   drillStarted=performance.now();
   if(drillKind==='recall'){
     const limit=drillLimitMs;
@@ -450,14 +466,14 @@ function nextDrillQuestion(){if(!drillAwaitingNext)return;drillAwaitingNext=fals
 async function completeDrill(){
   clearDrillTimer();$('drillWork').classList.add('hidden');$('drillComplete').classList.remove('hidden');
   const targetLabel=drillTarget.target_label||drillTarget.label;
-  $('drillCompleteText').textContent=(drillKind==='accuracy'?`${drillScore}/10 correct in focused ${targetLabel} practice.`:`${drillScore}/10 completed within time. Final limit: ${drillLimitMs/1000} seconds.`)+' Saving progress...';
+  $('drillCompleteText').textContent=(drillKind==='accuracy'?`${drillScore}/${drillQuestions.length} correct in focused ${targetLabel} practice.`:`${drillScore}/${drillQuestions.length} completed within time. Final limit: ${drillLimitMs/1000} seconds.`)+' Saving progress...';
   try{
     const payload={source_test_id:latestSavedTest?.id||null,mode:drillMode,drill_kind:drillKind,target_key:drillTarget.target_key||((drillTarget.target_place||'units')+'|'+targetLabel),target_label:targetLabel,target_place:drillTarget.target_place||'units',start_limit_ms:drillKind==='recall'?drillStartLimitMs:null,end_limit_ms:drillKind==='recall'?drillLimitMs:null,results:drillResults};
     const res=await fetch(FUNCTION_URL+'?action=save-drill',{method:'POST',headers:{'Authorization':'Bearer '+authSession.access_token,'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||'Unable to save practice');
     adaptiveState=data.adaptive_plan||adaptiveState;renderServerPlan(adaptiveState,'adaptiveSummary','adaptiveActions');savePlanCache(adaptiveState);applyPlanGate(adaptiveState);
     const status=adaptiveState?.retest_ready?' You are ready for a new Speed & Accuracy Check.':adaptiveState?.status==='teacher_help'?' Your teacher will help with this formula.':' Your next practice has been adjusted.';
-    $('drillCompleteText').textContent=(drillKind==='accuracy'?`${drillScore}/10 correct in focused ${targetLabel} practice.`:`${drillScore}/10 completed within time. Final limit: ${drillLimitMs/1000} seconds.`)+status;
+    $('drillCompleteText').textContent=(drillKind==='accuracy'?`${drillScore}/${drillQuestions.length} correct in focused ${targetLabel} practice.`:`${drillScore}/${drillQuestions.length} completed within time. Final limit: ${drillLimitMs/1000} seconds.`)+status;
   }catch(error){console.error(error);$('drillCompleteText').textContent+=' Progress could not be saved. Please tell your teacher.'}
 }
 
@@ -476,24 +492,21 @@ function prepareSum(){
   $('answerDisplay').textContent='';
   $('answerArea').classList.add('hidden');
   $('timeUp').classList.add('hidden');
-  $('sumLabel').textContent='NEW SUM · '+(sumIndex+1)+' OF '+SUMS;
-  $('sumLabel').classList.add('new-sum-blink');
+  $('sumLabel').textContent='Sum '+(sumIndex+1)+' of '+SUMS;
+  $('sumLabel').classList.remove('new-sum-blink');
   $('stepLabel').textContent='Prepare abacus';
   $('modeLabel').textContent=mode==='single_digit'?'Single Digit':'Double Digit';
   $('timeLabel').textContent='5 sec preparation';
-  $('totalLabel').textContent='Starting number';
-  $('currentTotal').textContent=q.start;
-  $('actionLabel').textContent='Clear abacus and set this number';
-  let left=5;
-  $('operation').textContent=left;
+  $('totalLabel').textContent='';
+  $('currentTotal').textContent=sumIndex===0?'READY':'SOROBAN CLEAR';
+  $('actionLabel').textContent='';
+  $('operation').textContent='';
   $('timerBar').style.width='100%';
   const started=performance.now();
   timerInterval=setInterval(()=>{
     const elapsed=performance.now()-started;
     const remaining=Math.max(0,PREP_MS-elapsed);
     $('timerBar').style.width=(remaining/PREP_MS*100)+'%';
-    const sec=Math.max(1,Math.ceil(remaining/1000));
-    if(sec!==left){left=sec;$('operation').textContent=left}
   },50);
   timerTimeout=setTimeout(()=>{
     clearTimer();
