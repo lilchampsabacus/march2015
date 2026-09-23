@@ -398,6 +398,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
+        // Include active students who have only used the newer daily practice.
+        // Keep historical report names for the existing teacher report.
+        const { data: activeStudents, error: activeError } = await supabase.rpc('staff_active_student_practice_overview');
+        if (!activeError) (activeStudents || []).forEach(student => {
+            if (student.student_name && student.student_name.trim()) allStudents.add(student.student_name.trim());
+        });
+
         if (allStudents.size === 0) {
             dropdown.innerHTML = '<option>No practice records found</option>';
             return;
