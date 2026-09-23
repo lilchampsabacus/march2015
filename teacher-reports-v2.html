@@ -107,6 +107,26 @@
         </div>
     </div>
 
+    <section class="max-w-7xl mx-auto bg-white rounded-2xl shadow-lg p-6 mb-8 border border-indigo-100" aria-labelledby="monthlyTitle">
+        <h2 id="monthlyTitle" class="text-xl font-extrabold text-gray-800">Monthly parent report</h2>
+        <p class="text-sm text-gray-600 mt-1">Daily practice and other practice, shown separately.</p>
+        <div class="flex flex-wrap items-end gap-3 mt-4">
+            <div><label for="parentMonth" class="block text-sm font-bold mb-1">Month</label><input id="parentMonth" type="month" class="border rounded-lg p-2"></div>
+            <button id="loadParentReport" type="button" class="bg-indigo-600 text-white font-bold px-4 py-2 rounded-lg">Show monthly report</button>
+            <button id="printParentReport" type="button" class="hidden bg-green-600 text-white font-bold px-4 py-2 rounded-lg">Download parent PDF</button>
+        </div>
+        <p id="parentReportMessage" role="status" class="text-sm mt-3 text-gray-600"></p>
+        <div id="parentReport" class="hidden mt-5 border border-gray-200 rounded-xl p-5 bg-white">
+            <h3 class="text-xl font-extrabold text-indigo-900">Li'l Champs Abacus Academy</h3>
+            <p class="font-bold text-gray-700">Monthly Practice Report · <span id="parentReportName"></span> · <span id="parentReportMonth"></span></p>
+            <div id="parentReportMetrics" class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5"></div>
+            <p id="parentReportExplanation" class="text-sm text-gray-600 mt-4"></p>
+            <div id="parentReportDays" class="grid grid-cols-7 gap-1 mt-4 text-center text-xs"></div>
+            <p id="parentReportLegend" class="text-sm text-gray-600 mt-3"></p>
+            <p id="parentReportSuggestion" class="font-bold text-indigo-900 mt-4"></p>
+        </div>
+    </section>
+
     <div id="printableArea" class="max-w-7xl mx-auto">
 
         <header id="pdfHeader" class="hidden text-left mb-6">
@@ -201,6 +221,81 @@
         Chart.register(ChartDataLabels);
         let myChart = null; 
         let globalReports = []; 
+
+        const parentMonthInput = document.getElementById('parentMonth');
+        const parentMessage = document.getElementById('parentReportMessage');
+        const parentPanel = document.getElementById('parentReport');
+        const indiaMonth = () => new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit'}).format(new Date());
+        parentMonthInput.value = indiaMonth();
+        parentMonthInput.max = indiaMonth();
+        const safeText = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        document.getElementById('loadParentReport').addEventListener('click', loadParentReport);
+        document.getElementById('studentDropdown').addEventListener('change', () => {
+            parentPanel.classList.add('hidden');
+            document.getElementById('printParentReport').classList.add('hidden');
+            parentMessage.textContent = '';
+        });
+        parentMonthInput.addEventListener('change', () => {
+            parentPanel.classList.add('hidden');
+            document.getElementById('printParentReport').classList.add('hidden');
+        });
+        document.getElementById('printParentReport').addEventListener('click', async () => {
+            const name = document.getElementById('studentDropdown').value;
+            await html2pdf().set({margin:0.35,filename:`${name}_${parentMonthInput.value}_Monthly_Practice.pdf`,html2canvas:{scale:2},jsPDF:{unit:'in',format:'a4',orientation:'portrait'}}).from(parentPanel).save();
+        });
+
+        async function loadParentReport() {
+            const name = document.getElementById('studentDropdown').value;
+            const month = parentMonthInput.value;
+            parentPanel.classList.add('hidden');
+            document.getElementById('printParentReport').classList.add('hidden');
+            if (!name || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month) || month > indiaMonth()) {
+                parentMessage.textContent = 'Choose a student and a valid month first.'; return;
+            }
+            parentMessage.textContent = 'Loading monthly practice…';
+            document.getElementById('loadParentReport').disabled = true;
+            try {
+                const {data, error} = await supabase.rpc('staff_student_monthly_practice', {p_student_name:name,p_month:month+'-01'});
+                if (error) throw error;
+                if (!data || !data.length) throw new Error('No matching active student found.');
+                renderParentReport(data[0], month);
+                parentMessage.textContent = '';
+                parentPanel.classList.remove('hidden');
+                document.getElementById('printParentReport').classList.remove('hidden');
+            } catch (err) {
+                console.error('Monthly report error:', err);
+                parentMessage.textContent = 'Monthly report could not load. Please try again or contact the site administrator.';
+            } finally { document.getElementById('loadParentReport').disabled = false; }
+        }
+
+        function renderParentReport(row, month) {
+            const daily = new Set(row.daily_dates || []), other = new Set(row.other_dates || []), formula = new Set(row.formula_dates || []);
+            const relevant = Number(row.level) <= 2 ? formula : other;
+            const monthName = new Date(month+'-01T12:00:00').toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+            document.getElementById('parentReportName').textContent = row.student_name;
+            document.getElementById('parentReportMonth').textContent = monthName;
+            const cards = [
+                ['Daily practice', `${daily.size} days`],
+                [Number(row.level)<=2?'Formula practice':'Other practice', `${relevant.size} days`],
+                ['Total practice days', `${new Set([...daily,...relevant]).size} days`],
+                ['Daily accuracy', row.daily_attempted ? `${Math.round(100*row.daily_correct/row.daily_attempted)}%` : '—']
+            ];
+            document.getElementById('parentReportMetrics').innerHTML = cards.map(([label,value])=>`<div class="bg-indigo-50 rounded-lg p-3"><div class="text-sm text-gray-600">${safeText(label)}</div><div class="text-2xl font-extrabold text-indigo-800">${safeText(value)}</div></div>`).join('');
+            document.getElementById('parentReportExplanation').textContent = `Level ${row.level} · Counts show distinct days, not attempts. Daily practice counts completed days. ${Number(row.level)<=2?'Formula practice counts completed three-round sessions.':'Other practice counts recorded practice sessions.'}`;
+            const [year, mon] = month.split('-').map(Number), max = new Date(year,mon,0).getDate();
+            const today = new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+            const cells = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<span class="font-bold">${d}</span>`);
+            for(let i=0;i<new Date(year,mon-1,1).getDay();i++)cells.push('<span></span>');
+            for(let day=1;day<=max;day++){
+                const date=`${month}-${String(day).padStart(2,'0')}`;
+                const labels=[daily.has(date)?'Daily':null,relevant.has(date)?(Number(row.level)<=2?'Formula':'Other'):null].filter(Boolean);
+                const bg=labels.length===2?'bg-indigo-100':labels.length===1?'bg-green-100':'bg-gray-50';
+                cells.push(`<span title="${safeText(labels.join(' + ')||'No recorded practice')}" class="rounded p-1 ${bg} ${date>today?'text-gray-400':''}">${day}${labels.length===2?' ★':labels.length===1?' ✓':''}</span>`);
+            }
+            document.getElementById('parentReportDays').innerHTML=cells.join('');
+            document.getElementById('parentReportLegend').textContent='✓ One type of practice · ★ Daily and additional practice on the same day. Future days are not counted as missed.';
+            document.getElementById('parentReportSuggestion').textContent=relevant.size===0?'Next month: add short practice of the formulas or exercises taught in class.':'Next month: keep daily practice steady and continue the extra exercises taught in class.';
+        }
 
         function downloadPDF() {
             if(document.getElementById('resultsArea').classList.contains('hidden')) {
