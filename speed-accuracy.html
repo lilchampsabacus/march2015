@@ -167,7 +167,7 @@
         <div id="drillComplete" class="hidden text-center py-5">
           <div class="text-6xl">✅</div><h2 class="text-3xl font-black mt-2">Practice Completed</h2>
           <p id="drillCompleteText" class="text-slate-600 font-bold mt-2"></p>
-          <div class="grid sm:grid-cols-2 gap-3 mt-5"><button id="repeatDrill" class="bg-violet-600 text-white rounded-xl py-3 font-black">Repeat Practice</button><button id="backToSetup" class="bg-slate-200 text-slate-800 rounded-xl py-3 font-black">Back to Speed Check</button></div>
+          <button id="backToSetup" class="w-full mt-5 bg-violet-600 text-white rounded-xl py-4 text-lg font-black">Back to Speed Check</button>
         </div>
       </div>
     </div>
@@ -627,7 +627,7 @@ document.querySelectorAll('.mode-card').forEach(b=>b.onclick=()=>{mode=b.dataset
 document.querySelectorAll('[data-key]').forEach(b=>b.onclick=()=>key(b.dataset.key));
 document.querySelectorAll('[data-dkey]').forEach(b=>b.onclick=()=>drillKey(b.dataset.dkey));
 $('submitBtn').onclick=submitAnswer;$('startBtn').onclick=startTest;$('againBtn').onclick=()=>{show('setup');$('saveStatus').textContent='Saving report...'};
-$('drillSubmit').onclick=submitDrill;$('drillNext').onclick=nextDrillQuestion;$('repeatDrill').onclick=()=>startAdaptive(drillKind,drillTarget,drillSource);$('backToSetup').onclick=()=>{clearDrillTimer();show('setup')};
+$('drillSubmit').onclick=submitDrill;$('drillNext').onclick=nextDrillQuestion;$('backToSetup').onclick=()=>{clearDrillTimer();show('setup')};
 document.addEventListener('keydown',e=>{if($('test').classList.contains('hidden'))return;if(/^[0-9]$/.test(e.key))key(e.key);else if(e.key==='Backspace')key('back');else if(e.key==='Escape')key('clear');else if(e.key==='Enter')submitAnswer()});
 document.addEventListener('keydown',e=>{if($('drill').classList.contains('hidden'))return;if(/^[0-9]$/.test(e.key))drillKey(e.key);else if(e.key==='Backspace')drillKey('back');else if(e.key==='Escape')drillKey('clear');else if(e.key==='Enter'){if(!$('drillNext').classList.contains('hidden'))nextDrillQuestion();else submitDrill()}});
 
