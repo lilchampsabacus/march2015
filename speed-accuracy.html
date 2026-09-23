@@ -62,7 +62,7 @@
     <div class="bg-white rounded-2xl shadow p-5">
       <div class="text-xs uppercase tracking-widest text-indigo-600 font-black">Choose test</div>
       <h1 class="text-3xl font-black mt-1">2 sums · 5 timed steps each</h1>
-      <p class="text-slate-500 font-bold mt-2">READY appears for 5 seconds before the first sum. Between sums, SHORT CLEAR appears for 5 seconds. The starting number and first operation then appear together. Only Small Friend, Big Friend and Mix Friend operations are used; direct operations are excluded.</p>
+      <p class="text-slate-500 font-bold mt-2">READY appears for 5 seconds before the first sum. Between sums, SHORT CLEAR appears for 3 seconds. The starting number and first operation then appear together. Only Small Friend, Big Friend and Mix Friend operations are used; direct operations are excluded.</p>
       <div class="grid sm:grid-cols-2 gap-4 mt-5">
         <button class="mode-card selected text-left border-2 border-indigo-500 rounded-2xl p-5" data-mode="single_digit">
           <div class="text-4xl">1️⃣</div><div class="text-xl font-black mt-2">Single Digit</div>
@@ -189,7 +189,7 @@ const $=id=>document.getElementById(id);
 let profile=null,mode='single_digit',questions=[],sumIndex=0,stepIndex=0,studentRunning=0,answer='',records=[];
 let timerInterval=null,timerTimeout=null,stepStarted=0,testStarted=0,locked=false;
 let latestSavedTest=null,adaptiveState=null,testGateOpen=false,planRefreshPromise=null,drillKind='',drillMode='single_digit',drillSource=[],drillTarget=null,drillQuestions=[],drillResults=[],drillIndex=0,drillAnswer='',drillLocked=false,drillAwaitingNext=false,drillScore=0,drillWrong=0,drillTimeouts=0,drillStreak=0,drillStartLimitMs=8000,drillLimitMs=8000,drillTimerInterval=null,drillTimerTimeout=null,drillStarted=0;
-const SUMS=2,STEPS=5,PREP_MS=5000;
+const SUMS=2,STEPS=5,READY_MS=5000,CLEAR_MS=3000;
 const PLAN_CACHE_MS=7*24*60*60*1000;
 
 function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min}
@@ -435,7 +435,7 @@ function prepareDrill(){
   $('drillLimitLabel').textContent=drillKind==='accuracy'?'Untimed correction':(drillLimitMs/1000)+' sec recall';
   $('drillInstruction').textContent='';$('drillStart').textContent='SHORT CLEAR';$('drillOperation').textContent='';$('drillNowDo').textContent='';
   $('drillAnswer').textContent='';$('drillAnswerArea').classList.add('hidden');$('drillFeedback').classList.add('hidden');$('drillNext').classList.add('hidden');$('drillTimerBar').style.width='100%';
-  const prep=5000,started=performance.now();
+  const prep=CLEAR_MS,started=performance.now();
   drillTimerInterval=setInterval(()=>{$('drillTimerBar').style.width=(Math.max(0,prep-(performance.now()-started))/prep*100)+'%'},50);
   drillTimerTimeout=setTimeout(()=>{clearDrillTimer();showDrillOperation()},prep);
 }
@@ -496,7 +496,8 @@ function prepareSum(){
   $('sumLabel').classList.remove('new-sum-blink');
   $('stepLabel').textContent='Prepare abacus';
   $('modeLabel').textContent=mode==='single_digit'?'Single Digit':'Double Digit';
-  $('timeLabel').textContent='5 sec preparation';
+  const preparationMs=sumIndex===0?READY_MS:CLEAR_MS;
+  $('timeLabel').textContent=sumIndex===0?'5 sec ready':'3 sec short clear';
   $('totalLabel').textContent='';
   $('currentTotal').textContent=sumIndex===0?'READY':'SHORT CLEAR';
   $('actionLabel').textContent='';
@@ -505,14 +506,14 @@ function prepareSum(){
   const started=performance.now();
   timerInterval=setInterval(()=>{
     const elapsed=performance.now()-started;
-    const remaining=Math.max(0,PREP_MS-elapsed);
-    $('timerBar').style.width=(remaining/PREP_MS*100)+'%';
+    const remaining=Math.max(0,preparationMs-elapsed);
+    $('timerBar').style.width=(remaining/preparationMs*100)+'%';
   },50);
   timerTimeout=setTimeout(()=>{
     clearTimer();
     $('answerArea').classList.remove('hidden');
     renderStep();
-  },PREP_MS);
+  },preparationMs);
 }
 
 function renderStep(){
