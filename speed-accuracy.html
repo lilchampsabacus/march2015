@@ -62,7 +62,7 @@
     <div class="bg-white rounded-2xl shadow p-5">
       <div class="text-xs uppercase tracking-widest text-indigo-600 font-black">Choose test</div>
       <h1 class="text-3xl font-black mt-1">2 sums · 5 timed steps each</h1>
-      <p class="text-slate-500 font-bold mt-2">READY appears for 5 seconds before the first sum. Between sums, SOROBAN CLEAR appears for 5 seconds. The starting number and first operation then appear together. Only Small Friend, Big Friend and Mix Friend operations are used; direct operations are excluded.</p>
+      <p class="text-slate-500 font-bold mt-2">READY appears for 5 seconds before the first sum. Between sums, SHORT CLEAR appears for 5 seconds. The starting number and first operation then appear together. Only Small Friend, Big Friend and Mix Friend operations are used; direct operations are excluded.</p>
       <div class="grid sm:grid-cols-2 gap-4 mt-5">
         <button class="mode-card selected text-left border-2 border-indigo-500 rounded-2xl p-5" data-mode="single_digit">
           <div class="text-4xl">1️⃣</div><div class="text-xl font-black mt-2">Single Digit</div>
@@ -433,7 +433,7 @@ function prepareDrill(){
   clearDrillTimer();drillLocked=true;drillAwaitingNext=false;drillAnswer='';const q=drillQuestions[drillIndex];
   $('drillProgress').textContent='Question '+(drillIndex+1)+' of '+drillQuestions.length;
   $('drillLimitLabel').textContent=drillKind==='accuracy'?'Untimed correction':(drillLimitMs/1000)+' sec recall';
-  $('drillInstruction').textContent='';$('drillStart').textContent='SOROBAN CLEAR';$('drillOperation').textContent='';$('drillNowDo').textContent='';
+  $('drillInstruction').textContent='';$('drillStart').textContent='SHORT CLEAR';$('drillOperation').textContent='';$('drillNowDo').textContent='';
   $('drillAnswer').textContent='';$('drillAnswerArea').classList.add('hidden');$('drillFeedback').classList.add('hidden');$('drillNext').classList.add('hidden');$('drillTimerBar').style.width='100%';
   const prep=5000,started=performance.now();
   drillTimerInterval=setInterval(()=>{$('drillTimerBar').style.width=(Math.max(0,prep-(performance.now()-started))/prep*100)+'%'},50);
@@ -498,7 +498,7 @@ function prepareSum(){
   $('modeLabel').textContent=mode==='single_digit'?'Single Digit':'Double Digit';
   $('timeLabel').textContent='5 sec preparation';
   $('totalLabel').textContent='';
-  $('currentTotal').textContent=sumIndex===0?'READY':'SOROBAN CLEAR';
+  $('currentTotal').textContent=sumIndex===0?'READY':'SHORT CLEAR';
   $('actionLabel').textContent='';
   $('operation').textContent='';
   $('timerBar').style.width='100%';
