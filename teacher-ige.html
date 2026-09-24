@@ -24,12 +24,12 @@ function renderAssignments(){
    if(!byScope.has(key))byScope.set(key,{...row,grades:[],enabled:false});
    if(row.grade!==null){byScope.get(key).grades.push(row.grade);if(row.enabled)byScope.get(key).enabled=true}
  }
- groups=[...byScope.values()];
+ groups=[...byScope.values()].filter(a=>a.student_level!==1||a.mode==='abacus');
  $('assignmentRows').innerHTML=groups.map((a,i)=>`<tr data-i="${i}">
    <td>${igeEscape(a.centre_id)}</td><td>${igeEscape(a.batch_name)}</td><td>${a.student_level}</td>
    <td>${a.student_count}</td><td>${a.mode==='abacus'?'Abacus':'Mental'}</td>
    <td><details><summary>${a.grades.length?a.grades.sort((x,y)=>x-y).map(x=>'G'+x).join(', '):'Choose grades'}</summary>
-     <div class="grade-grid">${Array.from({length:a.mode==='abacus'?12:10},(_,j)=>`<label><input class="grade-check" type="checkbox" value="${j+1}" ${a.grades.includes(j+1)?'checked':''}>Grade ${j+1}</label>`).join('')}</div></details></td>
+     <div class="grade-grid">${(a.student_level===1?[12]:Array.from({length:a.mode==='abacus'?12:10},(_,j)=>j+1)).map(grade=>`<label><input class="grade-check" type="checkbox" value="${grade}" ${a.grades.includes(grade)?'checked':''}>Grade ${grade}</label>`).join('')}</div></details></td>
    <td><select class="enabled"><option value="true" ${a.enabled?'selected':''}>Open</option><option value="false" ${!a.enabled?'selected':''}>Closed</option></select></td>
    <td><button class="save">Save</button></td></tr>`).join('')||'<tr><td colspan="8">No active students with a centre, batch, and level.</td></tr>';
 }
