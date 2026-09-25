@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Negative Answer Mission</title>
     
     <link rel="stylesheet" href="elegant-theme.css">
@@ -127,6 +127,30 @@
             .row-index { font-size: 0.6rem !important; width: 15px !important; padding-right: 2px !important; }
             #question-carousel { margin-bottom: 0.5rem; }
             #question-carousel .text-center { font-size: 0.65rem !important; margin-bottom: 0 !important; }
+
+            main { padding-bottom: 350px !important; }
+
+            #custom-keypad {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                margin-top: 0 !important;
+                padding: 8px;
+                padding-bottom: max(8px, env(safe-area-inset-bottom));
+                background-color: #f3f4f6;
+                box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+                z-index: 9999;
+                gap: 6px !important;
+            }
+
+            #custom-keypad .key-btn {
+                min-height: 60px;
+                padding-top: 0.75rem !important;
+                padding-bottom: 0.75rem !important;
+                touch-action: manipulation;
+                user-select: none;
+            }
         }
         
         .review-card { border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 1rem; background: white; }
