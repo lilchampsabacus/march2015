@@ -61,6 +61,42 @@
       <div id="batchReportGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3"></div>
     </section>
 
+    <section class="bg-white rounded-2xl shadow p-4 md:p-5 mb-5">
+      <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3 mb-4">
+        <div>
+          <h2 class="font-black text-xl text-gray-800">Weekly Practice Report</h2>
+          <p class="text-sm text-gray-500">Monday to Sunday. Level 1 uses Formula Practice; Levels 2–8 use Daily Practice.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button id="previousWeekBtn" class="bg-gray-100 text-gray-700 font-black px-3 py-2 rounded-xl">← Previous</button>
+          <button id="nextWeekBtn" class="bg-gray-100 text-gray-700 font-black px-3 py-2 rounded-xl">Next →</button>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <label class="block"><span class="text-xs font-black text-gray-500 uppercase">Week starts Monday</span><input id="weekStartFilter" type="date" class="mt-1 w-full border rounded-xl px-3 py-2 font-bold"></label>
+        <label class="block"><span class="text-xs font-black text-gray-500 uppercase">Batch</span><select id="weeklyBatchFilter" class="mt-1 w-full border rounded-xl px-3 py-2 font-bold"><option value="">Select Batch</option></select></label>
+        <button id="loadWeeklyBtn" class="self-end bg-indigo-600 text-white font-black px-4 py-2.5 rounded-xl">Load Weekly Report</button>
+        <div id="weeklyActions" class="hidden self-end grid grid-cols-2 gap-2">
+          <button id="shareWeeklyBtn" class="bg-green-600 text-white font-black px-3 py-2.5 rounded-xl">Share</button>
+          <button id="downloadWeeklyBtn" class="bg-indigo-100 text-indigo-700 font-black px-3 py-2.5 rounded-xl">Download</button>
+        </div>
+      </div>
+      <div id="weeklyLoading" class="hidden mt-4 bg-indigo-50 text-indigo-700 rounded-xl p-4 text-center font-black">Loading seven days of practice...</div>
+      <div id="weeklyResult" class="hidden mt-5">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+          <div><h3 id="weeklyTitle" class="font-black text-lg"></h3><p id="weeklyRange" class="text-sm text-gray-500"></p></div>
+          <div id="weeklySummary" class="text-sm font-black text-indigo-700 bg-indigo-50 px-3 py-2 rounded-xl"></div>
+        </div>
+        <div class="overflow-x-auto border rounded-xl">
+          <table class="w-full min-w-[780px] text-sm">
+            <thead id="weeklyHead" class="bg-indigo-700 text-white"></thead>
+            <tbody id="weeklyBody" class="divide-y"></tbody>
+          </table>
+        </div>
+        <p class="text-xs text-gray-400 mt-2">✓ completed · ✕ not completed · — future date</p>
+      </div>
+    </section>
+
     <div class="bg-white rounded-2xl shadow overflow-hidden">
       <div class="px-4 py-3 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div><h2 class="font-black text-lg">Student Status</h2><p id="dateLabel" class="text-sm text-gray-500"></p></div>
@@ -94,13 +130,16 @@
 const SUPABASE_URL='https://portal-bridge.ucmas-ambernath-pg.workers.dev';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk';
 const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-let allRows=[],filteredRows=[],summaryRows=[];
+let allRows=[],filteredRows=[],summaryRows=[],weeklyRows=[],weeklyDates=[];
 const $=id=>document.getElementById(id);
 const escapeHtml=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 const batchName=r=>String(r.batch_name??'').trim();
 
 function indiaDateISO(){const p={};new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).forEach(x=>p[x.type]=x.value);return `${p.year}-${p.month}-${p.day}`;}
 function formatDate(iso){const [y,m,d]=iso.split('-').map(Number);return new Intl.DateTimeFormat('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date(y,m-1,d));}
+function shortDate(iso){const [y,m,d]=iso.split('-').map(Number);return new Intl.DateTimeFormat('en-IN',{day:'numeric',month:'short',year:'numeric'}).format(new Date(y,m-1,d));}
+function addDays(iso,days){const [y,m,d]=iso.split('-').map(Number),date=new Date(Date.UTC(y,m-1,d));date.setUTCDate(date.getUTCDate()+days);return date.toISOString().slice(0,10);}
+function mondayFor(iso){const [y,m,d]=iso.split('-').map(Number),date=new Date(Date.UTC(y,m-1,d)),day=date.getUTCDay()||7;date.setUTCDate(date.getUTCDate()-day+1);return date.toISOString().slice(0,10);}
 function sectionsFor(level){return Number(level)>=5?['plusminus','multiplication','division']:['plusminus','multiplication'];}
 function sectionName(s){return s==='plusminus'?'Plus & Minus':s==='multiplication'?'Multiplication':'Division';}
 function sectionIcon(s){return s==='plusminus'?'🧮':s==='multiplication'?'✖️':'➗';}
@@ -119,11 +158,12 @@ function completedRows(rows){return rows.filter(r=>r._status==='completed').sort
 async function verifyStaff(){const {data:{session}}=await client.auth.getSession();if(!session){location.replace('login.html');return false;}const {data,error}=await client.from('profiles').select('role,is_active').eq('id',session.user.id).single();if(error||!data||data.is_active===false||!['admin','teacher'].includes(data.role)){$('loading').classList.add('hidden');$('denied').classList.remove('hidden');return false;}return true;}
 
 function populateBatchFilter(){const sel=$('batchFilter'),keep=sel.value||'all';const names=[...new Set(allRows.map(batchName).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'}));sel.innerHTML='<option value="all">All Batches</option><option value="unassigned">Batch Not Assigned</option>'+names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');if([...sel.options].some(o=>o.value===keep))sel.value=keep;}
+function populateWeeklyBatchFilter(rows=allRows){const sel=$('weeklyBatchFilter'),keep=sel.value;const names=[...new Set(rows.map(batchName).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'}));sel.innerHTML='<option value="">Select Batch</option>'+names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');if(names.includes(keep))sel.value=keep;}
 async function loadData(){
   $('loading').classList.remove('hidden');$('app').classList.add('hidden');$('errorBox').classList.add('hidden');
-  const date=$('dateFilter').value;const {data,error}=await client.rpc('staff_official_daily_practice_status',{p_date:date});
+  const date=$('dateFilter').value;const [{data,error},formulaResult]=await Promise.all([client.rpc('staff_official_daily_practice_status',{p_date:date}),client.rpc('staff_formula_daily_status',{p_date:date})]);
   if(error){$('loading').classList.add('hidden');$('errorBox').classList.remove('hidden');$('errorText').textContent=error.message||'Could not load official Daily Practice records.';return;}
-  allRows=(data||[]).map(r=>({...r,_status:normalizedStatus(r)}));populateBatchFilter();$('loading').classList.add('hidden');$('app').classList.remove('hidden');applyFilters();
+  allRows=(data||[]).map(r=>({...r,_status:normalizedStatus(r)}));populateBatchFilter();populateWeeklyBatchFilter([...allRows,...(formulaResult.data||[])]);$('loading').classList.add('hidden');$('app').classList.remove('hidden');applyFilters();
 }
 function matchesBase(r){const level=$('levelFilter').value,batch=$('batchFilter').value,search=$('searchFilter').value.trim().toLowerCase(),bn=batchName(r);return(level==='all'||String(r.level)===level)&&(batch==='all'||(batch==='unassigned'?!bn:bn===batch))&&(!search||`${r.student_name} ${bn}`.toLowerCase().includes(search));}
 function applyFilters(){const status=$('statusFilter').value;summaryRows=allRows.filter(matchesBase);filteredRows=summaryRows.filter(r=>status==='all'||(status==='incomplete'?r._status!=='completed':r._status===status));renderCounts();renderBatchReports();renderTable();const batch=$('batchFilter').value;const batchText=batch==='all'?'All Batches':batch==='unassigned'?'Batch Not Assigned':batch;$('dateLabel').textContent=`${formatDate($('dateFilter').value)} · ${batchText}`;}
@@ -182,8 +222,60 @@ async function shareBatchReport(name,button){
   }catch(error){if(error?.name!=='AbortError')alert(error.message||'Could not share the report image.');}finally{setButtonBusy(button,false);}
 }
 
+function weeklyStudentKey(row){return `${String(row.student_name).trim().toLowerCase()}|${batchName(row).toLowerCase()}`;}
+function formulaCompleted(row){return Number(row.completed_sessions)>0;}
+async function loadWeeklyReport(){
+  const selectedBatch=$('weeklyBatchFilter').value;if(!selectedBatch){showShareToast('Please select a batch.');return;}
+  const monday=mondayFor($('weekStartFilter').value||indiaDateISO());$('weekStartFilter').value=monday;weeklyDates=Array.from({length:7},(_,i)=>addDays(monday,i));
+  $('weeklyLoading').classList.remove('hidden');$('weeklyResult').classList.add('hidden');$('weeklyActions').classList.add('hidden');setButtonBusy($('loadWeeklyBtn'),true,'Loading…');
+  try{
+    const results=await Promise.all(weeklyDates.flatMap(date=>[
+      client.rpc('staff_official_daily_practice_status',{p_date:date}),
+      client.rpc('staff_formula_daily_status',{p_date:date})
+    ]));
+    const firstError=results.find(result=>result.error)?.error;if(firstError)throw firstError;
+    const students=new Map(),dailyKeys=new Set(),perDay=[];
+    weeklyDates.forEach((date,index)=>{
+      const daily=(results[index*2].data||[]).map(r=>({...r,_status:normalizedStatus(r)}));
+      const formula=results[index*2+1].data||[];
+      daily.forEach(r=>dailyKeys.add(weeklyStudentKey(r)));
+      perDay.push({date,daily,formula});
+    });
+    perDay.forEach(({daily,formula})=>{
+      daily.filter(r=>batchName(r)===selectedBatch).forEach(r=>{const key=weeklyStudentKey(r);if(!students.has(key))students.set(key,{key,user_id:r.user_id,student_name:r.student_name,batch_name:batchName(r),level:Number(r.level)||null,days:Array(7).fill(false)});});
+      formula.filter(r=>batchName(r)===selectedBatch&&!dailyKeys.has(weeklyStudentKey(r))).forEach(r=>{const key=weeklyStudentKey(r);if(!students.has(key))students.set(key,{key,user_id:r.user_id,student_name:r.student_name,batch_name:batchName(r),level:1,days:Array(7).fill(false)});});
+    });
+    perDay.forEach(({daily,formula},dayIndex)=>{
+      daily.filter(r=>batchName(r)===selectedBatch).forEach(r=>{const student=students.get(weeklyStudentKey(r));if(student)student.days[dayIndex]=r._status==='completed';});
+      formula.filter(r=>batchName(r)===selectedBatch&&!dailyKeys.has(weeklyStudentKey(r))).forEach(r=>{const student=students.get(weeklyStudentKey(r));if(student)student.days[dayIndex]=formulaCompleted(r);});
+    });
+    weeklyRows=[...students.values()].sort((a,b)=>String(a.student_name).localeCompare(String(b.student_name),undefined,{sensitivity:'base'}));
+    $('weeklyBatchFilter').value=selectedBatch;renderWeeklyReport(selectedBatch);$('weeklyResult').classList.remove('hidden');$('weeklyActions').classList.remove('hidden');
+  }catch(error){alert(error.message||'Could not load the weekly report.');}
+  finally{$('weeklyLoading').classList.add('hidden');setButtonBusy($('loadWeeklyBtn'),false);}
+}
+function renderWeeklyReport(batch){
+  const today=indiaDateISO(),dayLabels=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  $('weeklyTitle').textContent=`Batch ${batch} Weekly Practice`;$('weeklyRange').textContent=`${shortDate(weeklyDates[0])} to ${shortDate(weeklyDates[6])}`;
+  $('weeklyHead').innerHTML=`<tr><th class="p-3 text-left">Student</th>${weeklyDates.map((date,i)=>`<th class="p-3 text-center">${dayLabels[i]}<br><span class="font-semibold">${date.slice(8,10)}/${date.slice(5,7)}</span></th>`).join('')}<th class="p-3 text-center">Total</th></tr>`;
+  $('weeklyBody').innerHTML=weeklyRows.length?weeklyRows.map(row=>{const total=row.days.reduce((sum,done,i)=>sum+(weeklyDates[i]<=today&&done?1:0),0),available=weeklyDates.filter(d=>d<=today).length;return `<tr><td class="p-3 font-black text-gray-800">${escapeHtml(row.student_name)}${row.level===1?' <span class="text-xs text-purple-600">L1</span>':''}</td>${row.days.map((done,i)=>`<td class="p-3 text-center text-xl font-black ${weeklyDates[i]>today?'text-gray-300':done?'text-green-600':'text-red-500'}">${weeklyDates[i]>today?'—':done?'✓':'✕'}</td>`).join('')}<td class="p-3 text-center font-black text-indigo-700">${total}/${available}</td></tr>`;}).join(''):'<tr><td colspan="9" class="p-8 text-center text-gray-400 font-bold">No active students found in this batch.</td></tr>';
+  const availableDays=weeklyDates.filter(date=>date<=today).length,perfect=availableDays?weeklyRows.filter(r=>r.days.every((done,i)=>weeklyDates[i]>today||done)).length:0;$('weeklySummary').textContent=availableDays?`${perfect} of ${weeklyRows.length} students completed every available day`:'This week has not started yet';
+}
+async function createWeeklyReportBlob(batch){
+  if(document.fonts?.ready)await document.fonts.ready;const today=indiaDateISO(),rowHeight=68,headerHeight=410,height=Math.max(900,headerHeight+weeklyRows.length*rowHeight+120),canvas=document.createElement('canvas');canvas.width=1080;canvas.height=height;const ctx=canvas.getContext('2d');
+  const bg=ctx.createLinearGradient(0,0,1080,height);bg.addColorStop(0,'#eef2ff');bg.addColorStop(1,'#f0fdf4');ctx.fillStyle=bg;ctx.fillRect(0,0,1080,height);ctx.fillStyle='#312e81';ctx.fillRect(0,0,1080,245);
+  const logo=await loadLogo();if(logo){ctx.fillStyle='#fff';roundedRect(ctx,48,35,135,135,24);ctx.fill();ctx.drawImage(logo,59,46,113,113);}ctx.fillStyle='#fff';ctx.font='800 40px Nunito, Arial, sans-serif';ctx.fillText("Li'l Champs Abacus Academy",210,82);ctx.fillStyle='#c7d2fe';ctx.font='700 24px Nunito, Arial, sans-serif';ctx.fillText('AMBERNATH',210,122);ctx.fillStyle='#fff';ctx.font='900 48px Nunito, Arial, sans-serif';ctx.fillText('WEEKLY PRACTICE REPORT',48,215);
+  ctx.fillStyle='#fff';roundedRect(ctx,42,275,996,height-330,28);ctx.fill();ctx.fillStyle='#111827';ctx.font='900 38px Nunito, Arial, sans-serif';ctx.fillText(`Batch ${batch}`,70,330);ctx.fillStyle='#6b7280';ctx.font='700 23px Nunito, Arial, sans-serif';ctx.fillText(`${shortDate(weeklyDates[0])} – ${shortDate(weeklyDates[6])}`,70,365);
+  const nameX=70,nameWidth=330,dayWidth=82,totalX=nameX+nameWidth+7*dayWidth;ctx.fillStyle='#4338ca';ctx.fillRect(58,390,964,60);ctx.fillStyle='#fff';ctx.font='900 20px Nunito, Arial, sans-serif';ctx.fillText('STUDENT',nameX,428);ctx.textAlign='center';['MON','TUE','WED','THU','FRI','SAT','SUN'].forEach((label,i)=>{ctx.fillText(label,nameX+nameWidth+i*dayWidth+dayWidth/2,418);ctx.font='700 16px Nunito, Arial, sans-serif';ctx.fillText(weeklyDates[i].slice(8,10)+'/'+weeklyDates[i].slice(5,7),nameX+nameWidth+i*dayWidth+dayWidth/2,439);ctx.font='900 20px Nunito, Arial, sans-serif';});ctx.fillText('TOTAL',totalX+42,428);ctx.textAlign='left';
+  weeklyRows.forEach((row,index)=>{const y=450+index*rowHeight;if(index%2===0){ctx.fillStyle='#f8fafc';ctx.fillRect(58,y,964,rowHeight);}ctx.fillStyle='#1f2937';fitText(ctx,row.student_name,nameWidth-25,25,18);ctx.fillText(row.student_name,nameX,y+43);let total=0,available=0;row.days.forEach((done,i)=>{const future=weeklyDates[i]>today;if(!future){available++;if(done)total++;}const x=nameX+nameWidth+i*dayWidth+dayWidth/2;ctx.textAlign='center';ctx.font='900 27px Arial, sans-serif';ctx.fillStyle=future?'#cbd5e1':done?'#16a34a':'#ef4444';ctx.fillText(future?'—':done?'✓':'✕',x,y+43);});ctx.fillStyle='#4338ca';ctx.font='900 22px Nunito, Arial, sans-serif';ctx.fillText(`${total}/${available}`,totalX+42,y+43);ctx.textAlign='left';});
+  ctx.fillStyle='#312e81';roundedRect(ctx,58,height-90,964,52,18);ctx.fill();ctx.fillStyle='#fff';ctx.font='800 20px Nunito, Arial, sans-serif';ctx.textAlign='center';ctx.fillText('✓ Completed   •   ✕ Not completed   •   — Future date',540,height-57);ctx.textAlign='left';return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Could not create weekly image.')),'image/png'));
+}
+async function downloadWeeklyReport(button=$('downloadWeeklyBtn')){const batch=$('weeklyBatchFilter').value;try{setButtonBusy(button,true,'Preparing…');const blob=await createWeeklyReportBlob(batch);downloadBlob(blob,`weekly-practice-${weeklyDates[0]}-${safeFilename(batch)}.png`);showShareToast(`Batch ${batch} weekly image downloaded.`);}catch(error){alert(error.message||'Could not create the weekly report.');}finally{setButtonBusy(button,false);}}
+async function shareWeeklyReport(){const button=$('shareWeeklyBtn'),batch=$('weeklyBatchFilter').value;try{setButtonBusy(button,true,'Preparing…');const blob=await createWeeklyReportBlob(batch),filename=`weekly-practice-${weeklyDates[0]}-${safeFilename(batch)}.png`,file=new File([blob],filename,{type:'image/png'}),text=`Li'l Champs Abacus Academy\nWeekly Practice Report – Batch ${batch}\n${shortDate(weeklyDates[0])} to ${shortDate(weeklyDates[6])}`;if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({title:`Weekly Practice - Batch ${batch}`,text,files:[file]});showShareToast(`Batch ${batch} weekly report shared.`);return;}if(navigator.clipboard&&window.ClipboardItem){await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);showShareToast('Weekly image copied. Open the WhatsApp group and paste it.');return;}downloadBlob(blob,filename);showShareToast('Weekly image downloaded. Attach it in the WhatsApp group.');}catch(error){if(error?.name!=='AbortError')alert(error.message||'Could not share the weekly report.');}finally{setButtonBusy(button,false);}}
+
 $('closeModal').onclick=()=>$('detailModal').classList.add('hidden');$('detailModal').onclick=e=>{if(e.target===$('detailModal'))$('detailModal').classList.add('hidden');};$('dateFilter').onchange=loadData;$('batchFilter').onchange=applyFilters;$('levelFilter').onchange=applyFilters;$('statusFilter').onchange=applyFilters;$('searchFilter').oninput=applyFilters;$('todayBtn').onclick=()=>{$('dateFilter').value=indiaDateISO();loadData();};$('pdfBtn').onclick=downloadPdf;
-(async()=>{$('dateFilter').value=indiaDateISO();if(await verifyStaff())await loadData();})();
+$('weekStartFilter').onchange=()=>{$('weekStartFilter').value=mondayFor($('weekStartFilter').value);$('weeklyResult').classList.add('hidden');$('weeklyActions').classList.add('hidden');};$('weeklyBatchFilter').onchange=()=>{$('weeklyResult').classList.add('hidden');$('weeklyActions').classList.add('hidden');};$('previousWeekBtn').onclick=()=>{$('weekStartFilter').value=addDays(mondayFor($('weekStartFilter').value),-7);$('weeklyResult').classList.add('hidden');$('weeklyActions').classList.add('hidden');};$('nextWeekBtn').onclick=()=>{$('weekStartFilter').value=addDays(mondayFor($('weekStartFilter').value),7);$('weeklyResult').classList.add('hidden');$('weeklyActions').classList.add('hidden');};$('loadWeeklyBtn').onclick=loadWeeklyReport;$('downloadWeeklyBtn').onclick=()=>downloadWeeklyReport();$('shareWeeklyBtn').onclick=shareWeeklyReport;
+(async()=>{$('dateFilter').value=indiaDateISO();$('weekStartFilter').value=mondayFor(indiaDateISO());if(await verifyStaff())await loadData();})();
 </script>
 </body>
 </html>
