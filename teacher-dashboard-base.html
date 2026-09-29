@@ -9,7 +9,7 @@
         const checkEmail = sessionStorage.getItem('userEmail');
         const checkRole = sessionStorage.getItem('userRole');
 
-        if (!checkEmail || checkRole !== 'admin') {
+        if (!checkEmail || (checkRole !== 'admin' && checkRole !== 'teacher')) {
             window.location.replace(checkRole === 'teacher' ? 'attendance.html' : 'login.html');
         }
     </script>
@@ -301,12 +301,12 @@
             const { data: profile, error: profileError } = user
                 ? await supabase.from('profiles').select('role,is_active').eq('id',user.id).maybeSingle()
                 : { data: null, error: null };
-            if (authError || profileError || !profile || profile.role !== 'admin' || profile.is_active !== true) {
+            if (authError || profileError || !profile || !['admin','teacher'].includes(profile.role) || profile.is_active !== true) {
                 window.location.replace(profile?.role === 'teacher' ? 'attendance.html' : 'login.html');
                 return;
             }
             document.body.style.visibility = 'visible';
-            const isOwner = true;
+            const isOwner = profile.role === 'admin';
             let centrePromise = Promise.resolve();
             
             document.getElementById('welcome-name').innerText = isOwner ? "Center Owner" : "Teacher";
