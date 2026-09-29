@@ -9,8 +9,8 @@
         const checkEmail = sessionStorage.getItem('userEmail');
         const checkRole = sessionStorage.getItem('userRole');
 
-        if (!checkEmail || (checkRole !== 'admin' && checkRole !== 'teacher' && checkEmail !== 'admin.ambernath@gmail.com')) {
-            window.location.replace('practice_options.html'); 
+        if (!checkEmail || checkRole !== 'admin') {
+            window.location.replace(checkRole === 'teacher' ? 'attendance.html' : 'login.html');
         }
     </script>
     
@@ -35,7 +35,7 @@
         @keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col" style="visibility:hidden">
 
     <header class="bg-indigo-600 text-white p-6 shadow-lg sticky top-0 z-40">
         <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center">
@@ -297,7 +297,16 @@
         function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
 
         document.addEventListener('DOMContentLoaded', async () => {
-            const isOwner = (userRole === 'admin' || userEmail === 'admin.ambernath@gmail.com');
+            const { data: { user }, error: authError } = await supabase.auth.getUser();
+            const { data: profile, error: profileError } = user
+                ? await supabase.from('profiles').select('role,is_active').eq('id',user.id).maybeSingle()
+                : { data: null, error: null };
+            if (authError || profileError || !profile || profile.role !== 'admin' || profile.is_active !== true) {
+                window.location.replace(profile?.role === 'teacher' ? 'attendance.html' : 'login.html');
+                return;
+            }
+            document.body.style.visibility = 'visible';
+            const isOwner = true;
             let centrePromise = Promise.resolve();
             
             document.getElementById('welcome-name').innerText = isOwner ? "Center Owner" : "Teacher";
