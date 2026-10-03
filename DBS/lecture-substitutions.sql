@@ -127,3 +127,6 @@ returns jsonb language sql security definer set search_path=public as $$
 $$;
 revoke all on function public.attendance_can_teach(smallint,text,date),public.admin_set_lecture_substitute(uuid,uuid,smallint,text,date) from public;
 grant execute on function public.attendance_can_teach(smallint,text,date),public.admin_set_lecture_substitute(uuid,uuid,smallint,text,date) to authenticated;
+
+-- Supabase default privileges grant anon directly on new functions.
+revoke execute on function public.attendance_can_teach(smallint,text,date),public.admin_set_lecture_substitute(uuid,uuid,smallint,text,date) from anon;
