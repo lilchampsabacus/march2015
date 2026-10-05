@@ -10,6 +10,7 @@ let profile=null;
 let assignment=null;
 let currentSection=null;
 let input='';
+let submitting=false;
 let timerBase=0;
 let timerStarted=null;
 let timerId=null;
@@ -274,13 +275,13 @@ function currentResponseList(){
   }
   return sectionResponses(currentSection);
 }
-function renderQuestion(){
+async function renderQuestion(){
   const list=currentQuestionList();
   const r=currentResponseList();
   const idx=r.length;
   if(idx>=list.length){
-    if(mode==='retry')finishRetry();
-    else finishSection();
+    if(mode==='retry')await finishRetry();
+    else await finishSection();
     return;
   }
 
@@ -317,7 +318,7 @@ function renderInput(){
   $('next-btn').disabled=input.length===0;
 }
 function handleKey(k){
-  if(!currentSection)return;
+  if(!currentSection||submitting)return;
   if(k==='back')input=input.slice(0,-1);
   else if(k==='clear')input='';
   else if(/^\d$/.test(k)&&input.length<10)input+=k;
@@ -386,6 +387,20 @@ async function saveRetryProgress(){
 }
 
 async function submitAnswer(skipped){
+  if(submitting||$('question-screen').classList.contains('hidden'))return;
+  submitting=true;
+  $('next-btn').disabled=true;
+  $('skip-btn').disabled=true;
+  try{
+    await performSubmitAnswer(skipped);
+  }finally{
+    submitting=false;
+    $('skip-btn').disabled=false;
+    renderInput();
+  }
+}
+
+async function performSubmitAnswer(skipped){
   if(!currentSection)return;
   const targetedRetry=mode==='retry'&&(retryAttempt.retry_type==='wrong'||retryAttempt.retry_type==='skipped');
   if(currentSection==='plusminus'&&skipped)return;
@@ -408,7 +423,7 @@ async function submitAnswer(skipped){
     timerStarted=Date.now();
     try{
       await saveRetryProgress();
-      renderQuestion();
+      await renderQuestion();
     }catch(e){
       r.pop();
       showError(e);
@@ -421,7 +436,7 @@ async function submitAnswer(skipped){
   timerStarted=Date.now();
   try{
     await savePatch({responses:responses(),section_seconds:secondsObj(),status:'in_progress'});
-    renderQuestion();
+    await renderQuestion();
   }catch(e){
     r.pop();
     showError(e);
@@ -685,9 +700,10 @@ document.addEventListener('keydown',e=>{
   }else if(e.key==='Backspace'){
     handleKey('back');
     e.preventDefault();
-  }else if(e.key==='Enter'&&input){
-    submitAnswer(false);
+  }else if(e.key==='Enter'){
+    // Always suppress the browser's extra click on a focused button.
     e.preventDefault();
+    if(!e.repeat&&input)submitAnswer(false);
   }
 });
 document.addEventListener('visibilitychange',()=>{
