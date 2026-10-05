@@ -25,6 +25,8 @@
   function applyPlusMinusMenu(profile) {
     onReady(() => {
       hideSecondLevelCard();
+      const formulaCard = document.getElementById('taught-formula-card');
+      if (formulaCard && profile.role === 'student' && [1,2].includes(Number(profile.current_level))) formulaCard.style.display = '';
 
       if (profile.role === 'student') {
         const level = Number(profile.current_level);
@@ -32,7 +34,7 @@
         if (level === 1) {
           document.querySelectorAll('a.practice-card').forEach(card => {
             const href = card.getAttribute('href') || '';
-            if (href !== 'ContAddSub.html') card.style.display = 'none';
+            if (href !== 'ContAddSub.html' && href !== 'taught-formula-practice.html') card.style.display = 'none';
           });
           revealPage();
           return;
