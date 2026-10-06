@@ -451,10 +451,11 @@
             if (!isGameActive || event.ctrlKey || event.metaKey || event.altKey) return;
             if (/^\d$/.test(event.key) || ['Enter','Backspace','Delete','Escape'].includes(event.key)) {
                 event.preventDefault();
+                event.stopImmediatePropagation();
                 if (event.repeat) return;
                 useKey(['Delete','Escape'].includes(event.key) ? 'Clear' : event.key);
             }
-        });
+        }, true);
 
     </script>
 </body>
