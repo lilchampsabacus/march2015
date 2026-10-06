@@ -71,24 +71,9 @@
 
         <h2 class="text-3xl font-extrabold text-blue-900 mb-6 text-center back-link">3 Minutes Challenge</h2>
 
-        <div id="daily-limit-screen" class="hidden max-w-md w-full bg-gray-100 p-8 rounded-2xl shadow-xl border-4 border-gray-300 text-center">
-            <div class="text-6xl mb-4">🔒</div>
-            <h3 class="text-2xl font-bold text-gray-700 mb-2">Daily Challenge Completed</h3>
-            <p class="text-blue-900 font-bold text-lg mb-4">You have already practiced speed math today.</p>
-            <p class="text-gray-600 mb-6">Do not neglect your <strong>Abacus Practice</strong>!</p>
-            <div class="bg-white p-4 rounded-lg border border-gray-300">
-                <p class="text-sm font-semibold text-gray-500">Next attempt available:</p>
-                <p class="text-xl font-bold text-green-600">Tomorrow</p>
-            </div>
-            <button onclick="window.location.href='practice_options.html'" class="mt-6 w-full py-3 bg-gray-600 text-white font-bold rounded-lg hover:bg-gray-700">
-                Go Home
-            </button>
-        </div>
-
         <div id="config-panel" class="max-w-md w-full bg-white p-6 rounded-2xl shadow-xl">
             <div class="mb-6 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
                 <p class="text-gray-700 font-medium">🧠 Challenge: Solve as many as you can in 3 minutes!</p>
-                <p class="text-blue-800 font-bold text-sm mt-1 uppercase tracking-wide">⚠️ Limit: 1 Attempt Per Day</p>
             </div>
             
             <div class="space-y-4">
@@ -162,9 +147,7 @@
                 <button onclick="downloadReport()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 mb-3 shadow-lg flex items-center justify-center gap-2">
                     Save Badge (Download)
                 </button>
-                <div class="text-center mt-4">
-                     <p class="text-xs text-gray-400">Daily limit reached. Come back tomorrow!</p>
-                </div>
+                <button onclick="restartChallenge()" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700">Try Again</button>
             </div>
         </section>
     </main>
@@ -206,42 +189,16 @@
         const configPanel = document.getElementById('config-panel');
         const gamePanel = document.getElementById('game-panel');
         const resultsPanel = document.getElementById('results-panel');
-        const limitScreen = document.getElementById('daily-limit-screen'); // NEW
         const problemDisplay = document.getElementById('problem-display');
         const answerInput = document.getElementById('answer-input');
         const opSelect = document.getElementById('operation-select');
         const diffSelect = document.getElementById('difficulty-select');
 
-        function checkDailyAccess() {
-            const studentId = sessionStorage.getItem('studentIdentifier');
-            const todayStr = new Date().toDateString(); 
-            const storageKey = `speedmath_last_played_${studentId}`;
-            const lastPlayed = localStorage.getItem(storageKey);
-
-            if (lastPlayed === todayStr) {
-                configPanel.classList.add('hidden');
-                gamePanel.classList.add('hidden');
-                limitScreen.classList.remove('hidden');
-                return false;
-            }
-            return true;
-        }
-
-        function markDailyCompletion() {
-            const studentId = sessionStorage.getItem('studentIdentifier');
-            const todayStr = new Date().toDateString();
-            const storageKey = `speedmath_last_played_${studentId}`;
-            localStorage.setItem(storageKey, todayStr);
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             const studentIdentifier = sessionStorage.getItem('studentIdentifier');
             if (studentIdentifier) {
                 document.getElementById('display-student-name').textContent = formatStudentName(studentIdentifier);
-                // Check limit on load
-                if (checkDailyAccess()) {
-                    document.getElementById('start-button').disabled = false;
-                }
+                document.getElementById('start-button').disabled = false;
             }
             updateDifficultyOptions();
         });
@@ -318,15 +275,23 @@
             correctAnswer = ans;
         }
 
+        function restartChallenge() {
+            resultsPanel.classList.add('hidden');
+            configPanel.classList.remove('hidden');
+            document.querySelector('.back-link').classList.remove('hidden');
+        }
+
         function startGame() {
             if (isGameActive) return;
-            if (!checkDailyAccess()) return; // Double check
 
             isGameActive = true;
             document.body.classList.add('challenge-solving');
             document.getElementById('timer-display').textContent = '3:00';
             solvedCount = 0; correctCount = 0; wrongCount = 0; currentStreak = 0; mistakesLog = []; 
             timeRemaining = TOTAL_TIME;
+            document.getElementById('solved-count').textContent = '0';
+            document.getElementById('streak-count').textContent = '0';
+            document.getElementById('streak-container').classList.add('hidden');
             configPanel.classList.add('hidden');
             gamePanel.classList.remove('hidden');
             resultsPanel.classList.add('hidden');
@@ -383,7 +348,7 @@
             answerInput.disabled = true;
             clearInterval(timerInterval);
 
-            markDailyCompletion();
+
 
             gamePanel.classList.add('hidden');
             resultsPanel.classList.remove('hidden');
