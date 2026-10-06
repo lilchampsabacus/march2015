@@ -49,7 +49,43 @@
         .text-digit-number {
             font-family: monospace; 
         }
-    </style>
+    
+/* Built-in practice keyboard */
+*{box-sizing:border-box}
+html,body{touch-action:manipulation}
+.practice-keypad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px;width:100%}
+.practice-keypad button{min-height:44px;border:1px solid #c7d2fe;border-radius:10px;background:#eef2ff;color:#312e81;font-size:1.3rem;font-weight:800;touch-action:manipulation;cursor:pointer}
+.practice-keypad button:active{background:#c7d2fe}
+.practice-keypad .key-enter{grid-column:1/-1;background:#4f46e5;color:white}
+.practice-keypad button:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
+body.keypad-solving{height:100dvh;inset:0}
+body.keypad-solving>header,body.keypad-solving>footer,body.keypad-solving main h2,body.keypad-solving main a{display:none}
+body.keypad-solving main{padding:8px!important;min-height:0;overflow:auto}
+body.keypad-solving .screen-container{max-width:620px;padding:0;margin:auto;width:100%}
+body.keypad-solving .card{padding:12px}
+body.keypad-solving #problem-container{font-size:clamp(1.6rem,5vw,3rem);padding:12px;margin:10px 0}
+body.keypad-solving #user-answer,body.keypad-solving #answerInput,body.keypad-solving #answer-input{padding:8px!important;font-size:1.6rem!important;min-height:44px}
+body.keypad-solving #practiceScreen>div:first-of-type{padding:10px;margin-bottom:10px}
+body.keypad-solving #currentNumber{font-size:clamp(2rem,7vw,3rem)}
+body.keypad-solving #test-area{max-width:760px;margin:auto}
+body.keypad-solving #test-area>div{padding:10px;margin-bottom:8px;margin-top:0}
+body.keypad-solving #sum-display{font-size:clamp(1rem,3.7vw,1.65rem);overflow-wrap:anywhere}
+body.keypad-solving #submit-button{display:none}
+body.keypad-solving #test-area>div:first-child{position:static}
+body.keypad-solving #test-area>div:last-child{margin-top:0}
+body.keypad-solving #status-message,body.keypad-solving #answerFeedback{margin-top:6px;min-height:20px}
+@media (max-height:600px) and (min-width:600px){
+ body.keypad-solving .screen-container{max-width:900px}
+ body.keypad-solving #practiceScreen,body.keypad-solving #exercise-screen{display:grid!important;grid-template-columns:1fr 1fr;gap:6px 20px}
+ body.keypad-solving #practiceScreen>*:not(.practice-keypad),body.keypad-solving #exercise-screen>*:not(.practice-keypad){grid-column:1}
+ body.keypad-solving .practice-keypad{grid-column:2;grid-row:1/7;align-self:center}
+ body.keypad-solving #test-area{max-width:900px}
+ body.keypad-solving #test-area>div:nth-child(2)>div{max-width:none;display:grid;grid-template-columns:1fr 1fr;gap:6px 20px}
+ body.keypad-solving #test-area h4,body.keypad-solving #sum-display,body.keypad-solving #test-area .h-0\\.5,body.keypad-solving #test-area .flex-col{grid-column:1}
+ body.keypad-solving #test-area .practice-keypad{grid-column:2;grid-row:1/6}
+}
+
+</style>
 </head>
 <body oncontextmenu="return false;">
 
@@ -118,7 +154,7 @@
                         <div id="sum-display" class="text-digit-number text-2xl text-center mb-4"></div> 
                         <div class="w-full h-0.5 bg-gray-700 mb-4"></div> 
                         <div class="flex flex-col items-center">
-                            <input type="text" id="answer-input" class="w-full p-3 border-2 border-gray-400 rounded-lg text-center text-3xl font-bold focus:border-blue-500 text-digit-number" placeholder="Enter Answer">
+                            <input type="text" inputmode="none" readonly id="answer-input" class="w-full p-3 border-2 border-gray-400 rounded-lg text-center text-3xl font-bold focus:border-blue-500 text-digit-number" placeholder="Enter Answer">
                         </div>
                     </div>
                 </div>
@@ -213,7 +249,7 @@
         function setupInputFocus() {
             const input = document.getElementById('answer-input');
             input?.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !document.getElementById('submit-button').disabled) checkAnswer();
+                if (e.key === 'Enter' && !e.repeat && !document.getElementById('submit-button').disabled) { e.preventDefault(); checkAnswer(); }
             });
         }
 
@@ -252,9 +288,11 @@
 
         function checkAnswer() {
             const input = document.getElementById('answer-input');
+            if (input.disabled || document.getElementById('test-area').classList.contains('hidden')) return;
             const studentAnsStr = input.value.trim();
-            if (!studentAnsStr || isNaN(studentAnsStr)) return;
+            if (!/^\d+$/.test(studentAnsStr)) return;
             input.disabled = true;
+            document.getElementById('submit-button').disabled = true;
             const seqVal = SEQUENCE_DATA[currentSequence].value;
             const correctAns = currentOperation === 'add' ? currentNumber + seqVal : currentNumber - seqVal;
             const isCorrect = BigInt(studentAnsStr) === correctAns;
@@ -321,6 +359,50 @@
             document.getElementById('report-details').innerHTML = `Op: ${currentOperation} | Seq: ${currentSequence} | Steps: ${stepsCompleted}`;
         }
     </script>
+
+<script>
+(function(){
+ const input=document.getElementById('answer-input');
+ const screen=document.getElementById('test-area');
+ const keypad=document.createElement('div');
+ keypad.className='practice-keypad';
+ keypad.setAttribute('role','group');keypad.setAttribute('aria-label','Number keyboard');
+ ['1','2','3','4','5','6','7','8','9','Clear','0','⌫','Enter'].forEach(key=>{
+  const button=document.createElement('button');button.type='button';button.textContent=key;
+  button.setAttribute('aria-label',key==='⌫'?'Backspace':key);
+  if(key==='Enter') button.className='key-enter';
+  button.addEventListener('click',()=>act(key));keypad.appendChild(button);
+ });
+ input.parentElement.insertAdjacentElement('afterend',keypad);
+ if('answer-input'!=='answer-input') input.insertAdjacentElement('afterend',keypad);
+ function active(){return !screen.classList.contains('hidden')&&screen.style.display!=='none';}
+ let lastSubmit=0;
+ function act(key){
+  if(!active()||input.disabled)return;
+  if(key==='Enter'){
+   const now=Date.now();if(now-lastSubmit<450)return;lastSubmit=now;
+   checkAnswer();
+  }else{
+   if(key==='Clear')input.value='';
+   else if(key==='⌫')input.value=input.value.slice(0,-1);
+   else if(input.value.length<16)input.value+=key;
+   input.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+ }
+ document.addEventListener('keydown',event=>{
+  if(!active()||event.ctrlKey||event.metaKey||event.altKey)return;
+  const key=event.key;
+  if(/^\d$/.test(key)||['Enter','Backspace','Delete','Escape'].includes(key)){
+   event.preventDefault();event.stopImmediatePropagation();
+   if(event.repeat)return;
+   act(key==='Backspace'?'⌫':['Delete','Escape'].includes(key)?'Clear':key);
+  }
+ },true);
+ function sync(){document.body.classList.toggle('keypad-solving',active());}
+ new MutationObserver(sync).observe(screen,{attributes:true,attributeFilter:['class','style']});sync();
+})();
+</script>
+
 </body>
 </html>
 
