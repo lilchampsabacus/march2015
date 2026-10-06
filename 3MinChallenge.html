@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Speed Math Mission</title>
+    <title>3 Minutes Challenge</title>
     
     <link rel="stylesheet" href="elegant-theme.css">
     <script src="gamify.js" defer></script>
@@ -31,7 +31,33 @@
         .flash-correct { animation: flashGreen 0.3s ease-out; }
         .flash-wrong { animation: flashRed 0.3s ease-out; }
         .math-input:focus { outline: none; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3); }
-    </style>
+    
+        *{box-sizing:border-box}
+        .challenge-keypad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px}
+        .challenge-keypad button{min-height:44px;border:1px solid #c7d2fe;border-radius:10px;background:#eef2ff;color:#312e81;font-size:1.4rem;font-weight:800;touch-action:manipulation;cursor:pointer}
+        .challenge-keypad button:active{background:#c7d2fe}
+        .challenge-keypad button:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
+        .challenge-keypad .enter-key{grid-column:1/-1;background:#4f46e5;color:white}
+        body.challenge-solving{height:100dvh;min-height:0;overflow:hidden;margin:0}
+        body.challenge-solving>header,body.challenge-solving>footer{display:none}
+        body.challenge-solving main{height:100%;padding:8px!important;justify-content:center}
+        body.challenge-solving #game-panel{padding:12px;max-width:600px}
+        body.challenge-solving #game-panel>div:first-child{margin-bottom:8px;font-size:.9rem}
+        body.challenge-solving #game-panel>div:nth-child(2){margin-bottom:8px}
+        body.challenge-solving #problem-display{font-size:clamp(1.8rem,7vw,3.5rem);padding:12px 4px;margin-bottom:8px;overflow-wrap:anywhere}
+        body.challenge-solving #answer-input{padding:8px;font-size:1.8rem}
+        body.challenge-solving #game-panel>p{margin-top:6px}
+        @media(min-width:650px) and (max-height:650px){
+          body.challenge-solving #game-panel{max-width:900px;display:grid;grid-template-columns:1fr 1fr;gap:8px 20px}
+          body.challenge-solving #game-panel>*:not(.challenge-keypad){grid-column:1}
+          body.challenge-solving .challenge-keypad{grid-column:2;grid-row:1/6;align-self:center}
+        }
+        @media(max-height:600px) and (max-width:649px){
+          body.challenge-solving .challenge-keypad button{min-height:36px}
+          body.challenge-solving #problem-display{padding:6px;font-size:1.8rem}
+          body.challenge-solving #game-panel{padding:8px}
+        }
+</style>
 </head>
 <body class="min-h-screen flex flex-col font-sans">
     
@@ -43,11 +69,11 @@
 
     <main class="flex-grow w-full p-4 flex flex-col items-center justify-start pt-8 pb-96 md:justify-center md:pt-4 md:pb-4">
 
-        <h2 class="text-3xl font-extrabold text-blue-900 mb-6 text-center back-link">Speed Math Mission (1 Min)</h2>
+        <h2 class="text-3xl font-extrabold text-blue-900 mb-6 text-center back-link">3 Minutes Challenge</h2>
 
         <div id="daily-limit-screen" class="hidden max-w-md w-full bg-gray-100 p-8 rounded-2xl shadow-xl border-4 border-gray-300 text-center">
             <div class="text-6xl mb-4">🔒</div>
-            <h3 class="text-2xl font-bold text-gray-700 mb-2">Daily Mission Completed</h3>
+            <h3 class="text-2xl font-bold text-gray-700 mb-2">Daily Challenge Completed</h3>
             <p class="text-blue-900 font-bold text-lg mb-4">You have already practiced speed math today.</p>
             <p class="text-gray-600 mb-6">Do not neglect your <strong>Abacus Practice</strong>!</p>
             <div class="bg-white p-4 rounded-lg border border-gray-300">
@@ -61,7 +87,7 @@
 
         <div id="config-panel" class="max-w-md w-full bg-white p-6 rounded-2xl shadow-xl">
             <div class="mb-6 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-                <p class="text-gray-700 font-medium">🧠 Challenge: Solve as many as you can in 1 minute!</p>
+                <p class="text-gray-700 font-medium">🧠 Challenge: Solve as many as you can in 3 minutes!</p>
                 <p class="text-blue-800 font-bold text-sm mt-1 uppercase tracking-wide">⚠️ Limit: 1 Attempt Per Day</p>
             </div>
             
@@ -80,7 +106,7 @@
                 </div>
 
                 <button id="start-button" class="w-full py-4 bg-green-600 text-white font-bold text-xl rounded-xl shadow-lg hover:bg-green-700 transition-transform transform active:scale-95 disabled:opacity-50" disabled>
-                    🚀 Start Mission
+                    Start 3 Minutes Challenge
                 </button>
             </div>
         </div>
@@ -92,7 +118,7 @@
                     <span id="display-student-name">Player</span>
                 </div>
                 <div class="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg font-mono font-bold text-xl border-2 border-gray-300">
-                    ⏱️ <span id="timer-display">1:00</span>
+                    ⏱️ <span id="timer-display">3:00</span>
                 </div>
             </div>
 
@@ -105,9 +131,9 @@
                 Ready?
             </div>
 
-            <input type="number" id="answer-input" placeholder="Answer" class="math-input w-full p-4 text-4xl text-center font-bold border-2 border-blue-300 rounded-xl text-blue-900 placeholder-gray-300" autocomplete="off">
+            <input type="text" inputmode="none" readonly id="answer-input" placeholder="Answer" class="math-input w-full p-4 text-4xl text-center font-bold border-2 border-blue-300 rounded-xl text-blue-900 placeholder-gray-300" autocomplete="off">
             
-            <p class="text-center text-gray-400 text-sm mt-4 font-medium">Press ENTER to Submit</p>
+            <p class="text-center text-gray-400 text-sm mt-4 font-medium">Tap Enter or press ENTER to submit</p>
         </div>
 
         <section id="results-panel" class="hidden mt-6">
@@ -116,10 +142,10 @@
                     <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest">
                         Speed Mastery
                     </span>
-                    <h2 class="text-2xl font-extrabold text-gray-700 mt-2" id="result-title-text">1-Minute Challenge</h2>
+                    <h2 class="text-2xl font-extrabold text-gray-700 mt-2" id="result-title-text">3 Minutes Challenge</h2>
                 </div>
 
-                <h3 class="text-3xl font-black text-center text-blue-800 mb-2">Mission Report</h3>
+                <h3 class="text-3xl font-black text-center text-blue-800 mb-2">Challenge Report</h3>
                 <p class="text-center text-gray-500 mb-6 border-b pb-4">
                     <span id="report-datetime"></span> | Agent: <span id="report-student-name" class="font-bold text-blue-600"></span>
                 </p>
@@ -160,14 +186,14 @@
             const name = document.getElementById('report-student-name').textContent;
             html2canvas(reportElement, { scale: 2 }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `Speed_Report_${name.replace(/\s+/g, '_')}.png`;
+                link.download = `3_Minutes_Challenge_${name.replace(/\s+/g, '_')}.png`;
                 link.href = canvas.toDataURL("image/png");
                 link.click();
             });
         }
 
         let timerInterval;
-        let TOTAL_TIME = 60; // 1 Minutes
+        const TOTAL_TIME = 180; // 3 minutes
         let timeRemaining = TOTAL_TIME; 
         let isGameActive = false;
         let correctAnswer = 0;
@@ -293,9 +319,12 @@
         }
 
         function startGame() {
+            if (isGameActive) return;
             if (!checkDailyAccess()) return; // Double check
 
             isGameActive = true;
+            document.body.classList.add('challenge-solving');
+            document.getElementById('timer-display').textContent = '3:00';
             solvedCount = 0; correctCount = 0; wrongCount = 0; currentStreak = 0; mistakesLog = []; 
             timeRemaining = TOTAL_TIME;
             configPanel.classList.add('hidden');
@@ -324,7 +353,8 @@
         }
 
         function checkAnswer(e) {
-            if (e.key !== 'Enter' || !isGameActive) return;
+            if (e.key !== 'Enter' || e.repeat || !isGameActive) return;
+            e.preventDefault?.();
             const val = parseInt(answerInput.value);
             if (isNaN(val)) return;
 
@@ -349,6 +379,8 @@
 
         function endGame() {
             isGameActive = false;
+            document.body.classList.remove('challenge-solving');
+            answerInput.disabled = true;
             clearInterval(timerInterval);
 
             markDailyCompletion();
@@ -367,7 +399,7 @@
             
             const opText = opSelect.options[opSelect.selectedIndex].text.split(' ')[0];
             const diffText = diffSelect.options[diffSelect.selectedIndex].text;
-            const CHALLENGE_NAME = `${opText} (${diffText})`;
+            const CHALLENGE_NAME = `3 Minutes Challenge — ${opText} (${diffText})`;
             document.getElementById('result-title-text').textContent = CHALLENGE_NAME;
 
             const mistakesString = mistakesLog.length > 0 ? mistakesLog.join(", ") : "None";
@@ -393,7 +425,37 @@
         }
         
         document.getElementById('start-button').addEventListener('click', startGame);
-        answerInput.addEventListener('keydown', checkAnswer);
+        
+        const keypad = document.createElement('div');
+        keypad.className = 'challenge-keypad';
+        keypad.setAttribute('role', 'group');
+        keypad.setAttribute('aria-label', 'Number keyboard');
+        function useKey(key) {
+            if (!isGameActive || answerInput.disabled) return;
+            if (key === 'Enter') checkAnswer({key:'Enter', repeat:false});
+            else if (key === 'Clear') answerInput.value = '';
+            else if (key === 'Backspace') answerInput.value = answerInput.value.slice(0,-1);
+            else if (answerInput.value.length < 12) answerInput.value += key;
+        }
+        ['1','2','3','4','5','6','7','8','9','Clear','0','Backspace','Enter'].forEach(key => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = key === 'Backspace' ? '⌫' : key;
+            button.setAttribute('aria-label', key);
+            if (key === 'Enter') button.className = 'enter-key';
+            button.addEventListener('click', () => useKey(key));
+            keypad.appendChild(button);
+        });
+        answerInput.insertAdjacentElement('afterend', keypad);
+        document.addEventListener('keydown', event => {
+            if (!isGameActive || event.ctrlKey || event.metaKey || event.altKey) return;
+            if (/^\d$/.test(event.key) || ['Enter','Backspace','Delete','Escape'].includes(event.key)) {
+                event.preventDefault();
+                if (event.repeat) return;
+                useKey(['Delete','Escape'].includes(event.key) ? 'Clear' : event.key);
+            }
+        });
+
     </script>
 </body>
 </html>
