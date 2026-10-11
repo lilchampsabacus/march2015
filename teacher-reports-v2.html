@@ -473,11 +473,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             if(error) { alert("Error: " + error.message); return; }
             
             if(reports) {
-                // FILTER: Remove all entries where score is 0
+                // Include completed zero-score attempts; exclude missing or invalid scores.
                 globalReports = reports.filter(r => {
-                    const scoreVal = r.score_text || r.score || "0";
-                    const numericScore = parseInt(scoreVal);
-                    return numericScore > 0;
+                    const scoreVal = r.score_text ?? r.score;
+                    if (scoreVal == null || String(scoreVal).trim() === '') return false;
+                    const numericScore = parseInt(scoreVal, 10);
+                    return Number.isFinite(numericScore) && numericScore >= 0;
                 });
 
                 const filteredReports = filterByDate(globalReports, startDate, endDate);
@@ -552,7 +553,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             tbody.innerHTML = '';
             
             if (reports.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-6 text-center text-gray-400 font-bold">No valid practice records found (Scores of 0 are hidden).</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-6 text-center text-gray-400 font-bold">No practice records found for this date range.</td></tr>`;
                 document.getElementById('totalCount').innerText = "0";
                 return;
             }
