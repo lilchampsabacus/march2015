@@ -66,6 +66,7 @@
             animation: wiggle 1s ease-in-out infinite;
         }
     </style>
+<link rel="stylesheet" href="class-updates.css?v=1">
 </head>
 <body class="min-h-screen flex flex-col">
 
@@ -107,6 +108,7 @@
     </header>
 
     <main class="flex-grow p-6 md:p-10 flex flex-col items-center">
+<section id="classUpdates" aria-label="Class updates"><div class="cu-head"><h2>Class Updates <small id="updateCount"></small></h2><button type="button" id="updateRefresh">Refresh</button></div><p>Check here daily for completed pages and upcoming tests.</p><p id="updateStatus" role="status">Loading class updates…</p><div id="updateList"></div></section>
         
     <div class="w-full max-w-4xl mx-auto mb-10 space-y-4">
     
@@ -248,5 +250,5 @@
             </svg>
         </a>
     </div>
-</body>
+<script defer src="class-updates.js?v=1"></script></body>
 </html>
