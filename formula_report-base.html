@@ -53,6 +53,7 @@
     <div id="statusMsg" class="hidden rounded-2xl p-4 mb-5 font-bold text-center"></div>
 
     <section id="reportContent" class="hidden">
+      <section class="bg-white rounded-2xl shadow-lg border border-indigo-100 p-5 mb-5"><h2 class="text-xl font-black text-slate-800">Taught Formula Practice</h2><p class="text-sm text-gray-500 mb-4">Completed practice with teacher-assigned formulas. Times are shown in India time.</p><div id="taughtList" class="space-y-3"></div></section>
       <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
         <div class="metric p-4"><div class="text-[11px] uppercase font-black text-gray-400">30-Sum Sessions</div><div id="metricSessions" class="text-3xl font-black text-indigo-700 mt-1">0</div></div>
         <div class="metric p-4"><div class="text-[11px] uppercase font-black text-gray-400">Sums Solved</div><div id="metricSums" class="text-3xl font-black text-sky-700 mt-1">0</div></div>
@@ -63,14 +64,14 @@
 
       <section class="bg-white rounded-2xl shadow-lg border border-emerald-100 p-5 mb-5">
         <div class="flex items-center justify-between gap-3 mb-4">
-          <div><h2 class="text-xl font-black text-slate-800">📈 Improvement</h2><p class="text-sm text-gray-500">Compares the latest two completed 30-sum sessions of the same formula.</p></div>
+          <div><h2 class="text-xl font-black text-slate-800">📈 One-Formula Improvement</h2><p class="text-sm text-gray-500">Compares the latest two completed 30-sum sessions of the same formula.</p></div>
         </div>
         <div id="improvementGrid" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
       </section>
 
       <section class="bg-white rounded-2xl shadow-lg border border-indigo-100 p-5 mb-5">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-          <div><h2 class="text-xl font-black text-slate-800">🎯 30-Sum Practice Sessions</h2><p class="text-sm text-gray-500">Each completed session contains 3 rounds × 10 sums.</p></div>
+          <div><h2 class="text-xl font-black text-slate-800">🎯 One-Formula Practice Sessions</h2><p class="text-sm text-gray-500">Each completed session contains 3 rounds × 10 sums.</p></div>
           <div id="sessionCountLabel" class="text-sm font-black text-indigo-600"></div>
         </div>
         <div id="sessionList" class="space-y-3"></div>
@@ -113,6 +114,20 @@
 
   function setQuickRange(days){const end=new Date(),start=new Date();start.setDate(end.getDate()-(days-1));document.getElementById('startDate').value=isoDateLocal(start);document.getElementById('endDate').value=isoDateLocal(end);fetchReport()}
 
+  async function fetchTaughtRows(start,end){
+    if(!studentUserId)throw new Error('Please log in again to view your progress.');
+    const {data,error}=await db.from('reports').select('id,challenge_type,score_val,total_val,score_text,time_taken,indian_time,mistakes_summary').eq('user_id',studentUserId).ilike('challenge_type','%taught%formula%').gte('indian_time',start+'T00:00:00+05:30').lte('indian_time',end+'T23:59:59.999+05:30').order('indian_time',{ascending:false}).limit(1000);
+    if(error)throw error;return data||[];
+  }
+  function renderTaught(rows){
+    document.getElementById('taughtList').innerHTML=rows.length?rows.map(r=>{
+      const score=Number(r.score_val)||0,total=Number(r.total_val)||30;
+      let details={};try{details=JSON.parse(r.mistakes_summary||'{}')}catch(e){}
+      const mode=details.mode==='independent'?'Independent':details.mode==='guided'?'Guided':r.challenge_type.includes('Independent')?'Independent':'Guided';
+      return `<article class="session-card p-4"><div class="font-black text-lg text-indigo-700">Taught Formula Practice · ${esc(mode)}</div><div class="text-sm font-bold text-gray-500 mt-1">${esc(formatDateTime(r.indian_time))}</div><div class="text-2xl font-black mt-2">${score}/${total}</div><div class="text-sm font-bold text-gray-600">${Math.round(score/total*100)}% accuracy · ${esc(r.time_taken)} · ${Math.max(0,total-score)} wrong</div></article>`;
+    }).join(''):'<p class="text-gray-500">No Taught Formula Practice in this date range.</p>';
+  }
+
   async function fetchRows(start,end){
     const selectCols='id,name,formula,score,time,created_at,user_id,level,formula_id,category,round_number,duration_seconds,wrong_count,session_id';
     const startIso=start+'T00:00:00+05:30',endIso=end+'T23:59:59.999+05:30';
@@ -138,13 +153,13 @@
     return{sessions,legacy};
   }
 
-  function renderMetrics(sessions,legacy){
+  function renderMetrics(sessions,legacy,taught=[]){
     const complete=sessions.filter(s=>s.completed),allSessionRows=sessions.flatMap(s=>s.rows),totalScores=allSessionRows.reduce((a,r)=>a+(Number(r.score)||0),0)+legacy.reduce((a,r)=>a+(Number(r.score)||0),0),totalQuestions=(allSessionRows.length+legacy.length)*10,totalWrong=allSessionRows.reduce((a,r)=>a+(r.wrong_count==null?Math.max(0,10-(Number(r.score)||0)):Number(r.wrong_count)),0)+legacy.reduce((a,r)=>a+Math.max(0,10-(Number(r.score)||0)),0),best=complete.length?Math.max(...complete.map(s=>s.score)):null;
-    document.getElementById('metricSessions').textContent=complete.length;
-    document.getElementById('metricSums').textContent=totalQuestions;
-    document.getElementById('metricAccuracy').textContent=totalQuestions?`${Math.round(totalScores/totalQuestions*100)}%`:'0%';
-    document.getElementById('metricBest').textContent=best==null?'—':`${best}/30`;
-    document.getElementById('metricWrong').textContent=totalWrong;
+    document.getElementById('metricSessions').textContent=complete.length+taught.filter(r=>Number(r.total_val)===30).length;
+    document.getElementById('metricSums').textContent=totalQuestions+taught.reduce((n,r)=>n+(Number(r.total_val)||30),0);
+    document.getElementById('metricAccuracy').textContent=(totalQuestions+taught.reduce((n,r)=>n+(Number(r.total_val)||30),0))?`${Math.round((totalScores+taught.reduce((n,r)=>n+(Number(r.score_val)||0),0))/(totalQuestions+taught.reduce((n,r)=>n+(Number(r.total_val)||30),0))*100)}%`:'0%';
+    document.getElementById('metricBest').textContent=complete.length||taught.some(r=>Number(r.total_val)===30)?`${Math.max(best||0,...taught.filter(r=>Number(r.total_val)===30).map(r=>Number(r.score_val)||0))}/30`:'—';
+    document.getElementById('metricWrong').textContent=totalWrong+taught.reduce((n,r)=>n+Math.max(0,(Number(r.total_val)||30)-(Number(r.score_val)||0)),0);
   }
 
   function renderImprovements(sessions){
@@ -170,7 +185,7 @@
     if(!start||!end){status.className='rounded-2xl p-4 mb-5 font-bold text-center bg-red-50 text-red-700 border border-red-200';status.textContent='Please select both dates.';status.classList.remove('hidden');return}
     if(start>end){status.className='rounded-2xl p-4 mb-5 font-bold text-center bg-red-50 text-red-700 border border-red-200';status.textContent='From date cannot be after To date.';status.classList.remove('hidden');return}
     status.classList.add('hidden');content.classList.add('hidden');loading.classList.remove('hidden');
-    try{const rows=await fetchRows(start,end);loading.classList.add('hidden');if(!rows.length){status.className='rounded-2xl p-4 mb-5 font-bold text-center bg-amber-50 text-amber-700 border border-amber-200';status.textContent='No formula practice found for this date range.';status.classList.remove('hidden');return}const {sessions,legacy}=buildSessions(rows);renderMetrics(sessions,legacy);renderImprovements(sessions);renderSessions(sessions);renderLegacy(legacy);content.classList.remove('hidden')}catch(e){loading.classList.add('hidden');status.className='rounded-2xl p-4 mb-5 font-bold text-center bg-red-50 text-red-700 border border-red-200';status.textContent='Could not load the report. Please try again.';status.classList.remove('hidden');console.error(e)}
+    try{const [rows,taught]=await Promise.all([fetchRows(start,end),fetchTaughtRows(start,end)]);loading.classList.add('hidden');if(!rows.length&&!taught.length){status.className='rounded-2xl p-4 mb-5 font-bold text-center bg-amber-50 text-amber-700 border border-amber-200';status.textContent='No formula practice found for this date range.';status.classList.remove('hidden');return}const {sessions,legacy}=buildSessions(rows);renderMetrics(sessions,legacy,taught);renderTaught(taught);renderImprovements(sessions);renderSessions(sessions);renderLegacy(legacy);content.classList.remove('hidden')}catch(e){loading.classList.add('hidden');status.className='rounded-2xl p-4 mb-5 font-bold text-center bg-red-50 text-red-700 border border-red-200';status.textContent='Could not load the report. Please try again.';status.classList.remove('hidden');console.error(e)}
   }
 
   document.addEventListener('DOMContentLoaded',init);
