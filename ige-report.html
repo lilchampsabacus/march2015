@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>IGE Practice Report | Li'l Champs</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+:root{font-family:Nunito,sans-serif;color:#1e293b;background:#f0f9ff}*{box-sizing:border-box}body{margin:0;background:#f0f9ff radial-gradient(#e0f2fe 2px,transparent 2px) 0 0/24px 24px}button,input{font:inherit}button{cursor:pointer;border:0;border-radius:12px;padding:12px 18px;font-weight:800;background:#4f46e5;color:white}button:disabled{opacity:.55}button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #f59e0b;outline-offset:3px}.site-header{background:linear-gradient(135deg,#4f46e5,#4338ca);color:white;padding:20px 24px}.site-header-inner{max-width:1100px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:16px}.site-header h1{font-size:clamp(1.4rem,3vw,1.9rem);margin:0}.site-header p{margin:2px 0 0;color:#e0e7ff;font-weight:700}.student-badge{background:#4338ca;border:1px solid #818cf8;border-radius:10px;padding:8px 16px;font-weight:800}.student-badge small{display:block;color:#e0e7ff;font-size:.72rem;text-transform:uppercase}.student-badge span{display:block}.wrap{max-width:1100px;margin:auto;padding:28px 20px 65px}.back{display:inline-block;color:#4338ca;font-weight:800;text-decoration:none;margin-bottom:22px}.heading{font-size:clamp(1.7rem,4vw,2.3rem);margin:0 0 6px}.lead{color:#64748b;font-weight:700;margin:0 0 22px}.card{background:white;border:1px solid #e0e7ff;border-radius:22px;padding:clamp(18px,4vw,32px);box-shadow:0 10px 32px #1e293b12;margin-bottom:18px}.filters{display:flex;flex-wrap:wrap;align-items:end;gap:12px}.filters label{display:grid;gap:5px;font-weight:800}.filters input{border:1px solid #94a3b8;border-radius:10px;padding:11px;background:white;color:#1e293b;max-width:180px}.attempts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:14px}.attempt-card{border:1px solid #dbeafe;border-bottom:5px solid #4f46e5;border-radius:17px;padding:18px;background:#fff}.attempt-card h3{margin:0 0 4px}.attempt-card p{margin:4px 0;color:#475569;font-weight:700}.attempt-card button{margin-top:12px;background:#e0e7ff;color:#3730a3}.result{display:inline-block;border-radius:99px;padding:4px 11px;background:#eef2ff;color:#3730a3;font-weight:800}.result.Fail{background:#fef2f2;color:#b91c1c}.result.Pass{background:#ecfdf5;color:#047857}.paper-section{margin-top:24px}.paper-section h3{margin:0 0 12px}.question-card{border:1px solid #e0e7ff;border-radius:14px;padding:14px;margin:9px 0;background:#fff}.question-card.correct{border-left:5px solid #16a34a}.question-card.incorrect{border-left:5px solid #dc2626}.question-card strong{display:block;margin-bottom:6px}.terms{display:inline-grid;justify-items:end;text-align:right;font-variant-numeric:tabular-nums;font-weight:800}.answer-line{margin-top:8px;font-weight:700}.correct-text{color:#047857}.wrong-text{color:#b91c1c}.muted{color:#64748b}.hidden{display:none!important}#message{color:#b91c1c;font-weight:700}@media(max-width:540px){.site-header{padding:16px}.site-header-inner{align-items:flex-start}.student-badge{padding:7px 10px;font-size:.85rem}.wrap{padding:20px 14px 45px}.filters label{width:calc(50% - 7px)}.filters input{width:100%;max-width:none}.filters button{width:100%}}
+</style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="ige-common.js"></script></head><body>
+<header class="site-header"><div class="site-header-inner"><div><h1>Li'l Champs Abacus Academy</h1><p>International Grading Exam Practice</p></div><div class="student-badge"><small>Student</small><strong id="studentName">Loading…</strong><span id="studentLevel"></span></div></div></header>
+<div class="wrap"><a class="back" href="ige-practice.html">← Back to IGE practice</a><h1 class="heading">My IGE practice report</h1><p class="lead">See your completed practice papers and check each answer.</p>
+<div class="card"><div class="filters"><label>From<input id="from" type="date" min="2026-09-24"></label><label>To<input id="to" type="date" min="2026-09-24"></label><button id="load" type="button">Show report</button></div><p id="message" role="status">Choose dates and tap Show report.</p></div>
+<div id="attempts" class="attempts"></div><div id="paper" class="card hidden"></div></div>
+<script>
+const $=id=>document.getElementById(id),formatDate=d=>new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',dateStyle:'medium',timeStyle:'short'}).format(new Date(d));
+const sectionName=s=>s==='+/-'?'Addition / Subtraction':s==='x'?'Multiplication':'Division';
+const number=n=>{const [whole,decimal]=String(n).split('.');return Number(whole).toLocaleString('en-IN')+(decimal===undefined?'':'.'+decimal)};
+const label=(tag,content,className='')=>{const e=document.createElement(tag);e.className=className;e.textContent=content;return e};
+let attempts=[];
+async function init(){try{const user=await igeUser();const {data,error}=await IGE_DB.from('profiles').select('full_name,current_level').eq('id',user.id).single();if(error)throw error;$('studentName').textContent=data.full_name||'Student';$('studentLevel').textContent=data.current_level?`Level ${data.current_level}`:'';const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());$('to').value=today;$('to').max=today;$('from').max=today;$('from').value='2026-09-24'}catch(e){$('message').textContent=e.message||'Please sign in again.'}}
+$('load').onclick=async()=>{const from=$('from').value,to=$('to').value;if(!from||!to||from<'2026-09-24'||to<from||to>$('to').max){$('message').textContent='Choose valid dates from 24 September 2026.';return}$('load').disabled=true;$('message').textContent='Loading report…';$('attempts').replaceChildren();$('paper').classList.add('hidden');try{const {data,error}=await IGE_DB.rpc('ige_my_attempts',{date_from:from,date_to:to});if(error)throw error;attempts=data||[];$('message').textContent=attempts.length?`${attempts.length} completed practice attempt${attempts.length===1?'':'s'} shown.`:'No completed IGE practice attempts in these dates.';for(const a of attempts){const card=label('article','','attempt-card');card.append(label('h3',`${a.mode==='abacus'?'Abacus':'Mental'} · Grade ${a.grade}`),label('p',formatDate(a.started_at)),label('p',`Time used: ${Math.floor(a.time_used_seconds/60)}m ${a.time_used_seconds%60}s`));card.append(label('span',a.result,`result ${a.result}`));const scores=Object.entries(a.scores||{}).map(([s,v])=>`${sectionName(s)} ${v}/10`).join(' · ');card.append(label('p',scores));const button=label('button','View solved paper');button.type='button';button.onclick=()=>showPaper(a.id,button);card.append(button);$('attempts').append(card)}}catch(e){$('message').textContent=e.message||'Could not load report.'}finally{$('load').disabled=false}};
+async function showPaper(id,button){
+ button.disabled=true;
+ try{
+  const {data,error}=await IGE_DB.rpc('ige_my_attempt_detail',{attempt:id});
+  if(error)throw error;
+  const paper=$('paper');
+  paper.replaceChildren(label('h2',`${data.mode==='abacus'?'Abacus':'Mental'} · Grade ${data.grade}`),label('p',`${formatDate(data.started_at)} · ${data.result}`));
+  for(const section of ['+/-','x','÷']){
+   const questions=data.questions.map((q,i)=>({...q,index:i})).filter(q=>q.section===section);
+   if(!questions.length)continue;
+   const group=label('section','','paper-section');
+   group.append(label('h3',`${sectionName(section)} · ${data.scores?.[section]||0}/10`));
+   for(const q of questions){
+    const answer=data.answers?.[q.index];
+    const correct=answer!==null&&answer!==undefined&&Number(answer)===Number(q.answer);
+    const row=label('article','',`question-card ${correct?'correct':'incorrect'}`);
+    row.append(label('strong',`Sum ${q.index+1}`));
+    if(section==='+/-'){
+     const terms=label('div','','terms');
+     const places=Math.max(...q.terms.map(n=>(String(n).split('.')[1]||'').length));
+     for(const n of q.terms){
+      const [whole,decimal]=String(n).split('.');
+      terms.append(label('span',number(whole)+(places?'.'+String(decimal||'').padEnd(places,'0'):'')));
+     }
+     row.append(terms);
+    }else{
+     row.append(label('div',`${number(q.left)} ${section==='x'?'×':'÷'} ${number(q.right)}`));
+    }
+    row.append(label('div',`Your answer: ${answer===null||answer===undefined?'Skipped':number(answer)} · Correct answer: ${number(q.answer)}`,`answer-line ${correct?'correct-text':'wrong-text'}`));
+    group.append(row);
+   }
+   paper.append(group);
+  }
+  paper.classList.remove('hidden');
+  paper.scrollIntoView({behavior:'smooth',block:'start'});
+ }catch(e){$('message').textContent=e.message||'Could not open this paper.'}
+ finally{button.disabled=false}
+}
+
+init();
+</script></body></html>
