@@ -11,8 +11,16 @@ function status(s){$('updateStatus').textContent=s}
 const date=s=>s?new Date(s+'T12:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'';
 async function load(){rows=await rpc('class_updates_list');render()}
 function render(){const selected=teacher&&$('updateBatch').value!==''?batches[Number($('updateBatch').value)]:null;
-const shown=teacher?rows.filter(r=>selected&&r.centre_id===selected.centre_id&&r.batch_name===selected.batch_name):rows;
-const unread=rows.filter(r=>!r.is_read).length;
+// Keep teacher history and notices; students only need the latest completed
+// class for each batch and level. The RPC returns class_date/id newest first.
+const latestCompleted=new Set();
+const shown=teacher?rows.filter(r=>selected&&r.centre_id===selected.centre_id&&r.batch_name===selected.batch_name):rows.filter(r=>{
+if(r.kind!=='completed')return true;
+const key=JSON.stringify([r.centre_id,r.batch_name,r.level]);
+if(latestCompleted.has(key))return false;
+latestCompleted.add(key);return true;
+});
+const unread=shown.filter(r=>!r.is_read).length;
 if(!teacher)$('updateCount').textContent=unread?`${unread} unread`:'All caught up';
 $('updateList').innerHTML=shown.length?shown.map(r=>`<article class="cu-item ${r.kind==='sample_test'||r.kind==='final_exam'?'cu-test':''}"><div class="cu-meta">${esc(labels[r.kind])} · ${date(r.class_date)}${teacher?' · Level '+r.level:(!r.is_read?' · NEW':'')}</div><h3>${r.week?'Week '+r.week+' · ':''}${esc(r.book||labels[r.kind])}</h3>${r.pages?'<p><b>Pages:</b> '+esc(r.pages)+'</p>':''}${r.event_date?'<p><b>Test date:</b> '+date(r.event_date)+'</p>':''}${r.message?'<p class="cu-message">'+esc(r.message)+'</p>':''}<button type="button" data-id="${r.id}">${teacher?'Edit':r.is_read?'Read':'Mark as read'}</button></article>`).join(''):`<p>${teacher?(selected?'No updates for this batch.':'Select a batch to view updates.'):'No class updates yet. Check here daily for pages and test notices.'}</p>`;
 }
