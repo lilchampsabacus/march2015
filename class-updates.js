@@ -2,7 +2,8 @@
 'use strict';
 const teacher=!!document.getElementById('updateForm'),root=document.getElementById('classUpdates');
 if(!root)return;
-const db=window.supabase.createClient('https://portal-bridge.ucmas-ambernath-pg.workers.dev','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk'),$=id=>document.getElementById(id);
+let db;
+const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const labels={completed:'Completed class',sample_test:'Upcoming sample test',final_exam:'Upcoming final exam',notice:'Class notice'};
 let rows=[],batches=[],editing=null;
@@ -30,7 +31,16 @@ root.addEventListener('click',async e=>{const b=e.target.closest('button[data-id
 if(teacher){editing=r.id;const i=batches.findIndex(x=>x.centre_id===r.centre_id&&x.batch_name===r.batch_name);$('updateBatch').value=String(i);$('updateBatch').disabled=true;[['Level',r.level],['Date',r.class_date],['Kind',r.kind],['Week',r.week],['Book',r.book],['Pages',r.pages],['Message',r.message],['Event',r.event_date]].forEach(([k,v])=>$('update'+k).value=v??'');$('updateSave').textContent='Save changes';fields();$('updateForm').scrollIntoView({behavior:'smooth'});}
 else{b.disabled=true;try{await rpc('class_update_mark_read',{p_id:r.id});await load()}catch(e){status('Could not mark as read. Please retry.');b.disabled=false;}}
 });
-async function init(){try{const {data:{user},error}=await db.auth.getUser();if(error||!user){status('Please log in to see class updates.');return}
+async function init(){try{
+if(!teacher&&window.practiceDashboardContext){
+  const context=await window.practiceDashboardContext;
+  if(!context){status('Please log in to see class updates.');return}
+  db=context.client;
+}else{
+  db=window.supabase.createClient('https://portal-bridge.ucmas-ambernath-pg.workers.dev','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk');
+  const {data:{user},error}=await db.auth.getUser();
+  if(error||!user){status('Please log in to see class updates.');return}
+}
 if(teacher){const actor=await rpc('attendance_actor');if(!actor)throw Error('Teacher or admin login required.');batches=await rpc('attendance_batches');$('updateBatch').innerHTML='<option value="">Select batch</option>'+batches.map((b,i)=>`<option value="${i}">${esc(b.batch_name)} · Level ${b.level} · Centre ${b.centre_id}</option>`).join('');reset();$('updateBatch').onchange=()=>{const b=batches[Number($('updateBatch').value)];if(b)$('updateLevel').value=b.level;render()};$('updateKind').onchange=fields;$('updateCancel').onclick=reset;
 $('updateForm').onsubmit=async e=>{e.preventDefault();const b=batches[Number($('updateBatch').value)];if($('updateBatch').value===''||!b)return;const id=editing;$('updateSave').disabled=true;try{await rpc('class_update_save',{p_id:id,p_centre:b.centre_id,p_batch:b.batch_name,p_level:Number($('updateLevel').value),p_date:$('updateDate').value,p_kind:$('updateKind').value,p_week:$('updateWeek').value?Number($('updateWeek').value):null,p_book:$('updateBook').value,p_pages:$('updatePages').value,p_message:$('updateMessage').value,p_event:['sample_test','final_exam'].includes($('updateKind').value)?$('updateEvent').value:null});editing=null;$('updateBatch').disabled=false;$('updateSave').textContent='Publish update';await load();status('Published. Parents can see this update after login.');}catch(e){status(e.message)}finally{$('updateSave').disabled=false}};
 }

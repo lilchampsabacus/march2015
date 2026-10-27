@@ -11,7 +11,7 @@ const daily = read('daily-practice.js');
 const loader = read('level-page-loader.js');
 const homepage = read('index.html');
 
-for (const file of ['level-access.js','daily-practice.js','plus-minus-access.js','level-page-loader.js','daily-card.js']) {
+for (const file of ['level-access.js','daily-practice.js','plus-minus-access.js','level-page-loader.js','daily-card.js','class-updates.js','low-level-access.js']) {
   new vm.Script(read(file), {filename:file});
 }
 for (const [filename, html] of [['login.html',login],['practice_options.html',dashboard],['daily-practice.html',read('daily-practice.html')]]) {
@@ -24,7 +24,7 @@ assert(!dashboard.includes('level-page-loader.js'), 'dashboard should have no se
 assert(!dashboard.includes('document.write('), 'dashboard should not re-render document');
 assert(dashboard.includes('role="status"') && dashboard.includes('practice-startup'), 'loading indicator must exist');
 assert(dashboard.includes('levelAccessHide'), 'student options should be hidden until authorized');
-assert(dashboard.includes('class-updates.js?v=1'), 'class updates retained');
+assert(dashboard.includes('class-updates.js?v=20261027-speed2'), 'class updates retained');
 assert(!dashboard.includes('report-access.js') && !dashboard.includes('low-level-access.js'), 'duplicate profile checks removed');
 assert(dashboard.includes('id="formulaReportDefaultHide"'), 'formula access starts hidden');
 assert(dashboard.includes('id="formulaPracticeDefaultHide"'), 'formula practice access starts hidden');

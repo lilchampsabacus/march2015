@@ -83,19 +83,19 @@
 }
 </style>`;
       }
-      inject += `<script src="low-level-access.js?v=1" data-page="${page}"></script>`;
+      inject += `<script src="low-level-access.js?v=20261027-speed2" data-page="${page}"></script>`;
     } else if (page === 'plus-minus' || page === 'decimal' || page === 'negative') {
-      inject += `<script src="plus-minus-access.js?v=20261027-safe1" data-page="${page}"></script>`;
+      inject += `<script src="plus-minus-access.js?v=20261027-speed2" data-page="${page}"></script>`;
     } else {
-      inject += `<script src="level-access.js?v=20261027-safe1" data-page="${page}"></script>`;
+      inject += `<script src="level-access.js?v=20261027-speed2" data-page="${page}"></script>`;
       if (page === 'practice-options') {
         inject += '\n<style id="formulaMasterHide">a[href="FormulaMaster.html"]{display:none!important}</style>' +
           '\n<style id="formulaReportDefaultHide">a[href="formula_report.html"]{display:none!important}</style>' +
           '\n<style id="formulaPracticeDefaultHide">a[href="Level1and2.html"]{display:none!important}</style>' +
           '\n<style id="reportAccessHide">html{visibility:hidden!important}</style>' +
-          '\n<script src="low-level-access.js?v=1" data-page="practice-options"></script>' +
+          '\n<script src="low-level-access.js?v=20261027-speed2" data-page="practice-options"></script>' +
           '\n<script src="report-access.js?v=1"></script>' +
-          '\n<script src="daily-card.js?v=17-clear-3s"></script>';
+          '\n<script src="daily-card.js?v=20261027-speed2"></script>';
       }
     }
 

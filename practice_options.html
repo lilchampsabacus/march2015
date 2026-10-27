@@ -77,8 +77,8 @@
     <link rel="preconnect" href="https://portal-bridge.ucmas-ambernath-pg.workers.dev" crossorigin>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script defer src="level-access.js?v=20261027-speed1" data-page="practice-options"></script>
-    <script defer src="daily-card.js?v=17-clear-3s"></script>
+    <script defer src="level-access.js?v=20261027-speed2" data-page="practice-options"></script>
+    <script defer src="daily-card.js?v=20261027-speed2"></script>
 </head>
 <body class="min-h-screen flex flex-col">
 <div id="practice-startup" role="status" aria-live="polite" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#f0f9ff;font:700 17px Arial,sans-serif;color:#4338ca;z-index:9999;text-align:center;padding:24px">
@@ -269,7 +269,7 @@
   // Class updates never block entry to the practice menu.
   window.addEventListener('practice-dashboard-ready',()=>{
     const script=document.createElement('script');
-    script.src='class-updates.js?v=1';
+    script.src='class-updates.js?v=20261027-speed2';
     script.async=true;
     document.body.appendChild(script);
   },{once:true});
