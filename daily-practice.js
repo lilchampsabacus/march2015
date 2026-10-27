@@ -733,7 +733,7 @@ async function init(){
     }
 
     const active=responses()._active;
-    if(active&&requiredSections(assignment.level).includes(active)&&!isSectionComplete(active)){
+    if(active&&requiredSections(assignment.level).includes(active)&&!isSectionComplete(active)&&!completed().includes(active)){
       currentSection=active;
       mode='official';
       view('question-screen');
