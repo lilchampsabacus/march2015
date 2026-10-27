@@ -50,6 +50,17 @@ const server=http.createServer((req,res)=>{
   await page.locator('#practice-startup').waitFor({state:'detached'});
   assert.equal(await page.locator('#welcome-name').innerText(),'Test Student');
   assert((await page.locator('#student-level').innerText()).includes('Level 8'));
+  await page.locator('#official-daily-practice-card').waitFor({state:'visible'});
+  const dashboard=await page.evaluate(()=>{
+   const card=document.getElementById('official-daily-practice-card');
+   const start=card.querySelector('a[href^="daily-practice.html"]');
+   const bounds=start.getBoundingClientRect();
+   return {first:card.parentElement.firstElementChild===card,visible:bounds.top>=0&&bounds.bottom<=innerHeight,
+    reminders:[...document.querySelectorAll('main p')].filter(p=>/physical abacus/i.test(p.textContent)).length};
+  });
+  assert(dashboard.first,'Daily Practice is the first dashboard section');
+  assert(dashboard.visible,'the entire Daily Practice card is visible on mobile without scrolling');
+  assert(dashboard.reminders>=2,'both the compact and full physical-abacus reminders remain');
   await page.getByRole('link',{name:/Multiplication/i}).first().click();
   await page.locator('#practice-startup').waitFor({state:'detached'});
   assert((await page.locator('#current-level-title').innerText()).includes('Level 7'));

@@ -18,6 +18,7 @@ function renderCards(level){
   wrap.className='w-full max-w-6xl mb-5';
   wrap.innerHTML=`
     <div class="mb-3 flex items-center gap-2"><span class="text-xs font-black uppercase tracking-widest text-indigo-600">Daily Practice</span><span class="h-px flex-1 bg-indigo-100"></span></div>
+    <p class="text-sm font-bold text-orange-900 bg-orange-50 rounded-lg px-3 py-2 mb-3">🧮 Use your physical abacus for every sum.</p>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <a href="daily-practice.html?v=2" class="block no-underline rounded-2xl shadow-xl overflow-hidden border-2 border-indigo-300 bg-gradient-to-r from-indigo-600 to-violet-600 text-white p-5 md:p-6 hover:shadow-2xl transition-all">
         <div class="flex gap-4 items-center justify-between">
@@ -34,10 +35,17 @@ function renderCards(level){
         <div class="sm:hidden mt-4 bg-emerald-600 text-white font-black rounded-xl px-4 py-3 text-center">View Progress →</div>
       </a>
     </div>
+`;
+  const secondary=document.createElement('div');
+  secondary.id='secondary-practice-cards';
+  secondary.className='w-full max-w-6xl mb-5';
+  secondary.innerHTML=`
     <div class="mt-7 flex items-center gap-2"><span class="text-xs font-black uppercase tracking-widest text-rose-600">Speed & Accuracy</span><span class="h-px flex-1 bg-rose-100"></span></div>\n    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">\n      <a href="speed-check.html?v=20260922-formula" class="block no-underline rounded-2xl shadow-xl overflow-hidden border-2 border-rose-200 bg-gradient-to-r from-rose-600 to-orange-500 text-white p-5 md:p-6 hover:shadow-2xl transition-all">\n        <div class="flex gap-4 items-center justify-between"><div class="flex items-center gap-4"><div class="text-5xl">🎯</div><div><div class="text-xs font-black uppercase tracking-widest text-rose-100">Timed Mistake Detector</div><h3 class="text-2xl font-black mt-1">Speed & Accuracy Check</h3><p class="text-rose-50 mt-1">Find root mistakes and timeouts under pressure.</p></div></div><div class="hidden sm:block bg-white text-rose-700 font-black rounded-xl px-4 py-3 text-center whitespace-nowrap">Start Check →</div></div>\n        <div class="sm:hidden mt-4 bg-white text-rose-700 font-black rounded-xl px-4 py-3 text-center">Start Check →</div>\n      </a>\n      <a href="speed-check-progress.html" class="block no-underline rounded-2xl shadow-xl overflow-hidden border-2 border-sky-200 bg-white p-5 md:p-6 hover:shadow-2xl transition-all">\n        <div class="flex gap-4 items-center justify-between"><div class="flex items-center gap-4"><div class="text-5xl">📈</div><div><div class="text-xs font-black uppercase tracking-widest text-sky-600">For Students & Parents</div><h3 class="text-2xl font-black mt-1 text-slate-900">My Speed Report</h3><p class="text-slate-500 mt-1">See weak minus operations, mistakes and response time.</p></div></div><div class="hidden sm:block bg-sky-600 text-white font-black rounded-xl px-4 py-3 text-center whitespace-nowrap">View Report →</div></div>\n        <div class="sm:hidden mt-4 bg-sky-600 text-white font-black rounded-xl px-4 py-3 text-center">View Report →</div>\n      </a>\n    </div>\n    <div class="mt-7 flex items-center gap-2"><span class="text-xs font-black uppercase tracking-widest text-slate-500">Other Practice</span><span class="h-px flex-1 bg-slate-200"></span></div>`;
-  grid.parentElement.insertBefore(wrap,grid);
-  const speedLink=wrap.querySelector('a[href^="speed-check.html"]');if(speedLink)speedLink.href='speed-check.html?v=20260924-clear-3s';
-  const speedReportLink=wrap.querySelector('a[href^="speed-check-progress.html"]');if(speedReportLink)speedReportLink.href='speed-check-progress.html?v=20260924-clear-3s';
+  const main=grid.parentElement;
+  main.insertBefore(wrap,main.firstElementChild||grid);
+  main.insertBefore(secondary,grid);
+  const speedLink=secondary.querySelector('a[href^="speed-check.html"]');if(speedLink)speedLink.href='speed-check.html?v=20260924-clear-3s';
+  const speedReportLink=secondary.querySelector('a[href^="speed-check-progress.html"]');if(speedReportLink)speedReportLink.href='speed-check-progress.html?v=20260924-clear-3s';
   warmSpeedPage();
   return wrap;
 }

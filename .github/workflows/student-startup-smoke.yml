@@ -30,6 +30,8 @@ on:
       - 'tests/static-styles.cjs'
       - 'tests/browser-performance.cjs'
       - 'tests/browser-local-assets.cjs'
+      - 'tests/browser-daily-startup.cjs'
+      - 'DBS/daily-practice-context.sql'
       - 'tests/local-assets.cjs'
       - 'assets/vendor/**'
       - 'assets/fonts/**'

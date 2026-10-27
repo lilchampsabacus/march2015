@@ -11,12 +11,12 @@ const fixtureScript=`
 window.supabase={createClient(){
  const level=window.testLevel||8;
  const profile={id:'test',full_name:'Test Student',role:'student',is_active:true,current_level:level};
- const row={id:'practice-test',student_name:'Test Student',level,practice_date:'2026-10-27',questions:{plusminus:Array.from({length:10},()=>({kind:'pm',digits:1,rows:3,terms:[1,2,3]})),multiplication:Array.from({length:10},()=>({kind:'mul',a:12,b:3,label:'2×1'})),division:Array.from({length:10},()=>({kind:'div',a:12,b:3,label:'2÷1'}))},responses:{},completed_sections:[],section_seconds:{},status:'not_started'};
+ const row={id:'practice-test',user_id:'test',student_name:'Test Student',level,practice_date:'2026-10-27',questions:{plusminus:Array.from({length:10},()=>({kind:'pm',digits:1,rows:3,terms:[1,2,3]})),multiplication:Array.from({length:10},()=>({kind:'mul',a:12,b:3,label:'2×1'})),division:Array.from({length:10},()=>({kind:'div',a:12,b:3,label:'2÷1'}))},responses:{},completed_sections:[],section_seconds:{},status:'not_started'};
  return {auth:{getSession:async()=>({data:{session:{user:{id:'test',email:'test@example.invalid'},access_token:'fixture'}}}),getUser:async()=>({data:{user:{id:'test'}}})},from(table){
   const result=()=>({data:table==='profiles'?profile:table==='official_daily_practice'?row:[]});
   const chain={};for(const method of ['select','eq','order','limit','gte','lte','in','insert'])chain[method]=()=>chain;
   chain.update=patch=>{Object.assign(row,patch);return chain};chain.single=chain.maybeSingle=async()=>result();chain.then=(resolve,reject)=>Promise.resolve(result()).then(resolve,reject);return chain;
- },rpc:async name=>({data:name==='student_practice_settings_get'?{official_level:level,plusminus:Math.min(level,7),multiplication:Math.min(level,7),division:Math.min(level,7)}:name==='student_formula_practice_context'?{formula_ids:['sf_p4'],batch_name:'Test Batch'}:[]})};
+ },rpc:async name=>({data:name==='student_daily_practice_context'?{profile,assignment:row,practice_date:row.practice_date,practice_levels:{official_level:level,plusminus:Math.min(level,7),multiplication:Math.min(level,7),division:Math.min(level,7)}}:name==='student_practice_settings_get'?{official_level:level,plusminus:Math.min(level,7),multiplication:Math.min(level,7),division:Math.min(level,7)}:name==='student_formula_practice_context'?{formula_ids:['sf_p4'],batch_name:'Test Batch'}:[]})};
 }};`;
 const mime={'.html':'text/html','.css':'text/css','.js':'text/javascript','.webp':'image/webp','.png':'image/png','.woff2':'font/woff2'};
 const server=http.createServer((req,res)=>{
