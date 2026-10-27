@@ -297,7 +297,7 @@
 
       if (profile.role !== 'student') {
         reveal();
-        return;
+        return { client, profile, session };
       }
 
       switch (page) {
@@ -316,11 +316,14 @@
           break;
         default: reveal();
       }
+      return { client, profile, session };
     } catch (err) {
       console.error('Level access check failed:', err);
       lockedPage('Unable to confirm your practice settings. Please refresh or contact your teacher.');
     }
   }
 
-  run();
+  // Share only this page's server-verified result. Nothing is cached across visits.
+  const ready = run();
+  if (page === 'practice-options') window.practiceDashboardContext = ready;
 })();

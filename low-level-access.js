@@ -13,6 +13,7 @@
   function revealPage() {
     document.documentElement.style.visibility = 'visible';
     document.getElementById('levelAccessHide')?.remove();
+    document.getElementById('practice-startup')?.remove();
   }
 
   function showLocked(level, label) {

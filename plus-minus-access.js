@@ -5,9 +5,9 @@
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk";
   const page = document.currentScript?.dataset?.page || '';
 
-  async function resolvePracticeLevels(client, profile) {
+  function resolvePracticeLevels(result, profile) {
     // The server derives batch settings from the authenticated student's profile.
-    const {data,error}=await client.rpc('student_practice_settings_get');
+    const {data,error}=result;
     if(error || !data) throw new Error('Unable to load batch practice settings');
     const official=Number(data.official_level);
     if(official!==Number(profile.current_level) || !Number.isInteger(official)) {
@@ -34,6 +34,7 @@
   function revealPage() {
     document.documentElement.style.visibility = 'visible';
     document.getElementById('levelAccessHide')?.remove();
+    document.getElementById('practice-startup')?.remove();
   }
 
   function hideSecondLevelCard() {
@@ -98,11 +99,13 @@
         return;
       }
 
-      const { data: profile, error } = await client
-        .from('profiles')
-        .select('current_level,role,is_active,full_name')
-        .eq('id', session.user.id)
-        .single();
+      const [profileResult, practiceResult] = await Promise.all([
+        client.from('profiles')
+          .select('current_level,role,is_active,full_name')
+          .eq('id', session.user.id).single(),
+        client.rpc('student_practice_settings_get')
+      ]);
+      const { data: profile, error } = profileResult;
 
       if (error || !profile) throw error || new Error('Profile not found');
       if (profile.is_active === false) {
@@ -110,7 +113,7 @@
         return;
       }
 
-      if (profile.role === 'student') profile.practiceLevels = await resolvePracticeLevels(client, profile);
+      if (profile.role === 'student') profile.practiceLevels = resolvePracticeLevels(practiceResult, profile);
       const level = levelFor(profile);
       if (Number.isInteger(level)) sessionStorage.setItem('currentLevel', String(Number(profile.current_level)));
 

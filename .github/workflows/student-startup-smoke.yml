@@ -3,7 +3,7 @@ name: Student startup performance regression checks
 on:
   push:
     branches:
-      - perf/student-startup-20261027
+      - 'perf/**'
   pull_request:
     paths:
       - 'practice_options.html'
@@ -11,6 +11,14 @@ on:
       - 'daily-practice.js'
       - 'level-access.js'
       - 'level-page-loader.js'
+      - 'plus-minus-access.js'
+      - 'low-level-access.js'
+      - 'daily-card.js'
+      - 'class-updates.js'
+      - '*-base.html'
+      - '*.html'
+      - 'scripts/build-practice-pages.cjs'
+      - 'tests/practice-loading.cjs'
       - 'tests/student-startup-smoke.cjs'
 
 permissions:
@@ -23,3 +31,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify student entry flow and practice patterns
         run: node tests/student-startup-smoke.cjs
+      - name: Verify direct practice pages and request sharing
+        run: |
+          node scripts/build-practice-pages.cjs --check
+          node tests/practice-loading.cjs
