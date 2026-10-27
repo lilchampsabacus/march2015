@@ -49,6 +49,7 @@
     const hider = document.getElementById('levelAccessHide');
     if (hider) hider.remove();
     document.getElementById('practice-startup')?.remove();
+    if (page === 'practice-options') window.dispatchEvent(new Event('practice-dashboard-ready'));
   }
 
   function setStudentSession(profile, session) {
