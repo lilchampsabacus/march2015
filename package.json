@@ -8,6 +8,6 @@
     "build": "node scripts/build-practice-pages.cjs && npm run build:css",
     "build:css": "tailwindcss -c tailwind.config.cjs -i styles/tailwind.css -o assets/practice.css --minify",
     "test": "node tests/student-startup-smoke.cjs && node tests/practice-loading.cjs && node tests/optional-features.cjs && node tests/static-styles.cjs && node tests/local-assets.cjs",
-    "test:browser": "node tests/browser-performance.cjs && node tests/browser-local-assets.cjs && node tests/browser-daily-startup.cjs"
+    "test:browser": "node tests/browser-performance.cjs && node tests/browser-local-assets.cjs && node tests/browser-daily-startup.cjs && node tests/browser-login-entry.cjs"
   }
 }
