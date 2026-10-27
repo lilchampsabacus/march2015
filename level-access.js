@@ -21,6 +21,10 @@
     8: ['div-4d2d', 'div-5d2d', 'div-5d3d']
   };
 
+  function levelFor(profile, subject) {
+    return Number(profile.practiceLevels?.[subject] ?? profile.current_level);
+  }
+
   function onReady(fn) {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true });
     else fn();
@@ -85,6 +89,8 @@
   function applyPracticeDashboard(profile) {
     onReady(() => {
       const level = Number(profile.current_level);
+      const multLevel = levelFor(profile, 'multiplication');
+      const divLevel = levelFor(profile, 'division');
       const nameEl = document.getElementById('welcome-name');
       if (nameEl && profile.full_name) nameEl.textContent = profile.full_name;
 
@@ -104,13 +110,13 @@
       const listeningAI = document.querySelector('a[href="ListeningAI.html"]');
 
       if (Number.isInteger(level)) {
-        if (level < 3) {
+        if (multLevel < 3) {
           lockDashboardCard(mul, 'Level 3+');
           if (challenge3Min) challenge3Min.style.display = 'none';
           if (pressure) pressure.style.display = 'none';
         }
         if (level === 1 && listeningAI) listeningAI.style.display = 'none';
-        if (level < 5) lockDashboardCard(div, 'Level 5+');
+        if (divLevel < 5) lockDashboardCard(div, 'Level 5+');
       }
       reveal();
     });
@@ -122,7 +128,7 @@
   }
 
   function showMultiplicationMenu(profile) {
-    const level = Number(profile.current_level);
+    const level = levelFor(profile, 'multiplication');
     if (level < 3 || level > 8) {
       lockedPage('Multiplication practice is available from Level 3 onwards.');
       return;
@@ -166,7 +172,7 @@
   }
 
   function showDivisionMenu(profile) {
-    const level = Number(profile.current_level);
+    const level = levelFor(profile, 'division');
     if (level < 5 || level > 8) {
       lockedPage('Division practice is available from Level 5 onwards.');
       return;
@@ -215,7 +221,7 @@
   }
 
   function checkMultiplicationMaster(profile) {
-    const level = Number(profile.current_level);
+    const level = levelFor(profile, 'multiplication');
     const type = new URLSearchParams(location.search).get('type') || '';
     if (!(mulAllowed[level] || []).includes(type)) {
       lockedPage(`This multiplication type is not available for Level ${level}.`);
@@ -225,7 +231,7 @@
   }
 
   function checkDivisionMaster(profile) {
-    const level = Number(profile.current_level);
+    const level = levelFor(profile, 'division');
     const type = new URLSearchParams(location.search).get('type') || '';
     if (!(divAllowed[level] || []).includes(type)) {
       lockedPage(`This division type is not available for Level ${level}.`);
@@ -257,6 +263,7 @@
         return;
       }
 
+      if (profile.role === 'student') profile.practiceLevels = await window.BatchPracticeAccess.get();
       setStudentSession(profile, session);
 
       if (profile.role !== 'student') {
@@ -271,18 +278,18 @@
         case 'multiplication-master': checkMultiplicationMaster(profile); break;
         case 'division-master': checkDivisionMaster(profile); break;
         case 'mastery-500':
-          if (Number(profile.current_level) < 4) lockedPage('500 practice is available from Level 4 onwards.');
+          if (levelFor(profile, 'multiplication') < 4) lockedPage('500 practice is available from Level 4 onwards.');
           else reveal();
           break;
         case 'special-division':
-          if (Number(profile.current_level) < 5) lockedPage('Special Mission division is available from Level 5 onwards.');
+          if (levelFor(profile, 'division') < 5) lockedPage('Special Mission division is available from Level 5 onwards.');
           else reveal();
           break;
         default: reveal();
       }
     } catch (err) {
       console.error('Level access check failed:', err);
-      onReady(reveal);
+      lockedPage('Unable to confirm your practice settings. Please refresh or contact your teacher.');
     }
   }
 

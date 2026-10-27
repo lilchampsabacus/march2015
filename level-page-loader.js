@@ -11,7 +11,8 @@
     let html = await res.text();
 
     let inject = '<style id="levelAccessHide">html{visibility:hidden}</style>\n' +
-      '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>\n';
+      '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>\n' +
+      '<script src="batch-practice-access.js?v=1"></script>\n';
 
     if (page === 'formula-report' || page === 'formula-practice') {
       if (page === 'formula-practice') {
@@ -85,9 +86,9 @@
       }
       inject += `<script src="low-level-access.js?v=1" data-page="${page}"></script>`;
     } else if (page === 'plus-minus' || page === 'decimal' || page === 'negative') {
-      inject += `<script src="plus-minus-access.js?v=3" data-page="${page}"></script>`;
+      inject += `<script src="plus-minus-access.js?v=4" data-page="${page}"></script>`;
     } else {
-      inject += `<script src="level-access.js?v=5" data-page="${page}"></script>`;
+      inject += `<script src="level-access.js?v=6" data-page="${page}"></script>`;
       if (page === 'practice-options') {
         inject += '\n<style id="formulaMasterHide">a[href="FormulaMaster.html"]{display:none!important}</style>' +
           '\n<style id="formulaReportDefaultHide">a[href="formula_report.html"]{display:none!important}</style>' +
