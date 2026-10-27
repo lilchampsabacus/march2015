@@ -277,18 +277,42 @@
         return;
       }
 
-      // Independent queries start together instead of adding two network round trips.
-      const [profileResult, practiceResult] = await Promise.all([
-        client.from('profiles')
-          .select('full_name,current_level,role,is_active')
-          .eq('id',session.user.id).single(),
-        client.rpc('student_practice_settings_get')
-      ]);
+      let profileResult, practiceResult;
+      if (page === 'practice-options') {
+        // The login page only verifies the password. This fresh server response
+        // decides account access, staff routing and batch levels in one trip.
+        const {data, error} = await client.rpc('portal_startup_context');
+        if (error) throw error;
+        if (!data?.profile || data.profile.id !== session.user.id) throw new Error('Invalid account context');
+        profileResult = {data:data.profile};
+        practiceResult = {data:data.practice_levels};
+      } else {
+        // Practice pages continue to verify their own current access on every visit.
+        [profileResult, practiceResult] = await Promise.all([
+          client.from('profiles')
+            .select('full_name,current_level,role,is_active')
+            .eq('id',session.user.id).single(),
+          client.rpc('student_practice_settings_get')
+        ]);
+      }
       const {data:profile,error}=profileResult;
 
       if (error || !profile) throw error || new Error('Profile not found');
       if (profile.is_active === false) {
+        if (page === 'practice-options') {
+          await rejectLogin(client, 'inactive');
+          return;
+        }
         location.replace('login.html');
+        return;
+      }
+      if (page === 'practice-options' && profile.role === 'student' && Number(profile.current_level) > 8) {
+        await rejectLogin(client, 'completed');
+        return;
+      }
+      if (page === 'practice-options' && ['admin','teacher'].includes(profile.role)) {
+        setStudentSession(profile, session);
+        location.replace('teacher-dashboard.html');
         return;
       }
 
@@ -320,6 +344,15 @@
     } catch (err) {
       console.error('Level access check failed:', err);
       lockedPage('Unable to confirm your practice settings. Please refresh or contact your teacher.');
+    }
+  }
+
+  async function rejectLogin(client, reason) {
+    try { await client.auth.signOut(); }
+    finally {
+      for (const key of ['isLoggedIn','userId','userEmail','userRole','currentLevel','studentIdentifier']) sessionStorage.removeItem(key);
+      sessionStorage.setItem('portalLoginError', reason);
+      location.replace('login.html');
     }
   }
 

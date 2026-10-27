@@ -36,6 +36,7 @@ const server=http.createServer((req,res)=>{
      body=session;
     }else if(url.pathname==='/auth/v1/user')body=user;
     else if(url.pathname==='/rest/v1/profiles')body=profile;
+    else if(url.pathname==='/rest/v1/rpc/portal_startup_context')body={profile,practice_levels:{official_level:8,plusminus:7,multiplication:7,division:7}};
     else if(url.pathname==='/rest/v1/rpc/student_practice_settings_get')body={official_level:8,plusminus:7,multiplication:7,division:7};
     else if(url.pathname==='/rest/v1/official_daily_practice'||url.pathname==='/rest/v1/rpc/class_updates_list')body=[];
     return route.fulfill({contentType:'application/json',body:JSON.stringify(body)});
@@ -61,6 +62,8 @@ const server=http.createServer((req,res)=>{
   assert(dashboard.first,'Daily Practice is the first dashboard section');
   assert(dashboard.visible,'the entire Daily Practice card is visible on mobile without scrolling');
   assert(dashboard.reminders>=2,'both the compact and full physical-abacus reminders remain');
+  assert.equal(api.filter(x=>x.path==='/rest/v1/rpc/portal_startup_context').length,1,'one account/settings check from password login to visible dashboard');
+  assert(!api.some(x=>x.path==='/rest/v1/profiles'||x.path==='/rest/v1/rpc/student_practice_settings_get'),'no repeated profile or separate batch lookup during login');
   await page.getByRole('link',{name:/Multiplication/i}).first().click();
   await page.locator('#practice-startup').waitFor({state:'detached'});
   assert((await page.locator('#current-level-title').innerText()).includes('Level 7'));

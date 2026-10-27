@@ -17,7 +17,7 @@ for (const [name, kind] of Object.entries(pages)) {
 }
 
 function harness(options = {}) {
-  const profile = {role:'student',is_active:true,full_name:'Test Student',current_level:8,...options.profile};
+  const profile = {id:'test-user',role:'student',is_active:true,full_name:'Test Student',current_level:8,...options.profile};
   const plan = {official_level:profile.current_level,plusminus:7,multiplication:7,division:7,...options.plan};
   const calls = [];
   const nodes = new Map();
@@ -35,7 +35,7 @@ function harness(options = {}) {
     from(table){calls.push(table);const chain={select(){return chain},eq(){return chain},
       single:async()=>{await profileWait;calls.push('profile-resolved');return options.profileError?{error:{message:'Profile failed'}}:{data:profile}},
       maybeSingle:async()=>({data:{status:'completed',completed_sections:['plusminus','multiplication','division']}})};return chain},
-    rpc(name){calls.push(name);if(name==='student_practice_settings_get')return Promise.resolve(options.settingsError?{error:{message:'Settings failed'}}:{data:plan});return Promise.resolve({data:[]})}
+    rpc(name){calls.push(name);if(name==='portal_startup_context')return Promise.resolve(options.profileError||options.settingsError?{error:{message:'Context failed'}}:{data:{profile,practice_levels:plan}});if(name==='student_practice_settings_get')return Promise.resolve(options.settingsError?{error:{message:'Settings failed'}}:{data:plan});return Promise.resolve({data:[]})}
   };
   const document = {readyState:'complete',currentScript:{dataset:{page:options.page||'practice-options'}},documentElement:{style:{}},body:{innerHTML:''},
     getElementById:id=>nodes.get(id)||null,createElement:()=>element(''),querySelector:selector=>selector.includes('main')?grid:null,querySelectorAll:()=>[],head:{appendChild(){}}};
@@ -59,7 +59,8 @@ const tick=()=>new Promise(r=>setImmediate(r));
   const dashboard=harness();dashboard.run('level-access.js');
   await dashboard.context.window.practiceDashboardContext;
   await dashboard.run('daily-card.js');dashboard.run('class-updates.js');await tick();await tick();
-  assert.equal(dashboard.calls.filter(x=>x==='profiles').length,1,'one shared profile request');
+  assert.equal(dashboard.calls.filter(x=>x==='portal_startup_context').length,1,'one fresh account and settings request');
+  assert(!dashboard.calls.includes('profiles')&&!dashboard.calls.includes('student_practice_settings_get'),'no separate dashboard reads');
   assert.equal(dashboard.calls.filter(x=>x==='client').length,1,'one shared Supabase client');
   assert.equal(dashboard.calls.filter(x=>x==='session').length,1,'one shared session lookup');
   assert(!dashboard.calls.includes('getUser'),'no duplicate auth request for class updates');
