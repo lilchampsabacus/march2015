@@ -5,6 +5,10 @@
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYWt3Z3piYmp5d3pjY29haGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTAyMjQsImV4cCI6MjA3Nzc2NjIyNH0.VNjAhpbMzv9c19-IAg8UF2u28aIhh5OYCjAhcec9dRk";
   const page = document.currentScript?.dataset?.page || '';
 
+  function levelFor(profile) {
+    return Number(profile.practiceLevels?.plusminus ?? profile.current_level);
+  }
+
   function onReady(fn) {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true });
     else fn();
@@ -29,7 +33,7 @@
       if (formulaCard && profile.role === 'student' && [1,2].includes(Number(profile.current_level))) formulaCard.style.display = '';
 
       if (profile.role === 'student') {
-        const level = Number(profile.current_level);
+        const level = levelFor(profile);
 
         if (level === 1) {
           document.querySelectorAll('a.practice-card').forEach(card => {
@@ -89,7 +93,8 @@
         return;
       }
 
-      const level = Number(profile.current_level);
+      if (profile.role === 'student') profile.practiceLevels = await window.BatchPracticeAccess.get();
+      const level = levelFor(profile);
       if (Number.isInteger(level)) sessionStorage.setItem('currentLevel', String(level));
 
       if (page === 'plus-minus') {
@@ -124,12 +129,7 @@
     } catch (err) {
       console.error('Plus/minus access check failed:', err);
       if (page === 'plus-minus') {
-        onReady(() => {
-          hideSecondLevelCard();
-          document.querySelector('a[href="decimal.html"]')?.style.setProperty('display', 'none');
-          document.querySelector('a[href="negative.html"]')?.style.setProperty('display', 'none');
-          revealPage();
-        });
+        showLocked('Practice Settings', 1, null);
       } else if (page === 'decimal') {
         showLocked('Decimal Practice', 6, null);
       } else if (page === 'negative') {
