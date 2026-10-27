@@ -138,6 +138,24 @@ function generateQuestions(level){
 function generateSection(level,section){
   return generateQuestions(level)[section]||[];
 }
+// Capture the three batch practice levels with the questions at assignment creation.
+// Historical attempts keep their own snapshot when staff update a batch.
+function generateDailyQuestions(plan,officialLevel){
+  const q={};
+  for(const section of requiredSections(officialLevel)){
+    q[section]=generateSection(Number(plan[section]),section);
+  }
+  q._practice_levels={
+    plusminus:Number(plan.plusminus),
+    multiplication:Number(plan.multiplication),
+    division:Number(plan.division)
+  };
+  return q;
+}
+function assignmentPracticeLevel(section){
+  const snapshot=Number(assignment?.questions?._practice_levels?.[section]);
+  return Number.isInteger(snapshot)&&snapshot>=1&&snapshot<=8 ? snapshot : Number(assignment.level);
+}
 function correctAnswer(q){
   if(q.kind==='pm')return q.terms.reduce((a,b)=>a+b,0);
   if(q.kind==='mul')return q.a*q.b;
@@ -168,19 +186,33 @@ async function savePatch(patch){
   assignment=data;
   return data;
 }
+async function fetchPracticeLevels(){
+  // Student-only RPC chooses levels using the student's authenticated batch.
+  const {data,error}=await client.rpc('student_practice_settings_get');
+  if(error||!data)throw new Error('Daily Practice levels could not be verified. Please try again.');
+  if(Number(data.official_level)!==Number(profile.current_level))throw new Error('Level mismatch. Please sign in again.');
+  const plan={};
+  for(const subject of ['plusminus','multiplication','division']){
+    const level=Number(data[subject]);
+    if(!Number.isInteger(level)||level<1||level>Number(profile.current_level))throw new Error('Invalid practice level for '+subject);
+    plan[subject]=level;
+  }
+  return plan;
+}
 async function getOrCreate(){
   const today=indiaDateISO();
   let {data,error}=await client.from('official_daily_practice')
     .select('*').eq('user_id',session.user.id).eq('practice_date',today).maybeSingle();
   if(error)throw error;
   if(data)return data;
+  const batchLevels=await fetchPracticeLevels();
 
   const payload={
     user_id:session.user.id,
     student_name:profile.full_name||'',
     level:Number(profile.current_level),
     practice_date:today,
-    questions:generateQuestions(Number(profile.current_level)),
+    questions:generateDailyQuestions(batchLevels,Number(profile.current_level)),
     responses:{},
     section_seconds:{},
     completed_sections:[],
@@ -203,6 +235,10 @@ function setHeader(){
   $('student-name').textContent=assignment.student_name||profile.full_name||'Student';
   $('level-label').textContent=`Level ${assignment.level}`;
   $('date-label').textContent=displayDate(assignment.practice_date);
+  const label=$('practice-level-label');
+  if(label)label.textContent='Practice: Plus & Minus L'+assignmentPracticeLevel('plusminus')+
+    ' · Multiplication L'+assignmentPracticeLevel('multiplication')+
+    (requiredSections(assignment.level).includes('division')?' · Division L'+assignmentPracticeLevel('division'):'');
   const req=requiredSections(assignment.level);
   const done=completed().filter(x=>req.includes(x)).length;
   $('overall-progress').textContent=`${done}/${req.length} sections completed`;
@@ -503,7 +539,7 @@ async function startRetry(section,type){
     }
     questions=sourceIndices.map(i=>assignment.questions[section][i]);
   }else{
-    questions=generateSection(Number(assignment.level),section);
+    questions=generateSection(assignmentPracticeLevel(section),section);
   }
 
   const payload={
