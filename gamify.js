@@ -23,7 +23,7 @@ function initSupabase() {
 
 if (typeof supabase === 'undefined') {
     const script = document.createElement('script');
-    script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+    script.src = new URL("assets/vendor/supabase-js-2.118.0.js", document.currentScript?.src || location.href).href;
     script.onload = () => initSupabase();
     document.head.appendChild(script);
 } else {

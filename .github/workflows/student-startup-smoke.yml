@@ -29,6 +29,11 @@ on:
       - 'tests/optional-features.cjs'
       - 'tests/static-styles.cjs'
       - 'tests/browser-performance.cjs'
+      - 'tests/browser-local-assets.cjs'
+      - 'tests/local-assets.cjs'
+      - 'assets/vendor/**'
+      - 'assets/fonts/**'
+      - 'assets/local-resources.json'
 
 permissions:
   contents: read
@@ -56,6 +61,7 @@ jobs:
         run: |
           node tests/optional-features.cjs
           node tests/static-styles.cjs
+          node tests/local-assets.cjs
           npm run build
           git diff --exit-code -- assets/practice.css '*.html'
       - name: Install browser for mobile and desktop checks

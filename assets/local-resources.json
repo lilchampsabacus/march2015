@@ -1,0 +1,60 @@
+{
+  "resources": [
+    {
+      "source": "https://fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKofIOOaBXso.woff2",
+      "file": "assets/fonts/nunito-cyrillic-ext-88985ca614.woff2",
+      "sha256": "88985ca614d50fbe06bf527b0d67703d01cab729d744e41c1b5b6bf67c3a08e5",
+      "bytes": 28928
+    },
+    {
+      "source": "https://fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKofIMeaBXso.woff2",
+      "file": "assets/fonts/nunito-cyrillic-63b14e3ef0.woff2",
+      "sha256": "63b14e3ef0966785438b8947380dfbcad178cbd3c6a5ed2172672ca0d8b839ac",
+      "bytes": 20776
+    },
+    {
+      "source": "https://fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKofIOuaBXso.woff2",
+      "file": "assets/fonts/nunito-vietnamese-61e5958cf3.woff2",
+      "sha256": "61e5958cf3c731423456b31739aa454317ea3bdcb205dd87090e94f632c3642b",
+      "bytes": 13096
+    },
+    {
+      "source": "https://fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKofIO-aBXso.woff2",
+      "file": "assets/fonts/nunito-latin-ext-2c8d792869.woff2",
+      "sha256": "2c8d792869818ecb253a46bc3c63c7013df7aac2f69291c3c85e5cdc94160960",
+      "bytes": 35588
+    },
+    {
+      "source": "https://fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKofINeaB.woff2",
+      "file": "assets/fonts/nunito-latin-ba344451ea.woff2",
+      "sha256": "ba344451eab25b217a165363b1982048a5e5830a0daf36577973955a04cac793",
+      "bytes": 39128
+    },
+    {
+      "source": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0",
+      "file": "assets/vendor/supabase-js-2.118.0.js",
+      "version": "2.118.0",
+      "sha256": "bee24fc29228ed5a370f76a2ba1ca3c399549edad2fef23453c80148856a49af",
+      "bytes": 218544
+    },
+    {
+      "source": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.8",
+      "file": "assets/vendor/supabase-js-2.49.8.js",
+      "version": "2.49.8",
+      "sha256": "cf78f9ba72300e729e517e0f6b974a3bd282b600ba57fd59de448d50b1aab46f",
+      "bytes": 116378
+    },
+    {
+      "source": "https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap",
+      "file": "assets/fonts/nunito.css",
+      "sha256": "d968fe7f0db303146664bf69a484ca9620cbba8f76acc82cb12341ec6a414220",
+      "bytes": 6672
+    },
+    {
+      "source": "https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap",
+      "file": "assets/fonts/nunito-900.css",
+      "sha256": "3b4c49a7268a1527eea4ec7c9aaf1b205e2a60ee970a1e3cab8060910147c51f",
+      "bytes": 8320
+    }
+  ]
+}

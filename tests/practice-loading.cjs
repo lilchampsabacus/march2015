@@ -9,7 +9,7 @@ for (const [name, kind] of Object.entries(pages)) {
   const html = read(name + '.html');
   assert.equal(html, buildPage(name, kind), name + ': generated page is current');
   assert(!html.includes('level-page-loader.js'), name + ': no second HTML fetch');
-  assert.equal((html.match(/<script[^>]+src="https:\/\/cdn.jsdelivr.net\/npm\/@supabase\/supabase-js@2"/g)||[]).length, 1, name + ': one library load');
+  assert.equal((html.match(/<script[^>]+src="assets\/vendor\/supabase-js-2\.118\.0\.js"/g)||[]).length, 1, name + ': one library load');
   assert(html.includes('id="levelAccessHide"') && html.includes('id="practice-startup"'), name + ': starts protected with loading feedback');
   for (const script of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) {
     if (script[1].trim()) new vm.Script(script[1], {filename:name + '.html inline'});
