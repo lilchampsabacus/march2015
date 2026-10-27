@@ -15,6 +15,10 @@ function setup(){
 }
 const target=()=>({busy:false,setAttribute(){this.busy=true},removeAttribute(){this.busy=false}});
 (async()=>{
+  // Older cached HTML may still load the revised game script without the helper.
+  const game=fs.readFileSync('gamify.js','utf8');
+  const celebrate=game.slice(game.indexOf('function triggerWinConfetti()'),game.indexOf('function sanitizeString'));
+  assert.doesNotThrow(()=>vm.runInNewContext(celebrate+'\ntriggerWinConfetti();',{window:{}}));
   const test=setup();assert.equal(test.scripts.length,0,'no optional downloads at startup');
   const report=target();let captured=0,saved=0;
   const first=test.api.captureReport(report,{scale:2},canvas=>{assert.equal(canvas.image,'png');saved++});

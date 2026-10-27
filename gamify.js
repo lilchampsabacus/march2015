@@ -60,7 +60,7 @@ function playSound(type) {
 }
 
 function triggerWinConfetti() {
-    window.lilChampsOptional.withConfetti(confetti => {
+    window.lilChampsOptional?.withConfetti(confetti => {
         confetti({ origin: { x: 0, y: 0.7 }, angle: 60, spread: 55, colors: ['#4f46e5', '#ff7e67'] });
         confetti({ origin: { x: 1, y: 0.7 }, angle: 120, spread: 55, colors: ['#4f46e5', '#ff7e67'] });
     });
