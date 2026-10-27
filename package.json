@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "playwright": "1.51.1",
+    "tailwindcss": "3.4.17"
+  },
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build-practice-pages.cjs && npm run build:css",
+    "build:css": "tailwindcss -c tailwind.config.cjs -i styles/tailwind.css -o assets/practice.css --minify",
+    "test": "node tests/student-startup-smoke.cjs && node tests/practice-loading.cjs && node tests/optional-features.cjs && node tests/static-styles.cjs",
+    "test:browser": "node tests/browser-performance.cjs"
+  }
+}

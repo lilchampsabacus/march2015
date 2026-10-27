@@ -20,6 +20,15 @@ on:
       - 'scripts/build-practice-pages.cjs'
       - 'tests/practice-loading.cjs'
       - 'tests/student-startup-smoke.cjs'
+      - 'optional-features.js'
+      - 'gamify.js'
+      - 'tailwind.config.cjs'
+      - 'styles/**'
+      - 'assets/practice.css'
+      - 'package*.json'
+      - 'tests/optional-features.cjs'
+      - 'tests/static-styles.cjs'
+      - 'tests/browser-performance.cjs'
 
 permissions:
   contents: read
@@ -29,9 +38,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Install pinned style compiler
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Verify student entry flow and practice patterns
         run: node tests/student-startup-smoke.cjs
       - name: Verify direct practice pages and request sharing
         run: |
           node scripts/build-practice-pages.cjs --check
           node tests/practice-loading.cjs
+      - name: Verify lazy report downloads and compiled styles
+        run: |
+          node tests/optional-features.cjs
+          node tests/static-styles.cjs
+          npm run build
+          git diff --exit-code -- assets/practice.css '*.html'
+      - name: Install browser for mobile and desktop checks
+        run: npx playwright install --with-deps chromium
+      - name: Verify screen styles and real report download
+        run: |
+          curl -fsSL --max-time 30 https://cdn.tailwindcss.com -o /tmp/lilchamps-tailwind.js
+          curl -fsSL --max-time 30 https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js -o /tmp/lilchamps-html2canvas.js
+          npm run test:browser

@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Lil Champs Abacus - Multiplication Mission</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="assets/practice.css?v=20261027-css1">
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="gamify.js?v=2" defer></script>
+    <script src="gamify.js?v=20261027-css1" defer></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap');
@@ -63,6 +63,7 @@
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); max-width: 500px; margin: 0 auto;
         }
     </style>
+<script defer src="optional-features.js?v=20261027-css1"></script>
 </head>
 <body oncontextmenu="alert('🚫 Access Denied: Marathon Security Active!'); return false;">
 
@@ -478,7 +479,7 @@
 
         function downloadReport() {
             const reportElement = document.getElementById('report-card');
-            html2canvas(reportElement, { scale: 2 }).then(canvas => {
+            window.lilChampsOptional.captureReport(reportElement, { scale: 2 }, canvas => {
                 const link = document.createElement('a');
                 link.download = `Marathon_Report_${studentNameFormatted.replace(/\s+/g, '_')}.png`;
                 link.href = canvas.toDataURL("image/png");

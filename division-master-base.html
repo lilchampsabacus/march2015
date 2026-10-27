@@ -7,9 +7,9 @@
     
     <link rel="stylesheet" href="elegant-theme.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="gamify.js?v=5" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="gamify.js?v=20261027-css1" defer></script>
+
+    <link rel="stylesheet" href="assets/practice.css?v=20261027-css1">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     
     <style>
@@ -62,6 +62,7 @@
         }
         body.focus-mode { background-color: #fbf0d9; }
     </style>
+<script defer src="optional-features.js?v=20261027-css1"></script>
 </head>
 <body class="font-sans" oncontextmenu="return false;">
 	
@@ -470,7 +471,7 @@
         }
 
         function downloadReport() {
-            html2canvas(document.getElementById('report-card')).then(canvas => {
+            window.lilChampsOptional.captureReport(document.getElementById('report-card'), canvas => {
                 const link = document.createElement('a');
                 link.download = `Report_${CHALLENGE_CODE}.png`;
                 link.href = canvas.toDataURL();

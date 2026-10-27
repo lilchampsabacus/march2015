@@ -7,9 +7,9 @@
     
     <link rel="stylesheet" href="elegant-theme.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="gamify.js?v=2" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="gamify.js?v=20261027-css1" defer></script>
+
+    <link rel="stylesheet" href="assets/practice.css?v=20261027-css1">
     
     <style>
         html, body {
@@ -79,6 +79,7 @@
         
         .review-card { border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 1rem; background: white; }
     </style>
+<script defer src="optional-features.js?v=20261027-css1"></script>
 </head>
 <body class="min-h-screen flex flex-col font-sans" oncontextmenu="alert('🚫 Access Denied: Secure Mission Active!'); return false;">
 
@@ -292,7 +293,7 @@
         function downloadReport() {
             const reportElement = document.getElementById('report-card');
             const studentName = document.getElementById('report-student-name').textContent || "Student";
-            html2canvas(reportElement, { scale: 2 }).then(canvas => {
+            window.lilChampsOptional.captureReport(reportElement, { scale: 2 }, canvas => {
                 const link = document.createElement('a');
                 link.download = `Mission_Report_Decimal_${studentName.replace(/\s+/g, '_')}.png`;
                 link.href = canvas.toDataURL("image/png");

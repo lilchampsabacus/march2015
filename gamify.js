@@ -30,10 +30,6 @@ if (typeof supabase === 'undefined') {
     initSupabase();
 }
 
-const confettiScript = document.createElement('script');
-confettiScript.src = "https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js";
-document.head.appendChild(confettiScript);
-
 // ==================================================
 // PART 3: SOUNDS & UTILS
 // ==================================================
@@ -64,10 +60,10 @@ function playSound(type) {
 }
 
 function triggerWinConfetti() {
-    if (typeof confetti === 'function') {
+    window.lilChampsOptional.withConfetti(confetti => {
         confetti({ origin: { x: 0, y: 0.7 }, angle: 60, spread: 55, colors: ['#4f46e5', '#ff7e67'] });
         confetti({ origin: { x: 1, y: 0.7 }, angle: 120, spread: 55, colors: ['#4f46e5', '#ff7e67'] });
-    }
+    });
 }
 
 function sanitizeString(str) {
