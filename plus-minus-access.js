@@ -129,7 +129,10 @@
     } catch (err) {
       console.error('Plus/minus access check failed:', err);
       if (page === 'plus-minus') {
-        showLocked('Practice Settings', 1, null);
+        onReady(() => {
+          document.body.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#f0f9ff;font-family:Arial,sans-serif"><div style="background:white;padding:28px;border-radius:16px;max-width:490px;text-align:center"><h2 style="font-size:22px;font-weight:bold;color:#1e293b">Practice settings unavailable</h2><p style="color:#475569;margin:14px 0">Refresh the page. If the issue continues, contact your teacher.</p><a href="practice_options.html" style="font-weight:bold;color:#4338ca">Back to practice</a></div></div>';
+          revealPage();
+        });
       } else if (page === 'decimal') {
         showLocked('Decimal Practice', 6, null);
       } else if (page === 'negative') {
