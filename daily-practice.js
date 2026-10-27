@@ -191,10 +191,9 @@ async function savePatch(patch){
   assignment=data;
   return data;
 }
-async function fetchPracticeLevels(){
-  // Student-only RPC chooses levels using the student's authenticated batch.
-  const {data,error}=await client.rpc('student_practice_settings_get');
-  if(error||!data)throw new Error('Daily Practice levels could not be verified. Please try again.');
+function resolvePracticeLevels(data){
+  // Levels arrive in the same server-verified snapshot as the profile.
+  if(!data)throw new Error('Daily Practice levels could not be verified. Please try again.');
   if(Number(data.official_level)!==Number(profile.current_level))throw new Error('Level mismatch. Please sign in again.');
   const plan={};
   for(const subject of ['plusminus','multiplication','division']){
@@ -204,14 +203,14 @@ async function fetchPracticeLevels(){
   }
   return plan;
 }
-async function getOrCreate(existingResult=null){
-  const today=indiaDateISO();
-  // Existing result can be fetched in parallel with the student's profile.
-  const {data,error}=existingResult || await client.from('official_daily_practice')
-    .select('*').eq('user_id',session.user.id).eq('practice_date',today).maybeSingle();
-  if(error)throw error;
-  if(data)return data;
-  const batchLevels=await fetchPracticeLevels();
+async function getOrCreate(context){
+  const today=context.practice_date;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(today||''))throw new Error('Practice date could not be verified. Please refresh.');
+  if(context.assignment){
+    if(context.assignment.user_id!==session.user.id||context.assignment.practice_date!==today)throw new Error('Saved practice could not be verified. Please refresh.');
+    return context.assignment;
+  }
+  const batchLevels=resolvePracticeLevels(context.practice_levels);
 
   const payload={
     user_id:session.user.id,
@@ -693,16 +692,13 @@ async function init(){
       return;
     }
 
-    const [p, existingDaily]=await Promise.all([
-      client.from('profiles')
-        .select('full_name,current_level,role,is_active')
-        .eq('id',session.user.id).single(),
-      client.from('official_daily_practice')
-        .select('*').eq('user_id',session.user.id)
-        .eq('practice_date',indiaDateISO()).maybeSingle()
-    ]);
-    if(p.error)throw p.error;
-    profile=p.data;
+    const {data:context,error}=await client.rpc('student_daily_practice_context');
+    if(error)throw error;
+    if(!context?.profile||context.profile.id!==session.user.id||
+       !Object.prototype.hasOwnProperty.call(context,'assignment')){
+      throw new Error('Practice details could not be verified. Please refresh.');
+    }
+    profile=context.profile;
 
     if(profile.is_active===false){
       location.replace('login.html');
@@ -723,7 +719,7 @@ async function init(){
       return;
     }
 
-    assignment=await getOrCreate(existingDaily);
+    assignment=await getOrCreate(context);
     show('app');
     setHeader();
 

@@ -56,5 +56,5 @@ assert.equal(formats(seven.division),'4÷2,5÷2');
 assert.equal(formats(mixed.multiplication),'3×2,4×2');
 assert.equal(formats(mixed.division),'4÷2,5÷2');
 assert.equal(seven._practice_levels.multiplication,7);
-assert(daily.includes('Promise.all(['), 'student profile and assignment loaded together');
+assert(daily.includes("client.rpc('student_daily_practice_context')"), 'Daily Practice uses one verified startup context');
 console.log('PASS: static page loading, authorization safeguards, JS syntax, Daily Practice patterns and cache rules.');
