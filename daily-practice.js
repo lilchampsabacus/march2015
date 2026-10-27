@@ -199,9 +199,10 @@ async function fetchPracticeLevels(){
   }
   return plan;
 }
-async function getOrCreate(){
+async function getOrCreate(existingResult=null){
   const today=indiaDateISO();
-  let {data,error}=await client.from('official_daily_practice')
+  // Existing result can be fetched in parallel with the student's profile.
+  const {data,error}=existingResult || await client.from('official_daily_practice')
     .select('*').eq('user_id',session.user.id).eq('practice_date',today).maybeSingle();
   if(error)throw error;
   if(data)return data;
@@ -666,9 +667,14 @@ async function init(){
       return;
     }
 
-    const p=await client.from('profiles')
-      .select('full_name,current_level,role,is_active')
-      .eq('id',session.user.id).single();
+    const [p, existingDaily]=await Promise.all([
+      client.from('profiles')
+        .select('full_name,current_level,role,is_active')
+        .eq('id',session.user.id).single(),
+      client.from('official_daily_practice')
+        .select('*').eq('user_id',session.user.id)
+        .eq('practice_date',indiaDateISO()).maybeSingle()
+    ]);
     if(p.error)throw p.error;
     profile=p.data;
 
@@ -691,7 +697,7 @@ async function init(){
       return;
     }
 
-    assignment=await getOrCreate();
+    assignment=await getOrCreate(existingDaily);
     show('app');
     setHeader();
 

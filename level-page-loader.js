@@ -5,7 +5,7 @@
   if (!base) return;
 
   try {
-    const res = await fetch(base + '?v=11', { cache: 'no-store' });
+    const res = await fetch(base + '?v=20261027-speed1', { cache: 'default' });
     if (!res.ok) throw new Error('Base page could not be loaded.');
 
     let html = await res.text();

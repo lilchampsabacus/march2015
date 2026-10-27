@@ -21,18 +21,15 @@
     8: ['div-4d2d', 'div-5d2d', 'div-5d3d']
   };
 
-  async function resolvePracticeLevels(client, profile) {
-    // The server derives batch settings from the authenticated student's profile.
-    const {data,error}=await client.rpc('student_practice_settings_get');
-    if(error || !data) throw new Error('Unable to load batch practice settings');
+  function resolvePracticeLevels(result, profile) {
+    const {data,error}=result;
+    if(error||!data)throw new Error('Unable to load batch practice settings');
     const official=Number(data.official_level);
-    if(official!==Number(profile.current_level) || !Number.isInteger(official)) {
-      throw new Error('Practice level mismatch; please refresh');
-    }
+    if(official!==Number(profile.current_level)||!Number.isInteger(official))throw new Error('Practice level mismatch');
     const practice={};
     for(const subject of ['plusminus','multiplication','division']){
       const level=Number(data[subject]);
-      if(!Number.isInteger(level)||level<1||level>official) throw new Error('Invalid practice settings');
+      if(!Number.isInteger(level)||level<1||level>official)throw new Error('Invalid practice settings');
       practice[subject]=level;
     }
     return practice;
@@ -51,6 +48,8 @@
     document.documentElement.style.visibility = 'visible';
     const hider = document.getElementById('levelAccessHide');
     if (hider) hider.remove();
+    document.getElementById('practice-startup')?.remove();
+    if (page === 'practice-options') window.dispatchEvent(new Event('practice-dashboard-ready'));
   }
 
   function setStudentSession(profile, session) {
@@ -127,6 +126,16 @@
       const listeningAI = document.querySelector('a[href="ListeningAI.html"]');
 
       if (Number.isInteger(level)) {
+        // The dashboard's level and report visibility use the verified profile
+        // already fetched above: no duplicate authentication/profile calls.
+        if (level <= 2) {
+          document.getElementById('formulaReportDefaultHide')?.remove();
+          document.getElementById('formulaPracticeDefaultHide')?.remove();
+        }
+        if (level === 1) {
+          const reportCard=document.querySelector('a[href="Report.html"]');
+          if(reportCard)reportCard.style.display='none';
+        }
         if (multLevel < 3) {
           lockDashboardCard(mul, 'Level 3+');
           if (challenge3Min) challenge3Min.style.display = 'none';
@@ -268,11 +277,14 @@
         return;
       }
 
-      const { data: profile, error } = await client
-        .from('profiles')
-        .select('full_name,current_level,role,is_active')
-        .eq('id', session.user.id)
-        .single();
+      // Independent queries start together instead of adding two network round trips.
+      const [profileResult, practiceResult] = await Promise.all([
+        client.from('profiles')
+          .select('full_name,current_level,role,is_active')
+          .eq('id',session.user.id).single(),
+        client.rpc('student_practice_settings_get')
+      ]);
+      const {data:profile,error}=profileResult;
 
       if (error || !profile) throw error || new Error('Profile not found');
       if (profile.is_active === false) {
@@ -280,7 +292,7 @@
         return;
       }
 
-      if (profile.role === 'student') profile.practiceLevels = await resolvePracticeLevels(client, profile);
+      if (profile.role === 'student') profile.practiceLevels = resolvePracticeLevels(practiceResult, profile);
       setStudentSession(profile, session);
 
       if (profile.role !== 'student') {
