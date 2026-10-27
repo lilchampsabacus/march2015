@@ -1,0 +1,25 @@
+name: Student startup performance regression checks
+
+on:
+  push:
+    branches:
+      - perf/student-startup-20261027
+  pull_request:
+    paths:
+      - 'practice_options.html'
+      - 'login.html'
+      - 'daily-practice.js'
+      - 'level-access.js'
+      - 'level-page-loader.js'
+      - 'tests/student-startup-smoke.cjs'
+
+permissions:
+  contents: read
+
+jobs:
+  startup-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify student entry flow and practice patterns
+        run: node tests/student-startup-smoke.cjs
