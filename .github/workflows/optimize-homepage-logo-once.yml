@@ -1,0 +1,56 @@
+name: Optimize original logo for fast homepage loading
+on:
+  push:
+    branches:
+      - perf/logo-fastload-20261027
+    paths:
+      - .github/workflows/optimize-homepage-logo-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: perf/logo-fastload-20261027
+          persist-credentials: true
+      - name: Produce lightweight images from the exact original PNG
+        shell: bash
+        run: |
+          python -m pip install --quiet Pillow
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+
+          original = Image.open('lil-champs-logo.png').convert('RGBA')
+          for size,filename in [(120,'lil-champs-logo-small.webp'),(600,'lil-champs-logo-600.webp')]:
+              rendered = original.copy()
+              rendered.thumbnail((size,size),Image.Resampling.LANCZOS)
+              rendered.save(filename,format='WEBP',quality=91,method=6)
+              print(filename,rendered.size,Path(filename).stat().st_size)
+
+          page=Path('index.html')
+          s=page.read_text(encoding='utf-8')
+          old='lil-champs-logo.png?v=20260912'
+          assert s.count(old)==3, f'Expected three logo references; found {s.count(old)}'
+          s=s.replace(f'class="brand-logo" src="{old}"',
+                      'class="brand-logo" src="lil-champs-logo-small.webp?v=20261027" width="48" height="48" decoding="async"')
+          s=s.replace(f'class="visual-logo" src="{old}"',
+                      'class="visual-logo" src="lil-champs-logo-600.webp?v=20261027" width="270" height="270" decoding="async" fetchpriority="high"')
+          s=s.replace(f'<img src="{old}" alt="Li\'l Champs logo">',
+                      '<img src="lil-champs-logo-small.webp?v=20261027" loading="lazy" decoding="async" alt="Li\'l Champs logo">')
+          assert old not in s, 'Original page still downloads large PNG'
+          page.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit optimized assets and page, remove one-time workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/optimize-homepage-logo-once.yml
+          git add index.html lil-champs-logo-small.webp lil-champs-logo-600.webp
+          git commit -m "Optimize exact Li'l Champs logo for faster homepage loading"
+          git push origin HEAD:perf/logo-fastload-20261027
