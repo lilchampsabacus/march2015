@@ -7,7 +7,7 @@
     
     <link rel="stylesheet" href="elegant-theme.css">
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.tailwindcss.com"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 
@@ -76,9 +76,9 @@
     <style id="formulaPracticeDefaultHide">a[href="Level1and2.html"]{display:none!important}</style>
     <link rel="preconnect" href="https://portal-bridge.ucmas-ambernath-pg.workers.dev" crossorigin>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="level-access.js?v=20261027-speed1" data-page="practice-options"></script>
-    <script src="daily-card.js?v=17-clear-3s"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="level-access.js?v=20261027-speed1" data-page="practice-options"></script>
+    <script defer src="daily-card.js?v=17-clear-3s"></script>
 </head>
 <body class="min-h-screen flex flex-col">
 <div id="practice-startup" role="status" aria-live="polite" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#f0f9ff;font:700 17px Arial,sans-serif;color:#4338ca;z-index:9999;text-align:center;padding:24px">
@@ -265,5 +265,13 @@
             </svg>
         </a>
     </div>
-<script defer src="class-updates.js?v=1"></script></body>
+<script>
+  // Class updates never block entry to the practice menu.
+  window.addEventListener('practice-dashboard-ready',()=>{
+    const script=document.createElement('script');
+    script.src='class-updates.js?v=1';
+    script.async=true;
+    document.body.appendChild(script);
+  },{once:true});
+</script></body>
 </html>
