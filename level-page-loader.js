@@ -11,7 +11,7 @@
     let html = await res.text();
 
     let inject = '<style id="levelAccessHide">html{visibility:hidden}</style>\n' +
-      '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>\n';
+      '<script src="assets/vendor/supabase-js-2.118.0.js"></script>\n';
 
     if (page === 'formula-report' || page === 'formula-practice') {
       if (page === 'formula-practice') {

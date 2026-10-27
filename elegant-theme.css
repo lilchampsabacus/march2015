@@ -1,5 +1,5 @@
 /* IMPORT GOOGLE FONTS (Nunito for roundness/fun) */
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+@import url('assets/fonts/nunito.css?v=20261028-font1');
 
 :root {
     --primary-blue: #4f46e5; /* Indigo 600 */

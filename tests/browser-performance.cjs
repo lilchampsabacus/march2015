@@ -18,7 +18,7 @@ window.supabase={createClient(){
   chain.update=patch=>{Object.assign(row,patch);return chain};chain.single=chain.maybeSingle=async()=>result();chain.then=(resolve,reject)=>Promise.resolve(result()).then(resolve,reject);return chain;
  },rpc:async name=>({data:name==='student_practice_settings_get'?{official_level:level,plusminus:Math.min(level,7),multiplication:Math.min(level,7),division:Math.min(level,7)}:name==='student_formula_practice_context'?{formula_ids:['sf_p4'],batch_name:'Test Batch'}:[]})};
 }};`;
-const mime={'.html':'text/html','.css':'text/css','.js':'text/javascript','.webp':'image/webp','.png':'image/png'};
+const mime={'.html':'text/html','.css':'text/css','.js':'text/javascript','.webp':'image/webp','.png':'image/png','.woff2':'font/woff2'};
 const server=http.createServer((req,res)=>{
  const pathname=decodeURIComponent(new URL(req.url,'http://test').pathname);
  const before=pathname.startsWith('/before/');const file=pathname.replace(/^\/(before|after)\//,'');
@@ -53,14 +53,22 @@ const server=http.createServer((req,res)=>{
      page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>requests.push(r.url()));
      await context.addInitScript(level=>{window.testLevel=level;sessionStorage.setItem('isLoggedIn','true');sessionStorage.setItem('studentIdentifier','Test Student');sessionStorage.setItem('currentLevel',String(level))},level);
      await page.route('**/*',async route=>{
-      const url=route.request().url();if(url.startsWith(base))return route.continue();
+      const url=route.request().url();
+      if(url.includes('/assets/vendor/supabase-js-'))return route.fulfill({contentType:'text/javascript',body:fixtureScript});
+      if(url.startsWith(base))return route.continue();
       if(url.includes('cdn.tailwindcss.com'))return route.fulfill({contentType:'text/javascript',body:tailwind});
       if(url.includes('@supabase/supabase-js'))return route.fulfill({contentType:'text/javascript',body:fixtureScript});
+      if(url.includes('fonts.googleapis.com')&&url.includes('Nunito')){
+       const font=/Nunito[^&]*900/.test(url)?'nunito-900.css':'nunito.css';
+       const css=fs.readFileSync(path.join(root,'assets/fonts',font),'utf8').replace(/url\(([^)]+)\)/g,(_,file)=>`url(${base}/after/assets/fonts/${file})`);
+       return route.fulfill({contentType:'text/css',body:css});
+      }
       if(url.includes('html2canvas'))return route.fulfill({contentType:'text/javascript',body:renderer});
       if(url.includes('canvas-confetti'))return route.fulfill({contentType:'text/javascript',body:'window.confetti=()=>{window.testCelebrations=(window.testCelebrations||0)+1}'});
       return route.fulfill({contentType:url.includes('fonts.')?'text/css':'application/json',body:url.includes('fonts.')?'':'{}'});
      });
      await page.goto(base+'/'+version+'/'+file,{waitUntil:'networkidle'});
+     await page.evaluate(()=>document.fonts.ready);
      if(file==='daily-practice.html'){await page.locator('.section-card').first().click();await page.locator('.num-btn').first().waitFor({state:'visible'});}
      if(file==='Level1and2.html'){await page.locator('.category-card').first().click();await page.locator('.formula-card').first().click();await page.locator('.key').first().waitFor({state:'visible'});}
      await page.waitForTimeout(150);
@@ -71,6 +79,7 @@ const server=http.createServer((req,res)=>{
      assert.deepEqual(errors,[],file+' '+version+' JS errors');
      if(version==='after'){
       assert(!requests.some(u=>/cdn.tailwindcss|html2canvas|canvas-confetti/.test(u)),file+': optional libraries absent from startup');
+      assert(!requests.some(u=>u.includes('fonts.googleapis.com')&&u.includes('Nunito')),file+': Nunito does not use Google servers');
       if(file.startsWith('multiplication-master')){
        await page.evaluate(()=>{document.getElementById('report-area').classList.remove('hidden');document.getElementById('report-card').scrollIntoView()});
        const download=page.waitForEvent('download');await page.evaluate(()=>downloadReport());const saved=await download;

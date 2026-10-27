@@ -89,10 +89,9 @@ function buildPage(name, page) {
     ['plus-minus','decimal','negative'].includes(page) ? 'plus-minus-access' : 'level-access';
   let inject = '\n<!-- Generated from ' + name + '-base.html by scripts/build-practice-pages.cjs -->\n' +
     '<style id="levelAccessHide">body > :not(#practice-startup){visibility:hidden!important}</style>\n' +
-    '<link rel="preconnect" href="https://portal-bridge.ucmas-ambernath-pg.workers.dev" crossorigin>\n' +
-    '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>\n';
-  if (!html.includes('cdn.jsdelivr.net/npm/@supabase/supabase-js@2')) {
-    inject += '<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>\n';
+    '<link rel="preconnect" href="https://portal-bridge.ucmas-ambernath-pg.workers.dev" crossorigin>\n';
+  if (!html.includes('assets/vendor/supabase-js-2.118.0.js')) {
+    inject += '<script defer src="assets/vendor/supabase-js-2.118.0.js"></script>\n';
   }
   inject += `<script defer src="${access}.js?v=20261027-speed2" data-page="${page}"></script>\n`;
   if (page === 'formula-practice') inject += mobileFix + '\n';
