@@ -83,7 +83,7 @@
         <div class="mb-3"><h1 class="text-2xl sm:text-3xl font-black">What do you want to solve first?</h1><p class="text-gray-500 mt-1">Complete one section, then choose the next section.</p></div>
         <div class="mb-4 bg-orange-50 border border-orange-200 border-l-4 border-l-orange-500 rounded-xl p-3 text-sm text-orange-950"><b>🧮 Website Practice Rule:</b> Use your <b>physical abacus for every sum</b>. Do not solve mentally. Move the beads for each calculation.</div>
         <div id="section-cards" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
-        <div class="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-900"><b>Rule:</b> Plus & Minus has no skip. Multiplication and Division allow Skip when you cannot solve a sum.</div>
+        <div class="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-900"><b>Rule:</b> Plus & Minus has no skip. Multiplication and Division allow Skip when you cannot solve a sum. Use <b>Practice Skipped</b> on the section card to try those sums again, without changing your first score.</div>
       </section>
       <section id="question-screen" class="hidden">
         <div id="question-topbar" class="flex items-center justify-between gap-3 mb-3"><div><div id="section-title" class="font-black text-xl"></div><div id="question-progress" class="text-sm text-gray-500"></div></div><div class="text-right"><div class="text-xs text-gray-500">Section Time</div><div id="timer" class="font-black text-indigo-700 text-xl tabular-nums">00:00</div></div></div>
@@ -106,7 +106,7 @@
     <section id="locked" class="hidden bg-white rounded-2xl shadow p-8 text-center"><div class="text-6xl mb-2">🔒</div><h1 class="text-2xl font-black">Daily Practice Not Available</h1><p id="locked-text" class="text-gray-500 mt-2"></p><a href="practice_options.html" class="mt-5 inline-block bg-indigo-600 text-white font-bold px-5 py-3 rounded-xl no-underline">Back to Dashboard</a></section>
     <section id="error-screen" class="hidden bg-white rounded-2xl shadow p-8 text-center"><div class="text-5xl mb-2">⚠️</div><h1 class="text-xl font-black">Unable to load Daily Practice</h1><p id="error-text" class="text-gray-500 mt-2">Please check your internet and try again.</p><button onclick="location.reload()" class="mt-5 bg-indigo-600 text-white font-bold px-5 py-3 rounded-xl">Try Again</button></section>
   </main>
-  <script src="daily-practice.js?v=20261027-speed1"></script>
+  <script src="daily-practice.js?v=20261027-skippedretry1"></script>
   <script>
     (function(){
       const q=document.getElementById('question-screen');

@@ -179,6 +179,11 @@ function completed(){
   assignment.completed_sections=Array.isArray(assignment.completed_sections)?assignment.completed_sections:[];
   return assignment.completed_sections;
 }
+// A completion flag is valid only if each question has a saved response.
+function isSectionComplete(section){
+  const count=Array.isArray(assignment.questions?.[section])?assignment.questions[section].length:0;
+  return count>0 && completed().includes(section) && sectionResponses(section).length>=count;
+}
 async function savePatch(patch){
   const {data,error}=await client.from('official_daily_practice')
     .update(patch).eq('id',assignment.id).select().single();
@@ -241,10 +246,10 @@ function setHeader(){
     ' · Multiplication L'+assignmentPracticeLevel('multiplication')+
     (requiredSections(assignment.level).includes('division')?' · Division L'+assignmentPracticeLevel('division'):'');
   const req=requiredSections(assignment.level);
-  const done=completed().filter(x=>req.includes(x)).length;
+  const done=req.filter(isSectionComplete).length;
   $('overall-progress').textContent=`${done}/${req.length} sections completed`;
 
-  const st=assignment.status==='completed'?'Completed':assignment.status==='in_progress'?'In Progress':'Not Started';
+  const st=done===req.length?'Completed':assignment.status==='not_started'&&done===0?'Not Started':'In Progress';
   $('overall-status').textContent=st;
   $('overall-status').className='inline-flex px-3 py-1 rounded-full text-sm font-black '+
     (st==='Completed'?'bg-green-100 text-green-800':st==='In Progress'?'bg-blue-100 text-blue-800':'bg-amber-100 text-amber-800');
@@ -286,22 +291,42 @@ function renderCards(){
   req.forEach(s=>{
     const meta=info[s];
     const r=sectionResponses(s);
-    const done=completed().includes(s);
+    const st=sectionStats(s);
+    const done=isSectionComplete(s);
+    const incompleteMarked=completed().includes(s)&&!done;
+    const total=assignment.questions?.[s]?.length||10;
+    const color=s==='plusminus'?'border-amber-400':s==='multiplication'?'border-blue-500':'border-purple-500';
+    const wrapper=document.createElement('div');
+    wrapper.className=`bg-white rounded-2xl shadow border-b-4 ${color} overflow-hidden`;
     const card=document.createElement('button');
     card.type='button';
     card.disabled=done;
-    card.className=`section-card text-left bg-white rounded-2xl shadow p-5 border-b-4 ${
-      s==='plusminus'?'border-amber-400':s==='multiplication'?'border-blue-500':'border-purple-500'
-    } disabled:opacity-70`;
+    card.className='section-card w-full text-left p-5 disabled:opacity-70';
+    const detail=done
+      ?`Completed ✅ · ${st.correct} correct${s!=='plusminus'?` · ${st.skipped} skipped`:''}`
+      :incompleteMarked
+        ?`Saved ${r.length}/${total} answers. Finish the remaining sums.`
+        :r.length?`Continue · ${r.length}/${total}`:`${total} sums`;
     card.innerHTML=`<div class="text-4xl">${meta.icon}</div>
       <div class="text-xl font-black mt-2">${meta.title}</div>
-      <div class="text-sm text-gray-500 mt-1">${done?'Completed ✅':r.length?`Continue · ${r.length}/10`:'10 sums'}</div>
-      <div class="mt-3 font-bold ${done?'text-green-700':'text-indigo-700'}">${done?'Done':'Start →'}</div>`;
+      <div class="text-sm text-gray-500 mt-1">${detail}</div>
+      <div class="mt-3 font-bold ${done?'text-green-700':'text-indigo-700'}">${done?'Done':'Start / Continue →'}</div>`;
     if(!done)card.onclick=()=>startSection(s);
-    $('section-cards').appendChild(card);
+    wrapper.appendChild(card);
+
+    let actions='';
+    if(st.skipped>0)actions+=retryButton(`Practice Skipped (${st.skipped})`,`${s}|skipped`,'skipped');
+    if(st.wrong>0)actions+=retryButton(`Practice Wrong (${st.wrong})`,`${s}|wrong`,'wrong');
+    if(done)actions+=retryButton('Retry Full Section',`${s}|section`,'section');
+    if(actions){
+      const buttons=document.createElement('div');
+      buttons.className='px-5 pb-4 space-y-2';
+      buttons.innerHTML=actions;
+      wrapper.appendChild(buttons);
+    }
+    $('section-cards').appendChild(wrapper);
   });
 }
-
 function currentQuestionList(){
   return mode==='retry'?(retryAttempt?.questions||[]):(assignment.questions[currentSection]||[]);
 }
@@ -486,7 +511,7 @@ async function finishSection(){
   if(!completed().includes(s))completed().push(s);
   responses()._active=null;
   const req=requiredSections(assignment.level);
-  const all=req.every(x=>completed().includes(x));
+  const all=req.every(isSectionComplete);
 
   try{
     await savePatch({
@@ -599,8 +624,9 @@ async function finishRetry(){
   $('section-result-stats').innerHTML=`<b>${st.correct}</b> correct · <b>${st.wrong}</b> wrong${
     s!=='plusminus'?` · <b>${st.skipped}</b> skipped`:''
   } · Time <b>${fmtTime(timerBase)}</b><div class="mt-2 text-xs text-gray-500">Your official first-attempt score has not been changed.</div>`;
-  $('choose-next-btn').textContent='Back to Daily Result';
-  sectionResultAction='final';
+  const allDone=requiredSections(assignment.level).every(isSectionComplete);
+  $('choose-next-btn').textContent=allDone?'Back to Daily Result':'Back to Daily Practice';
+  sectionResultAction=allDone?'final':'choose';
   currentSection=null;
   mode='official';
   retryAttempt=null;
@@ -701,13 +727,13 @@ async function init(){
     show('app');
     setHeader();
 
-    if(assignment.status==='completed'){
+    if(assignment.status==='completed'&&requiredSections(assignment.level).every(isSectionComplete)){
       renderFinal();
       return;
     }
 
     const active=responses()._active;
-    if(active&&requiredSections(assignment.level).includes(active)&&!completed().includes(active)){
+    if(active&&requiredSections(assignment.level).includes(active)&&!isSectionComplete(active)&&!completed().includes(active)){
       currentSection=active;
       mode='official';
       view('question-screen');
@@ -728,12 +754,14 @@ $('choose-next-btn').addEventListener('click',()=>{
   if(sectionResultAction==='final')renderFinal();
   else renderCards();
 });
-$('final-stats').addEventListener('click',e=>{
+function handleRetryClick(e){
   const btn=e.target.closest('[data-retry]');
   if(!btn)return;
   const [section,type]=btn.dataset.retry.split('|');
   startRetry(section,type);
-});
+}
+$('final-stats').addEventListener('click',handleRetryClick);
+$('section-cards').addEventListener('click',handleRetryClick);
 document.addEventListener('keydown',e=>{
   if($('question-screen').classList.contains('hidden'))return;
   if(/^\d$/.test(e.key)){
