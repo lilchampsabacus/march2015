@@ -76,9 +76,9 @@
 }
 </style>
 <title>Formula Practice - Level 1 & 2</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/practice.css?v=20261027-css1">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -95,6 +95,7 @@
     @media(max-height:700px){.number-cell{font-size:1.75rem}.sum-table{max-width:160px}.key{min-height:42px;font-size:1.2rem}}
     @media(min-width:760px) and (orientation:landscape){#play-body{display:grid;grid-template-columns:1fr 420px;min-height:0}#question-panel{border-right:1px solid #dbeafe}#keypad-panel{border-top:0!important;display:flex;align-items:center}#keypad-wrap{width:100%}.number-cell{font-size:2.55rem}}
   </style>
+<script defer src="optional-features.js?v=20261027-css1"></script>
 </head>
 <body>
 <div id="practice-startup" role="status" aria-live="polite" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#f0f9ff;font:700 17px Arial,sans-serif;color:#4338ca;z-index:9999;text-align:center;padding:24px">Opening your practice…</div>
@@ -180,7 +181,7 @@
   async function saveOrQueueResult(payload){if(navigator.onLine){try{await saveResult(payload);return}catch(e){console.error('Formula result save failed',e)}}const q=JSON.parse(localStorage.getItem('l12_offlineQueue')||'[]');q.push(cleanPayload(payload));localStorage.setItem('l12_offlineQueue',JSON.stringify(q))}
   async function flushOfflineQueue(){if(!navigator.onLine)return;const q=JSON.parse(localStorage.getItem('l12_offlineQueue')||'[]');if(!q.length)return;let saved=0;for(const item of q){try{await saveResult(item);saved++}catch(e){break}}if(saved)localStorage.setItem('l12_offlineQueue',JSON.stringify(q.slice(saved)))}
   window.addEventListener('online',flushOfflineQueue);
-  function downloadReport(){const el=document.getElementById('report-card');html2canvas(el,{backgroundColor:'#ffffff'}).then(canvas=>{const a=document.createElement('a');a.download=`Formula_Practice_${selectedFormula.id}_${Date.now()}.png`;a.href=canvas.toDataURL('image/png');a.click()})}
+  function downloadReport(){const el=document.getElementById('report-card');window.lilChampsOptional.captureReport(el,{backgroundColor:'#ffffff'}, canvas => {const a=document.createElement('a');a.download=`Formula_Practice_${selectedFormula.id}_${Date.now()}.png`;a.href=canvas.toDataURL('image/png');a.click()})}
   document.addEventListener('keydown',e=>{if(document.getElementById('game-screen').classList.contains('hidden'))return;if(/^\d$/.test(e.key)){e.preventDefault();pressDigit(e.key)}else if(e.key==='Backspace'){e.preventDefault();backspaceAnswer()}else if(e.key==='Enter'){e.preventDefault();submitAnswer()}else if(e.key==='Escape'){e.preventDefault();clearAnswer()}});
   document.addEventListener('DOMContentLoaded',init);
 </script>

@@ -5,10 +5,18 @@ not require downloading another HTML template first. Edit the matching
 `*-base.html` template, then run:
 
 ```sh
-node scripts/build-practice-pages.cjs
-node tests/student-startup-smoke.cjs
-node tests/practice-loading.cjs
+npm ci --ignore-scripts
+npm run build
+npm test
 ```
 
 Commit the generated HTML along with the template. CI checks that they match.
 The generated pages retain the server-verified level checks and mobile layout.
+
+Tailwind 3.4.17 generates `assets/practice.css` from the HTML and JavaScript.
+The custom Mistake Tracker theme and runtime progress colours are preserved in
+`tailwind.config.cjs`. Rebuild after adding utility classes and bump the CSS link
+version when publishing a changed stylesheet.
+
+`optional-features.js` loads the report-image library on the first download and
+confetti on the first celebration. Failed downloads can be retried.

@@ -7,8 +7,8 @@
     
     <link rel="stylesheet" href="elegant-theme.css">
     <script src="gamify.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="assets/practice.css?v=20261027-css1">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 
@@ -58,6 +58,7 @@
           body.challenge-solving #game-panel{padding:8px}
         }
 </style>
+<script defer src="optional-features.js?v=20261027-css1"></script>
 </head>
 <body class="min-h-screen flex flex-col font-sans">
     
@@ -167,7 +168,7 @@
         function downloadReport() {
             const reportElement = document.getElementById('report-card');
             const name = document.getElementById('report-student-name').textContent;
-            html2canvas(reportElement, { scale: 2 }).then(canvas => {
+            window.lilChampsOptional.captureReport(reportElement, { scale: 2 }, canvas => {
                 const link = document.createElement('a');
                 link.download = `3_Minutes_Challenge_${name.replace(/\s+/g, '_')}.png`;
                 link.href = canvas.toDataURL("image/png");
