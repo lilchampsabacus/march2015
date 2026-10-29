@@ -156,6 +156,7 @@
                     .limit(1000);
                 if (error) throw error;
                 if (!data || data.length === 0) {
+                    loader.style.display = 'none';
                     statusMsg.textContent = "No practice records found in this date range.";
                     return;
                 }
