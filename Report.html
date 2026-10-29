@@ -82,38 +82,40 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentStudentName = "";
+        let currentStudentId = "";
 
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log("Page Loaded. Checking Session..."); 
-            
-            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
-            const studentId = sessionStorage.getItem('studentIdentifier');
-
-            if (isLoggedIn !== 'true' || !studentId) {
-                alert("Session missing! Please go back to the Login page.");
-                window.location.href = 'index.html'; 
-                return;
-            }
-
-            try {
-                const namePart = studentId.split('@')[0];
-                const cleanName = namePart.replace(/[0-9]/g, '');
-                currentStudentName = cleanName.split('.').map(part => 
-                    part.charAt(0).toUpperCase() + part.slice(1)
-                ).join(' ');
-
-                const nameDisplay = document.getElementById('studentNameDisplay');
-                if(nameDisplay) nameDisplay.textContent = currentStudentName;
-
-            } catch (err) {
-                console.error("Name parsing error:", err);
-                currentStudentName = "Student"; 
-            }
-            
+        document.addEventListener('DOMContentLoaded', async () => {
             const today = new Date();
             const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-            if(document.getElementById('endDate')) document.getElementById('endDate').valueAsDate = today;
-            if(document.getElementById('startDate')) document.getElementById('startDate').valueAsDate = firstDay;
+            document.getElementById('endDate').valueAsDate = today;
+            document.getElementById('startDate').valueAsDate = firstDay;
+
+            const statusMsg = document.getElementById('statusMsg');
+            try {
+                const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+                if (sessionError || !session?.user?.id) {
+                    statusMsg.textContent = "Please log in to view your practice report.";
+                    return;
+                }
+                currentStudentId = session.user.id;
+                const { data: profile, error: profileError } = await supabaseClient
+                    .from('profiles')
+                    .select('full_name,role,is_active,student_status')
+                    .eq('id', currentStudentId)
+                    .single();
+                if (profileError || !profile || profile.role !== 'student' ||
+                    profile.is_active !== true || profile.student_status !== 'active') {
+                    currentStudentId = "";
+                    statusMsg.textContent = "Your student account could not be verified. Please log in again.";
+                    return;
+                }
+                currentStudentName = profile.full_name?.trim() || "Student";
+                document.getElementById('studentNameDisplay').textContent = currentStudentName;
+            } catch (err) {
+                currentStudentId = "";
+                statusMsg.textContent = "Could not load student details. Please log in again.";
+                console.error("Student report login error:", err);
+            }
         });
 
         async function fetchSupabaseReport() {
@@ -124,8 +126,12 @@
             const tableContainer = document.getElementById('tableContainer');
             const tbody = document.getElementById('reportBody');
 
-            if(!currentStudentName) {
-                statusMsg.textContent = "Error: Student Name not identified. Please re-login.";
+            if (!currentStudentId) {
+                statusMsg.textContent = "Please log in again to view your report.";
+                return;
+            }
+            if (!startDateVal || !endDateVal || startDateVal > endDateVal) {
+                statusMsg.textContent = "Select a valid start and end date.";
                 return;
             }
 
@@ -135,41 +141,25 @@
             loader.style.display = 'block';
 
             try {
+                // Apply India-local date boundaries in the indexed database query.
+                const start = new Date(startDateVal + 'T00:00:00+05:30');
+                const endExclusive = new Date(
+                    new Date(endDateVal + 'T00:00:00+05:30').getTime() + 86400000
+                );
                 const { data, error } = await supabaseClient
                     .from('reports')
-                    .select('*')
-                    .eq('student_name', currentStudentName)
+                    .select('indian_time,challenge_type,score_text,score_val,total_val,time_taken')
+                    .eq('user_id', currentStudentId)
+                    .gte('indian_time', start.toISOString())
+                    .lt('indian_time', endExclusive.toISOString())
                     .order('indian_time', { ascending: false })
-                    .limit(100);
-
+                    .limit(1000);
                 if (error) throw error;
-
                 if (!data || data.length === 0) {
-                    loader.style.display = 'none';
-                    statusMsg.textContent = `No practice records found for "${currentStudentName}".`;
+                    statusMsg.textContent = "No practice records found in this date range.";
                     return;
                 }
-
-                const start = new Date(startDateVal);
-                start.setHours(0,0,0,0);
-                const end = new Date(endDateVal);
-                end.setHours(23,59,59,999);
-
-                const filteredData = data.filter(row => {
-                    const rawDateString = row.indian_time.slice(0, 19);
-                    const rowDate = new Date(rawDateString);
-                    return rowDate >= start && rowDate <= end;
-                });
-
-                if (filteredData.length === 0) {
-                    loader.style.display = 'none';
-                    statusMsg.textContent = "No records found in this date range.";
-                    return;
-                }
-                
-                filteredData.sort((a, b) => {
-                return new Date(b.indian_time) - new Date(a.indian_time);
-                });
+                const filteredData = data;
 
                 loader.style.display = 'none';
                 tableContainer.classList.remove('hidden');
@@ -180,7 +170,11 @@
                     const tr = document.createElement('tr');
                     tr.className = "border-b border-gray-200 hover:bg-gray-50";
 
-                    let formattedDate = row.indian_time.replace('T', ' ').slice(0, 19);
+                    let formattedDate = new Intl.DateTimeFormat('sv-SE', {
+                        timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit',
+                        day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit',
+                        hour12: false
+                    }).format(new Date(row.indian_time));
 
                     let score = 0;
                     let total = 1;
