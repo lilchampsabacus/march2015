@@ -230,6 +230,10 @@
         parentMonthInput.value = indiaMonth();
         parentMonthInput.max = indiaMonth();
         const safeText = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const selectedStudentName = () => {
+            const option = document.getElementById('studentDropdown').selectedOptions[0];
+            return option?.value ? (option.dataset.studentName || option.textContent).trim() : '';
+        };
         document.getElementById('loadParentReport').addEventListener('click', loadParentReport);
         document.getElementById('studentDropdown').addEventListener('change', () => {
             parentPanel.classList.add('hidden');
@@ -241,7 +245,7 @@
             document.getElementById('printParentReport').classList.add('hidden');
         });
         document.getElementById('printParentReport').addEventListener('click', async () => {
-            const name = document.getElementById('studentDropdown').value;
+            const name = selectedStudentName();
             // Leave space inside the capture so html2canvas cannot crop the panel border.
             const sheet = document.createElement('div');
             sheet.style.cssText = 'width:940px;box-sizing:border-box;padding:16px;background:#fff;';
@@ -260,7 +264,7 @@
         });
 
         async function loadParentReport() {
-            const name = document.getElementById('studentDropdown').value;
+            const name = selectedStudentName();
             const month = parentMonthInput.value;
             parentPanel.classList.add('hidden');
             document.getElementById('printParentReport').classList.add('hidden');
@@ -319,7 +323,7 @@
             }
 
             const element = document.getElementById('printableArea');
-            const studentName = document.getElementById('studentDropdown').value || "Student";
+            const studentName = selectedStudentName() || "Student";
             const header = document.getElementById('pdfHeader');
             const monthPicker = document.getElementById('monthPicker');
             const monthLabel = document.getElementById('pdfMonthLabel');
@@ -385,52 +389,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     const dropdown = document.getElementById('studentDropdown');
     dropdown.innerHTML = '<option>Loading Students...</option>';
     
-    // Both Admin and Teacher will now use the same logic to scan the reports table
+    // Staff-only RPC replaces paginated scans of the entire reports table.
     try {
-        let allStudents = new Set();
-        let from = 0;
-        let step = 1000;
-        let keepFetching = true;
-
-        while(keepFetching) {
-            const { data, error } = await supabase
-                .from('reports')
-                .select('student_name')
-                .range(from, from + step - 1);
-
-            if (error) throw error;
-
-            if (!data || data.length === 0) {
-                keepFetching = false;
-            } else {
-                data.forEach(item => {
-                    // Trim and check for valid names
-                    if(item.student_name && item.student_name.trim() !== "") {
-                        allStudents.add(item.student_name.trim());
-                    }
-                });
-                from += step;
-            }
-        }
-
-        // Include active students who have only used the newer daily practice.
-        // Keep historical report names for the existing teacher report.
-        const { data: activeStudents, error: activeError } = await supabase.rpc('staff_active_student_practice_overview');
-        if (!activeError) (activeStudents || []).forEach(student => {
-            if (student.student_name && student.student_name.trim()) allStudents.add(student.student_name.trim());
-        });
-
-        if (allStudents.size === 0) {
-            dropdown.innerHTML = '<option>No practice records found</option>';
+        const { data: students, error } = await supabase.rpc('staff_report_student_options');
+        if (error) throw error;
+        if (!students || students.length === 0) {
+            dropdown.innerHTML = '<option value="">No students found</option>';
             return;
         }
-
-        const uniqueNames = Array.from(allStudents).sort();
         dropdown.innerHTML = '<option value="">-- Choose a Student --</option>';
-        uniqueNames.forEach(name => {
+        students.forEach(student => {
             const option = document.createElement('option');
-            option.value = name;
-            option.textContent = name;
+            option.value = student.user_id;
+            option.textContent = student.student_name;
+            option.dataset.studentName = student.student_name;
             dropdown.appendChild(option);
         });
 
@@ -444,11 +416,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
         
         async function getReport() {
-            const studentName = document.getElementById('studentDropdown').value;
+            const studentId = document.getElementById('studentDropdown').value;
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
             
-            if(!studentName) { alert("Please select a student first!"); return; }
+            if(!studentId) { alert("Please select a student first!"); return; }
 
             if(startDate && endDate) {
                 document.getElementById('pdfDateRange').innerText = `${startDate} to ${endDate}`;
@@ -467,8 +439,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             const { data: reports, error } = await supabase
                 .from('reports')
-                .select('*')
-                .eq('student_name', studentName)
+                .select('indian_time,challenge_type,score_text,score_val,total_val,time_taken')
+                .eq('user_id', studentId)
                 .order('indian_time', { ascending: false });
 
             if(error) { alert("Error: " + error.message); return; }
